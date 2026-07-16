@@ -164,11 +164,17 @@ const BoardDetailPage = () => {
     initialCollapseApplied.current = false;
   }, [boardId]);
 
-  // Collapse all groups on first load — gives the clean "categories only" view
+  // First load: open the first few working stages so the board reads as a
+  // live office rather than a wall of collapsed bars; collapse the rest.
   useEffect(() => {
     if (groups.length === 0 || initialCollapseApplied.current) return;
     initialCollapseApplied.current = true;
-    setCollapsed(new Set(groups.map((g) => g._id)));
+    const openIds = new Set();
+    for (const g of groups) {
+      if (openIds.size >= 3) break;
+      openIds.add(g._id);
+    }
+    setCollapsed(new Set(groups.filter((g) => !openIds.has(g._id)).map((g) => g._id)));
   }, [groups]);
 
   // Which group (if any) is currently creating a new task inline
@@ -1106,9 +1112,8 @@ const BoardDetailPage = () => {
               className="font-display truncate"
               style={{
                 fontSize: 26,
-                fontWeight: 800,
-                textTransform: 'uppercase',
-                letterSpacing: '-0.01em',
+                fontWeight: 700,
+                letterSpacing: '-0.02em',
                 color: 'var(--color-text-primary)',
               }}
             >
@@ -1124,8 +1129,11 @@ const BoardDetailPage = () => {
                   borderRadius: 'var(--radius-full)',
                   background: isPublic
                     ? 'var(--color-status-done-bg)'
-                    : '#FFF0F0',
-                  color: isPublic ? 'var(--color-status-done)' : '#DC2626',
+                    : 'var(--color-bg-subtle)',
+                  color: isPublic
+                    ? 'var(--color-status-done)'
+                    : 'var(--color-text-secondary)',
+                  boxShadow: 'inset 0 0 0 1px var(--color-border)',
                 }}
               >
                 <VisibilityIcon size={11} aria-hidden="true" />
@@ -1415,10 +1423,8 @@ const BoardDetailPage = () => {
                         }`}
                         style={{
                           ...style,
-                          borderRadius: 'var(--radius-md)',
+                          borderRadius: 'var(--radius-lg)',
                           boxShadow: 'var(--shadow-card)',
-                          // Monday-style colored left rail for the group.
-                          borderLeft: `4px solid ${groupColor}`,
                           position: 'relative',
                           zIndex: isDragging ? 30 : 'auto',
                           // Give an expanded group a floor height so a sparse

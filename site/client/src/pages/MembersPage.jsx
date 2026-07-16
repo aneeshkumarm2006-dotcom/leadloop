@@ -9,7 +9,7 @@ import * as orgService from '../services/orgService';
 import { formatShortDate } from '../utils/dateUtils';
 
 const AVATAR_COLORS = [
-  '#3E6B4E', '#16A34A', '#EA580C', '#7C3AED', '#D97706', '#DC2626',
+  '#3E6B4E', '#6E8B3D', '#B08A3C', '#C4632B', '#7A5A44', '#4E7A70'
 ];
 const getInitial = (name) => (name ? name.trim().charAt(0).toUpperCase() : '?');
 const getAvatarColor = (seed = '') => {

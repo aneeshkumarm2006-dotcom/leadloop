@@ -16,17 +16,19 @@
  * the seed list if Thoma changes scope (see phase-1-TODO §Pre-flight).
  */
 
+/* Warm-editorial seed palette (LeadLoop brand) — keys keep their legacy
+   names so the template option definitions below stay untouched. */
 const COLOR = {
-  gray: '#6B7280',
-  blue: '#2563EB',
-  orange: '#D97706',
-  green: '#16A34A',
-  emerald: '#059669',
-  red: '#DC2626',
-  yellow: '#CA8A04',
-  purple: '#7C3AED',
-  cyan: '#0891B2',
-  pink: '#DB2777',
+  gray: '#8A8273',    // warm taupe
+  blue: '#3E6B8F',    // slate
+  orange: '#C4632B',  // terracotta
+  green: '#3E6B4E',   // forest
+  emerald: '#4E9068', // leaf
+  red: '#C9463C',     // warm red
+  yellow: '#C79A3E',  // gold
+  purple: '#96578A',  // plum
+  cyan: '#3E8FA0',    // lagoon
+  pink: '#A63D57',    // rosewood
 };
 
 const stageOptions = [

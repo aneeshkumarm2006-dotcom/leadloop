@@ -23,9 +23,9 @@ import useToastStore from '../store/toastStore';
 const ACCENTS = [
   { id: 'amber', c: '#E0982E', c2: '#F2754B' },
   { id: 'coral', c: '#F2754B', c2: '#E0982E' },
-  { id: 'indigo', c: '#4F46E5', c2: '#7C3AED' },
-  { id: 'teal', c: '#0E9F8E', c2: '#34D8C4' },
-  { id: 'violet', c: '#7C3AED', c2: '#A78BFA' },
+  { id: 'forest', c: '#3E6B4E', c2: '#4E9068' },
+  { id: 'spruce', c: '#4E7A70', c2: '#6FA096' },
+  { id: 'plum', c: '#96578A', c2: '#B47AA8' },
 ];
 const accentObj = (hex) => ACCENTS.find((a) => a.c.toLowerCase() === String(hex || '').toLowerCase()) || ACCENTS[0];
 // Availability is edited in Mon-first order; map design index → backend dayOfWeek (0=Sun).

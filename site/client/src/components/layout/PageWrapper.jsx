@@ -7,11 +7,7 @@ import {
   Check,
   ArrowLeft,
   Home,
-  LayoutGrid,
   UserCheck,
-  Calendar,
-  BarChart3,
-  LayoutList,
   ChevronDown,
   Zap,
   Sparkles,
@@ -23,33 +19,65 @@ import SidebarFolders from './SidebarFolders';
 import useOrgStore from '../../store/orgStore';
 import useAuthStore from '../../store/authStore';
 import useBoardStore from '../../store/boardStore';
+import { getAvatarColor } from '../../utils/avatarColors';
 
-/** A single left-sidebar nav row (icon + label) with active highlight. */
+/**
+ * The dark "pine" sidebar is the app's brand anchor — deep forest ink against
+ * the cream paper content, echoing the login brand panel and the marketing
+ * site. Everything on it uses the pine token family (globals.css).
+ */
+
+/** Looping-arrows mark — the "loop" in LeadLoop (shared with AuthScreen). */
+const LoopMark = ({ size = 18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M4 12a8 8 0 0 1 13.66-5.66M20 12a8 8 0 0 1-13.66 5.66"
+      stroke="#fff"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+    />
+    <path
+      d="M17 3v4h-4M7 21v-4h4"
+      stroke="#fff"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+/** A single sidebar nav row (icon + label) with the pine active pill. */
 const SidebarLink = ({ icon: Icon, label, active, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="w-full flex items-center gap-2.5 px-4 py-2 text-left transition-colors duration-100 hover:bg-[color:var(--color-bg-subtle)]"
+    className="w-full flex items-center gap-2.5 text-left transition-colors duration-100"
     style={{
-      background: active ? 'var(--color-accent-light)' : undefined,
-      color: active ? 'var(--color-accent-text)' : 'var(--color-text-secondary)',
+      height: 34,
+      padding: '0 10px',
+      margin: '1px 0',
+      borderRadius: 'var(--radius-md)',
+      background: active ? 'var(--color-pine-active)' : 'transparent',
+      color: active ? 'var(--color-pine-text)' : 'var(--color-pine-text-2)',
       fontWeight: active ? 600 : 500,
     }}
+    onMouseEnter={(e) => {
+      if (!active) {
+        e.currentTarget.style.background = 'var(--color-pine-raise)';
+        e.currentTarget.style.color = 'var(--color-pine-text)';
+      }
+    }}
+    onMouseLeave={(e) => {
+      if (!active) {
+        e.currentTarget.style.background = 'transparent';
+        e.currentTarget.style.color = 'var(--color-pine-text-2)';
+      }
+    }}
   >
-    <Icon size={16} aria-hidden="true" />
+    <Icon size={16} aria-hidden="true" style={{ flexShrink: 0 }} />
     <span className="font-body text-[13px] truncate">{label}</span>
   </button>
 );
-
-const AVATAR_COLORS = ['#3E6B4E', '#16A34A', '#EA580C', '#7C3AED', '#D97706', '#DC2626'];
-
-const getAvatarColor = (seed = '') => {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash * 31 + seed.charCodeAt(i)) & 0xffffffff;
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-};
 
 /* ----------------------------- Org Sidebar ----------------------------- */
 
@@ -138,39 +166,90 @@ const OrgSidebar = () => {
     }
   };
 
+  // Dark-field input used by the create / join forms.
+  const pineInputStyle = {
+    height: 34,
+    padding: '0 10px',
+    fontSize: 13,
+    width: '100%',
+    border: '1px solid var(--color-pine-line)',
+    borderRadius: 'var(--radius-md)',
+    background: 'rgba(237, 232, 218, 0.08)',
+    color: 'var(--color-pine-text)',
+    outline: 'none',
+  };
+
   return (
     <div
       className="hidden md:flex flex-col shrink-0"
       style={{
-        width: 240,
-        borderRight: '1px solid var(--color-border)',
-        background: 'var(--color-bg-surface)',
-        // Stay put while the main content scrolls (sticky under the 56px navbar).
+        width: 248,
+        background: 'var(--color-pine)',
         position: 'sticky',
-        top: 56,
+        top: 0,
         alignSelf: 'flex-start',
-        height: 'calc(100vh - 56px)',
+        height: '100vh',
       }}
     >
-      {/* Workspace switcher (Monday-style) */}
-      <div className="px-3 py-3 shrink-0 relative" style={{ borderBottom: '1px solid var(--color-border)' }}>
+      {/* Brand row — the logo lives here now (desktop). */}
+      <button
+        type="button"
+        onClick={() => navigate('/workspace')}
+        aria-label="LeadLoop home"
+        className="flex items-center gap-2.5 shrink-0 text-left"
+        style={{
+          height: 56,
+          padding: '0 16px',
+          borderBottom: '1px solid var(--color-pine-line)',
+          background: 'transparent',
+          cursor: 'pointer',
+        }}
+      >
+        <span
+          className="flex items-center justify-center shrink-0"
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 8,
+            background: 'var(--color-accent)',
+          }}
+          aria-hidden="true"
+        >
+          <LoopMark size={16} />
+        </span>
+        <span
+          className="font-display font-bold tracking-tight"
+          style={{ fontSize: 17, color: 'var(--color-pine-text)' }}
+        >
+          LeadLoop
+        </span>
+      </button>
+
+      {/* Workspace switcher */}
+      <div className="px-3 py-3 shrink-0 relative" style={{ borderBottom: '1px solid var(--color-pine-line)' }}>
         <button
           type="button"
           onClick={() => setSwitcherOpen((v) => !v)}
           aria-expanded={switcherOpen}
-          className="w-full flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-[color:var(--color-bg-subtle)]"
+          className="w-full flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors"
+          style={{ background: switcherOpen ? 'var(--color-pine-raise)' : 'transparent' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-pine-raise)'; }}
+          onMouseLeave={(e) => { if (!switcherOpen) e.currentTarget.style.background = 'transparent'; }}
         >
           <div
             className="flex items-center justify-center font-display font-bold text-white shrink-0"
-            style={{ width: 28, height: 28, borderRadius: 'var(--radius-sm)', background: getAvatarColor(currentOrg?.name || ''), fontSize: 12 }}
+            style={{ width: 26, height: 26, borderRadius: 7, background: getAvatarColor(currentOrg?.name || ''), fontSize: 12, boxShadow: 'inset 0 0 0 1px rgba(237,232,218,0.25)' }}
             aria-hidden="true"
           >
             {(currentOrg?.name || '?').trim().charAt(0).toUpperCase()}
           </div>
-          <span className="flex-1 min-w-0 text-left font-body font-semibold text-[14px] text-[color:var(--color-text-primary)] truncate">
+          <span
+            className="flex-1 min-w-0 text-left font-body font-semibold text-[13.5px] truncate"
+            style={{ color: 'var(--color-pine-text)' }}
+          >
             {currentOrg?.displayName || currentOrg?.name || 'Workspace'}
           </span>
-          <ChevronDown size={16} color="var(--color-text-muted)" aria-hidden="true" />
+          <ChevronDown size={15} color="var(--color-pine-text-2)" aria-hidden="true" />
         </button>
         {switcherOpen && (
           <div className="absolute left-3 right-3 mt-1 bg-white z-50" style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', boxShadow: 'var(--shadow-lg)', overflow: 'hidden' }}>
@@ -184,7 +263,7 @@ const OrgSidebar = () => {
                     onClick={() => { handleSwitch(org._id); setSwitcherOpen(false); }}
                     className="w-full flex items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-[color:var(--color-bg-subtle)]"
                   >
-                    <div className="flex items-center justify-center font-display font-bold text-white shrink-0" style={{ width: 24, height: 24, borderRadius: 'var(--radius-sm)', background: getAvatarColor(org.name || ''), fontSize: 11 }} aria-hidden="true">
+                    <div className="flex items-center justify-center font-display font-bold text-white shrink-0" style={{ width: 24, height: 24, borderRadius: 6, background: getAvatarColor(org.name || ''), fontSize: 11 }} aria-hidden="true">
                       {(org.name || '?').trim().charAt(0).toUpperCase()}
                     </div>
                     <span className="flex-1 font-body text-[13px] text-[color:var(--color-text-primary)] truncate" style={{ fontWeight: active ? 600 : 400 }}>{org.name}</span>
@@ -206,7 +285,7 @@ const OrgSidebar = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto px-2 pb-4">
         {!mode && (
           <>
             {/* App sections */}
@@ -268,16 +347,17 @@ const OrgSidebar = () => {
 
         {/* Create form */}
         {mode === 'create' && (
-          <div className="p-4">
+          <div className="p-2 pt-4">
             <button
               type="button"
               onClick={() => { setMode(null); setError(''); }}
-              className="flex items-center gap-1 font-body text-[12px] text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text-primary)] mb-4"
+              className="flex items-center gap-1 font-body text-[12px] mb-4 transition-colors"
+              style={{ color: 'var(--color-pine-text-2)' }}
             >
               <ArrowLeft size={14} aria-hidden="true" />
               Back
             </button>
-            <p className="font-display font-bold text-[14px] text-[color:var(--color-text-primary)] mb-4">
+            <p className="font-display font-bold text-[14px] mb-4" style={{ color: 'var(--color-pine-text)' }}>
               Create workspace
             </p>
             <form onSubmit={handleCreate}>
@@ -288,20 +368,17 @@ const OrgSidebar = () => {
                 placeholder="Workspace name"
                 autoFocus
                 disabled={submitting}
-                className="w-full h-9 px-3 font-body text-[13px] text-[color:var(--color-text-primary)] bg-[color:var(--color-bg-input)] focus:outline-none"
-                style={{
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                }}
+                className="font-body placeholder:text-[color:var(--color-pine-text-2)]"
+                style={pineInputStyle}
               />
               {error && (
-                <p className="mt-2 font-body text-[11px] text-[color:var(--color-status-stuck)]">{error}</p>
+                <p className="mt-2 font-body text-[11px]" style={{ color: '#E8A79B' }}>{error}</p>
               )}
               <button
                 type="submit"
                 disabled={submitting || !orgName.trim()}
-                className="mt-3 w-full h-9 font-body font-semibold text-[13px] text-white bg-accent hover:bg-accent-hover disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                style={{ borderRadius: 'var(--radius-md)' }}
+                className="mt-3 w-full font-body font-semibold text-[13px] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                style={{ height: 34, borderRadius: 'var(--radius-md)', background: 'var(--color-pine-text)', color: 'var(--color-pine)' }}
               >
                 {submitting ? 'Creating…' : 'Create'}
               </button>
@@ -311,16 +388,17 @@ const OrgSidebar = () => {
 
         {/* Join form */}
         {mode === 'join' && (
-          <div className="p-4">
+          <div className="p-2 pt-4">
             <button
               type="button"
               onClick={() => { setMode(null); setError(''); }}
-              className="flex items-center gap-1 font-body text-[12px] text-[color:var(--color-text-muted)] hover:text-[color:var(--color-text-primary)] mb-4"
+              className="flex items-center gap-1 font-body text-[12px] mb-4 transition-colors"
+              style={{ color: 'var(--color-pine-text-2)' }}
             >
               <ArrowLeft size={14} aria-hidden="true" />
               Back
             </button>
-            <p className="font-display font-bold text-[14px] text-[color:var(--color-text-primary)] mb-4">
+            <p className="font-display font-bold text-[14px] mb-4" style={{ color: 'var(--color-pine-text)' }}>
               Join workspace
             </p>
             <form onSubmit={handleJoin}>
@@ -331,29 +409,38 @@ const OrgSidebar = () => {
                 placeholder="Paste invite code"
                 autoFocus
                 disabled={submitting}
-                className="w-full h-9 px-3 font-body text-[13px] text-[color:var(--color-text-primary)] bg-[color:var(--color-bg-input)] focus:outline-none"
-                style={{
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                }}
+                className="font-body placeholder:text-[color:var(--color-pine-text-2)]"
+                style={pineInputStyle}
               />
               {error && (
-                <p className="mt-2 font-body text-[11px] text-[color:var(--color-status-stuck)]">{error}</p>
+                <p className="mt-2 font-body text-[11px]" style={{ color: '#E8A79B' }}>{error}</p>
               )}
               <button
                 type="submit"
                 disabled={submitting || !inviteCode.trim()}
-                className="mt-3 w-full h-9 font-body font-semibold text-[13px] text-[color:var(--color-text-primary)] bg-white hover:bg-[color:var(--color-bg-subtle)] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
-                style={{
-                  border: '1.5px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                }}
+                className="mt-3 w-full font-body font-semibold text-[13px] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                style={{ height: 34, borderRadius: 'var(--radius-md)', background: 'transparent', border: '1px solid var(--color-pine-line)', color: 'var(--color-pine-text)' }}
               >
                 {submitting ? 'Joining…' : 'Join'}
               </button>
             </form>
           </div>
         )}
+      </div>
+
+      {/* Brand foot — quiet mono tag, mirrors the login panel. */}
+      <div
+        className="shrink-0 font-mono"
+        style={{
+          padding: '12px 16px',
+          borderTop: '1px solid var(--color-pine-line)',
+          fontSize: 9.5,
+          letterSpacing: '0.08em',
+          textTransform: 'uppercase',
+          color: 'rgba(169, 188, 167, 0.75)',
+        }}
+      >
+        The leasing OS · Montréal
       </div>
     </div>
   );
@@ -363,7 +450,8 @@ const OrgSidebar = () => {
 
 /**
  * PageWrapper — standard shell used by all authenticated in-app pages.
- * Renders the Navbar + a persistent org sidebar on the left + page content.
+ * Layout: [pine sidebar] | [topbar + page content]. The sidebar owns the
+ * brand; the topbar (Navbar) carries search and account controls.
  *
  * Props:
  *   showNav (bool, default true) — render the Navbar + sidebar
@@ -377,20 +465,13 @@ const PageWrapper = ({
   className = '',
 }) => {
   const { pathname } = useLocation();
-  const contentHeight = showNav ? 'calc(100vh - 56px)' : '100vh';
 
   return (
-    <div className="min-h-screen bg-base">
-      {showNav && <Navbar />}
+    <div className="min-h-screen bg-base flex">
+      {showNav && <OrgSidebar />}
 
-      <div
-        className="flex"
-        style={{
-          minHeight: contentHeight,
-          background: 'var(--color-bg-base)',
-        }}
-      >
-        {showNav && <OrgSidebar />}
+      <div className="flex-1 min-w-0 flex flex-col" style={{ background: 'var(--color-bg-base)' }}>
+        {showNav && <Navbar />}
 
         <div className={['flex-1 min-w-0', className].join(' ')}>
           <div

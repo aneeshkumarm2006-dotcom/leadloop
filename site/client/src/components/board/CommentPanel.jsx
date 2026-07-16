@@ -595,7 +595,7 @@ const CommentPanel = ({
                 border: '1.5px solid var(--color-accent)',
                 borderRadius: 'var(--radius-md)',
                 padding: '4px 8px',
-                boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.12)',
+                boxShadow: '0 0 0 3px rgba(62, 107, 78, 0.15)',
               }}
             />
           ) : (
@@ -1368,7 +1368,7 @@ const RenderCommentText = ({ text, mentions }) => {
               style={{
                 color: 'var(--color-accent)',
                 fontWeight: 600,
-                background: 'var(--color-accent-light, rgba(37,99,235,0.08))',
+                background: 'var(--color-accent-light, rgba(62,107,78,0.08))',
                 borderRadius: 3,
                 padding: '0 2px',
               }}
@@ -1581,7 +1581,7 @@ const CommentItem = ({ comment, currentUserId, onReply, onEdit }) => {
                 border: '1.5px solid var(--color-accent)',
                 borderRadius: 'var(--radius-md)',
                 padding: '6px 8px',
-                boxShadow: '0 0 0 3px var(--color-accent-light, rgba(37,99,235,0.12))',
+                boxShadow: '0 0 0 3px var(--color-accent-light, rgba(62,107,78,0.12))',
               }}
             />
             <div className="mt-2 flex items-center justify-end gap-2">

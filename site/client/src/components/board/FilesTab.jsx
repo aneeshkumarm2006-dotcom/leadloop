@@ -205,7 +205,7 @@ const FilesTab = ({ task, onCountChange }) => {
           }`,
           borderRadius: 'var(--radius-md)',
           background: dragOver
-            ? 'var(--color-accent-light, rgba(37,99,235,0.06))'
+            ? 'var(--color-accent-light, rgba(62,107,78,0.06))'
             : 'var(--color-bg-subtle, #F9FAFB)',
           cursor: uploading ? 'wait' : 'pointer',
           color: 'var(--color-text-secondary)',

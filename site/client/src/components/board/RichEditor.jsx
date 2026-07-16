@@ -376,7 +376,7 @@ const RichEditor = ({ placeholder = 'Write an update…', onChange, editorRef, i
         }
         .macan-rich-editor .macan-rich-content .macan-mention {
           color: var(--color-accent);
-          background: var(--color-accent-light, rgba(37,99,235,0.1));
+          background: var(--color-accent-light, rgba(62,107,78,0.1));
           padding: 1px 4px;
           border-radius: 4px;
           font-weight: 600;

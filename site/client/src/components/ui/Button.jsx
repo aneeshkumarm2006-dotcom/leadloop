@@ -20,14 +20,14 @@ const VARIANT_STYLES = {
     color: '#FFFFFF',
     border: 'none',
     fontWeight: 600,
-    boxShadow: '0 1px 2px rgba(29,30,38,.12)',
+    boxShadow: '0 1px 2px rgba(33,30,24,.14)',
   },
   secondary: {
     background: 'var(--color-bg-surface)',
     color: 'var(--color-text-primary)',
     border: '1px solid var(--color-border-strong)',
     fontWeight: 600,
-    boxShadow: '0 1px 2px rgba(29,30,38,.04)',
+    boxShadow: '0 1px 2px rgba(33,30,24,.05)',
   },
   ghost: {
     background: 'transparent',
@@ -40,7 +40,7 @@ const VARIANT_STYLES = {
     color: '#FFFFFF',
     border: 'none',
     fontWeight: 600,
-    boxShadow: '0 1px 2px rgba(29,30,38,.12)',
+    boxShadow: '0 1px 2px rgba(33,30,24,.14)',
   },
 };
 

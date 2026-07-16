@@ -26,16 +26,16 @@ import { timeAgo, formatDate } from '../utils/dateUtils';
  * Workspace; boards live inside it (folders land in Stage B).
  */
 
-// Premium hero cover — indigo→cyan with soft radial glows (adapted from the
-// Claude-design Home concept).
+// Hero cover — deep pine with soft gold + sage glows, echoing the login
+// brand panel (LeadLoop editorial system).
 const COVER_GRADIENT =
-  'radial-gradient(420px circle at 86% -45%, rgba(129,140,248,0.60), transparent 60%),' +
-  'radial-gradient(460px circle at 32% 165%, rgba(34,211,238,0.32), transparent 60%),' +
-  'linear-gradient(135deg, #4F46E5 0%, #6366F1 46%, #0E7490 120%)';
+  'radial-gradient(420px circle at 86% -45%, rgba(217,178,95,0.42), transparent 60%),' +
+  'radial-gradient(460px circle at 30% 170%, rgba(110,139,61,0.38), transparent 62%),' +
+  'linear-gradient(135deg, #2C4A39 0%, #1F3627 55%, #1A2E21 120%)';
 // Signature gradient for the workspace logo tile.
 const LOGO_GRADIENT = 'linear-gradient(140deg, #3E6B4E, #284A36)';
 
-const AVATAR_COLORS = ['#3E6B4E', '#16A34A', '#EA580C', '#7C3AED', '#D97706', '#DC2626'];
+const AVATAR_COLORS = ['#3E6B4E', '#6E8B3D', '#B08A3C', '#C4632B', '#7A5A44', '#4E7A70'];
 const colorFor = (seed = '') => {
   let h = 0;
   for (let i = 0; i < seed.length; i += 1) h = (h * 31 + seed.charCodeAt(i)) & 0xffffffff;
@@ -323,11 +323,12 @@ const WorkspaceHomePage = () => {
       {/* Cover banner */}
       <div style={{ height: 150, borderRadius: 'var(--radius-lg)', background: COVER_GRADIENT, boxShadow: 'var(--shadow-card)' }} />
 
-      {/* Workspace identity */}
-      <div className="flex items-end gap-4" style={{ marginTop: -30, paddingLeft: 8 }}>
+      {/* Workspace identity — only the logo tile overlaps the cover, so the
+          title never sits on the dark pine. */}
+      <div className="flex items-end gap-4" style={{ paddingLeft: 8 }}>
         <div
           className="flex items-center justify-center font-display font-bold text-white shrink-0"
-          style={{ width: 76, height: 76, borderRadius: 19, background: LOGO_GRADIENT, fontSize: 30, border: '4px solid var(--color-bg-surface)', boxShadow: 'var(--shadow-md)' }}
+          style={{ width: 76, height: 76, borderRadius: 19, background: LOGO_GRADIENT, fontSize: 30, border: '4px solid var(--color-bg-base)', boxShadow: 'var(--shadow-md)', marginTop: -34 }}
           aria-hidden="true"
         >
           {initial}

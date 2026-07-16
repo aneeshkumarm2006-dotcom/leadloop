@@ -36,7 +36,7 @@ const Input = forwardRef(function Input(
     'placeholder:text-[color:var(--color-text-muted)]',
     'focus:outline-none focus:bg-white',
     'focus:border-[color:var(--color-accent)]',
-    'focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]',
+    'focus:shadow-[0_0_0_3px_rgba(62,107,78,0.15)]',
     'disabled:opacity-60 disabled:cursor-not-allowed',
     multiline ? 'py-3 resize-y min-h-[80px]' : 'h-[38px]',
     'px-3',

@@ -29,21 +29,7 @@ import Chip from '../ui/Chip';
  * See Macan_Design.md Section 6.1.
  */
 
-const AVATAR_COLORS = ['#3E6B4E', '#16A34A', '#EA580C', '#7C3AED', '#D97706', '#DC2626'];
-
-const getInitial = (name) => {
-  if (!name) return '?';
-  return name.trim().charAt(0).toUpperCase();
-};
-
-const getAvatarColor = (seed = '') => {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash * 31 + seed.charCodeAt(i)) & 0xffffffff;
-  }
-  const idx = Math.abs(hash) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[idx];
-};
+import { getAvatarColor, getInitial } from '../../utils/avatarColors';
 
 const Logo = () => (
   <div className="flex items-center gap-2.5 shrink-0">
@@ -334,7 +320,7 @@ const SearchBar = ({ className = '' }) => {
         onChange={handleChange}
         onFocus={() => { if (results) setOpen(true); }}
         placeholder={t('navbar.searchPlaceholder')}
-        className="w-full font-body text-[13px] text-[color:var(--color-text-primary)] bg-[color:var(--color-bg-input)] transition-[border-color,background-color] duration-150 focus:outline-none focus:border-[color:var(--color-accent)] focus:bg-white placeholder:text-[color:var(--color-text-muted)]"
+        className="w-full font-body text-[13px] text-[color:var(--color-text-primary)] bg-white transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-[color:var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(62,107,78,0.12)] placeholder:text-[color:var(--color-text-muted)]"
         style={{
           height: 36,
           paddingLeft: 36,
@@ -433,7 +419,7 @@ const MobileSearchOverlay = ({ onClose }) => {
           value={query}
           onChange={handleChange}
           placeholder={t('navbar.searchPlaceholder')}
-          className="w-full font-body text-[13px] text-[color:var(--color-text-primary)] bg-[color:var(--color-bg-input)] transition-[border-color,background-color] duration-150 focus:outline-none focus:border-[color:var(--color-accent)] focus:bg-white placeholder:text-[color:var(--color-text-muted)]"
+          className="w-full font-body text-[13px] text-[color:var(--color-text-primary)] bg-white transition-[border-color,box-shadow] duration-150 focus:outline-none focus:border-[color:var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(62,107,78,0.12)] placeholder:text-[color:var(--color-text-muted)]"
           style={{
             height: 36,
             paddingLeft: 36,
@@ -487,8 +473,8 @@ const IconButton = ({ icon: Icon, label, badge, onClick, active }) => (
           width: 8,
           height: 8,
           borderRadius: 9999,
-          background: '#DC2626',
-          border: '1.5px solid white',
+          background: '#C9463C',
+          border: '1.5px solid var(--color-bg-base)',
         }}
       />
     ) : null}
@@ -1026,9 +1012,10 @@ const Navbar = () => {
 
   return (
     <nav
-      className="sticky top-0 z-40 bg-surface w-full px-4 md:px-8"
+      className="sticky top-0 z-40 w-full px-4 md:px-8"
       style={{
         height: 56,
+        background: 'var(--color-bg-base)',
         borderBottom: '1px solid var(--color-border)',
       }}
     >
@@ -1052,9 +1039,9 @@ const Navbar = () => {
             )}
           </button>
 
-          {/* Logo only — primary navigation now lives in the left sidebar
-              (Monday-style). The mobile drawer below still uses NavLinks. */}
-          <div className="flex items-center gap-4">
+          {/* Logo — mobile only; on desktop the brand lives in the pine
+              sidebar. The mobile drawer below still uses NavLinks. */}
+          <div className="flex md:hidden items-center gap-4">
             <Logo />
           </div>
 

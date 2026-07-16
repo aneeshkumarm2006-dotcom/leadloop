@@ -17,14 +17,12 @@ import { timeAgo } from '../../utils/dateUtils';
  *
  * Props:
  *   board       — { _id, name, description, visibility, updatedAt, createdAt }
- *   accentColor — CSS color for the top accent bar (cycled by parent)
  *   onOpen      — called when the card body is clicked
  *   canManage   — if true, show the ⋯ menu with Edit/Delete
  *   onEdit, onDelete — options menu handlers
  */
 const BoardCard = ({
   board,
-  accentColor = 'var(--color-card-blue)',
   onOpen,
   canManage = false,
   onEdit,
@@ -90,12 +88,6 @@ const BoardCard = ({
         e.currentTarget.style.transform = 'translateY(0)';
       }}
     >
-      {/* Top accent bar */}
-      <div
-        aria-hidden="true"
-        style={{ height: 4, background: accentColor, width: '100%', borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0' }}
-      />
-
       <div className="p-4 flex flex-col flex-1">
         {/* Folder icon + privacy badge */}
         <div className="flex items-start justify-between">
@@ -121,10 +113,11 @@ const BoardCard = ({
               borderRadius: 'var(--radius-full)',
               background: isPublic
                 ? 'var(--color-status-done-bg)'
-                : '#FFF0F0',
+                : 'var(--color-bg-subtle)',
               color: isPublic
                 ? 'var(--color-status-done)'
-                : '#DC2626',
+                : 'var(--color-text-secondary)',
+              boxShadow: 'inset 0 0 0 1px var(--color-border)',
             }}
           >
             <PrivacyIcon size={10} aria-hidden="true" />
@@ -171,10 +164,10 @@ const BoardCard = ({
         {/* Footer: updated + options */}
         <div className="mt-3 flex items-center justify-between">
           <div
-            className="flex items-center gap-1.5 font-body"
-            style={{ fontSize: 12, color: 'var(--color-text-muted)' }}
+            className="flex items-center gap-1.5 font-mono uppercase"
+            style={{ fontSize: 10, letterSpacing: '0.06em', color: 'var(--color-text-muted)' }}
           >
-            <Calendar size={12} aria-hidden="true" />
+            <Calendar size={11} aria-hidden="true" />
             <span>
               Updated {timeAgo(board.updatedAt || board.createdAt)}
             </span>

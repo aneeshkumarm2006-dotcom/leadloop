@@ -201,7 +201,7 @@ const TaskEditRow = ({
           }}
           onFocus={(e) => {
             e.currentTarget.style.border = '1.5px solid var(--color-accent)';
-            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(37, 99, 235, 0.12)';
+            e.currentTarget.style.boxShadow = '0 0 0 3px rgba(62, 107, 78, 0.15)';
           }}
           onBlur={(e) => {
             e.currentTarget.style.border = '1.5px solid var(--color-border)';

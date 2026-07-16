@@ -165,7 +165,7 @@ const DatePickerPopover = ({
           borderRadius: 'var(--radius-md)',
           background: '#fff',
           color: selected ? 'var(--color-text-primary)' : 'var(--color-text-muted)',
-          boxShadow: open ? '0 0 0 3px rgba(37,99,235,0.12)' : 'none',
+          boxShadow: open ? '0 0 0 3px rgba(62,107,78,0.15)' : 'none',
           cursor: disabled ? 'not-allowed' : 'pointer',
           transition: 'border-color 150ms, box-shadow 150ms',
           whiteSpace: 'nowrap',
@@ -282,7 +282,7 @@ const DatePickerPopover = ({
                     background: isSel
                       ? 'var(--color-accent)'
                       : isTod
-                        ? 'rgba(37,99,235,0.07)'
+                        ? 'rgba(62,107,78,0.08)'
                         : 'transparent',
                     color: isSel
                       ? '#fff'

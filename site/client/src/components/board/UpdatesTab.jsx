@@ -831,7 +831,7 @@ const ReadOnlyRichBody = ({ body, fallbackText }) => {
         }
         .macan-rich-readonly .ProseMirror .macan-mention {
           color: var(--color-accent);
-          background: var(--color-accent-light, rgba(37,99,235,0.1));
+          background: var(--color-accent-light, rgba(62,107,78,0.1));
           padding: 1px 4px;
           border-radius: 4px;
           font-weight: 600;

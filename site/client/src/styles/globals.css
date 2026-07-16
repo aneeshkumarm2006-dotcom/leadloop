@@ -61,6 +61,20 @@
   --color-card-orange:  #C0743A; /* terracotta */
   --color-card-purple:  #B08A3C; /* gold */
 
+  /* Pine — the dark forest chrome (sidebar / brand rail).
+     Deep ink-green so the cream content reads as paper against it. */
+  --color-pine:        #1F3627;
+  --color-pine-raise:  #29452F;              /* hover rows on pine */
+  --color-pine-active: #35543E;              /* active pill on pine */
+  --color-pine-line:   rgba(237, 232, 218, 0.14); /* hairlines on pine */
+  --color-pine-text:   #EDE8DA;              /* primary text on pine */
+  --color-pine-text-2: #A9BCA7;              /* secondary text on pine — sage */
+  --color-pine-gold:   #D9B25F;              /* gold highlight on pine */
+
+  /* Semantic aliases (some call sites reference these directly) */
+  --color-success: #2F6B47;
+  --color-error:   #B3261E;
+
   /* Utility */
   --color-shadow:    rgba(33, 30, 24, 0.06);
   --color-shadow-md: rgba(33, 30, 24, 0.10);
@@ -417,6 +431,16 @@ li.macan-task-highlight {
    Opt-in classes so any surface can pick up the elevated
    shadow + hover-lift + crisp focus the premium pages use.
    ========================================================== */
+
+/* Ledger label — the Space Mono "data voice" used for column headers,
+   section eyebrows, counts and meta lines across the app. */
+.ll-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 
 /* Surface card — hairline + soft shadow, lifts on hover */
 .surface-card {

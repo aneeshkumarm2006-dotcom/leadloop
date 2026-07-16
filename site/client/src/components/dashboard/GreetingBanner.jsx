@@ -4,8 +4,10 @@ import { ArrowRight } from 'lucide-react';
 import Button from '../ui/Button';
 
 /**
- * GreetingBanner — full-width greeting card with CTA buttons at the top of
- * the dashboard. See Macan_Design.md Section 7.3.
+ * GreetingBanner — editorial dashboard opening: a mono date eyebrow, a large
+ * display greeting and the day's lead count, with the primary actions on the
+ * right. Sits directly on the paper background (no card) so the page opens
+ * like the marketing site rather than a widget stack.
  *
  * Props:
  *   name            — user's display name
@@ -19,64 +21,60 @@ const greetingKeyForNow = () => {
   return 'dashboard.greetingEvening';
 };
 
-const MacanIcon = () => (
-  <div
-    className="flex items-center justify-center bg-accent shrink-0"
-    style={{
-      width: 40,
-      height: 40,
-      borderRadius: 'var(--radius-md)',
-    }}
-    aria-hidden="true"
-  >
-    <span className="font-display font-bold text-white text-[20px] leading-none">
-      M
-    </span>
-  </div>
-);
-
 const GreetingBanner = ({ name = 'there', pendingCount = 0 }) => {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const firstName = (name || '').split(' ')[0] || 'there';
   const greeting = t(greetingKeyForNow(), { name: firstName });
   const tasksLabel = t('dashboard.leadsWaiting', { count: pendingCount });
 
+  const locale = (i18n.language || 'en').startsWith('fr') ? 'fr-CA' : 'en-CA';
+  const today = new Date().toLocaleDateString(locale, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
+
   return (
-    <div
-      className="w-full bg-surface"
-      style={{
-        borderRadius: 'var(--radius-lg)',
-        boxShadow: 'var(--shadow-card)',
-        padding: '24px 32px',
-      }}
-    >
-      <div className="flex items-start gap-4">
-        <MacanIcon />
-        <div className="min-w-0 flex-1">
-          <h1
-            className="font-display font-bold leading-tight"
-            style={{
-              fontSize: 28,
-              color: 'var(--color-text-primary)',
-              letterSpacing: 'var(--tracking-tight)',
-            }}
-          >
-            {greeting}
-          </h1>
-          <p
-            className="font-body mt-1"
-            style={{
-              fontSize: 14,
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            {tasksLabel}
-          </p>
-        </div>
+    <div className="w-full flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div className="min-w-0">
+        <p className="ll-label" style={{ color: 'var(--color-text-muted)' }}>
+          {today}
+        </p>
+        <h1
+          className="font-display font-bold leading-tight mt-1.5"
+          style={{
+            fontSize: 30,
+            color: 'var(--color-text-primary)',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          {greeting}
+        </h1>
+        <p
+          className="font-body mt-1.5 flex items-center gap-2"
+          style={{ fontSize: 14, color: 'var(--color-text-secondary)' }}
+        >
+          {pendingCount > 0 && (
+            <span
+              aria-hidden="true"
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: 'var(--color-status-working-solid)',
+                flexShrink: 0,
+              }}
+            />
+          )}
+          {tasksLabel}
+        </p>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3 shrink-0">
+        <Button variant="secondary" onClick={() => navigate('/analytics')}>
+          {t('dashboard.viewReports')}
+        </Button>
         <Button
           variant="primary"
           icon={ArrowRight}
@@ -84,9 +82,6 @@ const GreetingBanner = ({ name = 'there', pendingCount = 0 }) => {
           onClick={() => navigate('/boards')}
         >
           {t('dashboard.viewBoards')}
-        </Button>
-        <Button variant="secondary" onClick={() => navigate('/analytics')}>
-          {t('dashboard.viewReports')}
         </Button>
       </div>
     </div>

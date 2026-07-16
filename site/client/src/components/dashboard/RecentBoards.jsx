@@ -15,8 +15,8 @@ import { timeAgo } from '../../utils/dateUtils';
 const PrivacyBadge = ({ visibility }) => {
   const isPrivate = visibility === 'private';
   const Icon = isPrivate ? Lock : Globe;
-  const bg = isPrivate ? '#FFF0F0' : 'var(--color-accent-light)';
-  const color = isPrivate ? '#DC2626' : 'var(--color-accent-text)';
+  const bg = isPrivate ? 'var(--color-bg-subtle)' : 'var(--color-accent-light)';
+  const color = isPrivate ? 'var(--color-text-secondary)' : 'var(--color-accent-text)';
 
   return (
     <span
@@ -27,6 +27,7 @@ const PrivacyBadge = ({ visibility }) => {
         color,
         padding: '2px 8px',
         borderRadius: 'var(--radius-full)',
+        boxShadow: 'inset 0 0 0 1px var(--color-border)',
       }}
     >
       <Icon size={11} aria-hidden="true" />
@@ -54,7 +55,7 @@ const BoardRow = ({ board, onClick, isLast }) => (
         width: 32,
         height: 32,
         borderRadius: 'var(--radius-md)',
-        background: 'rgba(37, 99, 235, 0.10)',
+        background: 'var(--color-accent-light)',
       }}
       aria-hidden="true"
     >
@@ -132,7 +133,7 @@ const RecentBoards = ({ boards = [], limit = 5 }) => {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 min-w-0">
-          <Folder size={20} color="#7C3AED" aria-hidden="true" />
+          <Folder size={18} color="var(--color-accent)" aria-hidden="true" />
           <div className="min-w-0">
             <h2
               className="font-display font-bold"

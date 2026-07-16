@@ -5,7 +5,6 @@ import {
   Search,
   LayoutGrid,
   List as ListIcon,
-  SlidersHorizontal,
   Folder,
   FolderOpen,
   Lock,
@@ -47,17 +46,6 @@ import useAuthStore from '../store/authStore';
 import useOrgStore from '../store/orgStore';
 import useBoardStore from '../store/boardStore';
 import { timeAgo } from '../utils/dateUtils';
-
-/**
- * Rotating palette for the top accent bar on each card.
- * Matches the stat-card palette from Design doc Section 2.
- */
-const ACCENT_CYCLE = [
-  'var(--color-card-blue)',
-  'var(--color-card-green)',
-  'var(--color-card-orange)',
-  'var(--color-card-purple)',
-];
 
 /**
  * Determine whether the signed-in user is the admin of the current org.
@@ -197,7 +185,7 @@ const MyBoardsPage = () => {
             className="mt-1 font-body"
             style={{ fontSize: 14, color: 'var(--color-text-secondary)' }}
           >
-            Manage your projects and workflows
+            Pipelines, listings and lead boards in this workspace
           </p>
         </div>
         {isAdmin && (
@@ -230,7 +218,7 @@ const MyBoardsPage = () => {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search boards..."
             aria-label="Search boards"
-            className="w-full font-body text-[14px] transition-[border-color,box-shadow,background-color] duration-150 ease-in-out placeholder:text-[color:var(--color-text-muted)] focus:outline-none focus:bg-white focus:border-[color:var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(37,99,235,0.12)]"
+            className="w-full font-body text-[14px] transition-[border-color,box-shadow,background-color] duration-150 ease-in-out placeholder:text-[color:var(--color-text-muted)] focus:outline-none focus:bg-white focus:border-[color:var(--color-accent)] focus:shadow-[0_0_0_3px_rgba(62,107,78,0.15)]"
             style={{
               height: 38,
               paddingLeft: 36,
@@ -295,10 +283,6 @@ const MyBoardsPage = () => {
           </button>
         </div>
 
-        {/* Filter (placeholder — no active filters in v1) */}
-        <Button variant="secondary" size="default" icon={SlidersHorizontal}>
-          Filter
-        </Button>
       </div>
 
       {/* Content area */}
@@ -369,11 +353,10 @@ const MyBoardsPage = () => {
           >
             <SortableContext items={boardIds} strategy={rectSortingStrategy}>
               <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredBoards.map((board, i) => (
+                {filteredBoards.map((board) => (
                   <SortableBoardCard
                     key={board._id}
                     board={board}
-                    accentColor={ACCENT_CYCLE[i % ACCENT_CYCLE.length]}
                     onOpen={openBoard}
                     canManage={isAdmin}
                     onEdit={(b) => setEditTarget(b)}
@@ -394,7 +377,6 @@ const MyBoardsPage = () => {
             <SortableContext items={boardIds} strategy={verticalListSortingStrategy}>
               <BoardListView
                 boards={filteredBoards}
-                accents={ACCENT_CYCLE}
                 onOpen={openBoard}
                 canManage={isAdmin}
                 onEdit={(b) => setEditTarget(b)}
@@ -450,7 +432,6 @@ const MyBoardsPage = () => {
  */
 const BoardListView = ({
   boards,
-  accents,
   onOpen,
   canManage,
   onEdit,
@@ -473,7 +454,6 @@ const BoardListView = ({
           <BoardListRow
             key={b._id}
             board={b}
-            accent={accents[i % accents.length]}
             isLast={i === boards.length - 1}
             isPublic={isPublic}
             PrivacyIcon={PrivacyIcon}
@@ -497,7 +477,6 @@ const BoardListView = ({
  */
 const SortableBoardCard = ({
   board,
-  accentColor,
   onOpen,
   canManage,
   onEdit,
@@ -538,7 +517,6 @@ const SortableBoardCard = ({
         )}
         <BoardCard
           board={board}
-          accentColor={accentColor}
           onOpen={onOpen}
           canManage={canManage}
           onEdit={onEdit}
@@ -552,7 +530,6 @@ const SortableBoardCard = ({
 
 const BoardListRow = ({
   board,
-  accent,
   isLast,
   isPublic,
   PrivacyIcon,
@@ -612,15 +589,6 @@ const BoardListRow = ({
         </button>
       )}
       <div
-        aria-hidden="true"
-        style={{
-          width: 4,
-          height: 32,
-          background: accent,
-          borderRadius: 'var(--radius-sm)',
-        }}
-      />
-      <div
         className="flex items-center justify-center shrink-0"
         style={{
           width: 32,
@@ -653,8 +621,9 @@ const BoardListRow = ({
           fontWeight: 500,
           padding: '2px 8px',
           borderRadius: 'var(--radius-full)',
-          background: isPublic ? 'var(--color-status-done-bg)' : '#FFF0F0',
-          color: isPublic ? 'var(--color-status-done)' : '#DC2626',
+          background: isPublic ? 'var(--color-status-done-bg)' : 'var(--color-bg-subtle)',
+          color: isPublic ? 'var(--color-status-done)' : 'var(--color-text-secondary)',
+          boxShadow: 'inset 0 0 0 1px var(--color-border)',
         }}
       >
         <PrivacyIcon size={10} aria-hidden="true" />

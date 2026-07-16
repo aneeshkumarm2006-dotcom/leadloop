@@ -34,15 +34,15 @@ const TaskGroupHeader = ({
 
   return (
     <div
-      className="group/group-header flex items-center gap-3"
+      className="group/group-header flex items-center gap-2.5"
       style={{
-        height: 48,
+        height: 50,
         padding: '0 16px',
-        background: 'var(--color-bg-subtle)',
-        // Match the card's top corners so the grey header curves with the
-        // rounded card edge (matters while the card is overflow-visible during
-        // inline editing). A collapsed group has no table below it, so its
-        // bottom border would just double up the card's own border ring.
+        background: 'var(--color-bg-surface)',
+        // Match the card's top corners so the header curves with the rounded
+        // card edge (matters while the card is overflow-visible during inline
+        // editing). A collapsed group has no table below it, so its bottom
+        // border would just double up the card's own border ring.
         borderTopLeftRadius: 'var(--radius-lg)',
         borderTopRightRadius: 'var(--radius-lg)',
         borderBottom: collapsed ? 'none' : '1px solid var(--color-border)',
@@ -55,7 +55,7 @@ const TaskGroupHeader = ({
         onClick={onToggle}
         aria-label={collapsed ? t('grid.expandGroup') : t('grid.collapseGroup')}
         aria-expanded={!collapsed}
-        className="flex items-center justify-center rounded-sm transition-colors duration-150 hover:bg-[color:var(--color-border)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]"
+        className="flex items-center justify-center rounded-sm transition-colors duration-150 hover:bg-[color:var(--color-bg-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]"
         style={{ width: 24, height: 24 }}
       >
         <Chevron
@@ -65,87 +65,83 @@ const TaskGroupHeader = ({
         />
       </button>
 
-      {/* Color dot */}
+      {/* Stage dot */}
       <span
         aria-hidden="true"
         style={{
-          width: 8,
-          height: 8,
+          width: 9,
+          height: 9,
           borderRadius: '50%',
           background: colorDot,
+          boxShadow: `0 0 0 3px color-mix(in srgb, ${colorDot} 18%, transparent)`,
           flexShrink: 0,
         }}
       />
 
-      {/* Group name */}
+      {/* Stage name — editorial, mixed case */}
       <h3
         className="font-display truncate"
         style={{
-          fontSize: 14,
-          fontWeight: 600,
-          letterSpacing: '0.05em',
-          textTransform: 'uppercase',
+          fontSize: 15,
+          fontWeight: 650,
+          letterSpacing: '-0.01em',
           color: 'var(--color-text-primary)',
         }}
       >
         {name}
       </h3>
 
-      {/* Item count badge */}
+      {/* Lead count — mono ledger voice */}
       <span
-        className="inline-flex items-center font-body shrink-0"
-        style={{
-          fontSize: 11,
-          fontWeight: 500,
-          padding: '2px 8px',
-          borderRadius: 'var(--radius-full)',
-          background: 'var(--color-surface, #FFFFFF)',
-          color: 'var(--color-text-muted)',
-          border: '1px solid var(--color-border)',
-        }}
+        className="ll-label shrink-0"
+        style={{ color: 'var(--color-text-muted)', marginLeft: 2 }}
       >
         {t('grid.leadCount', { count: totalCount })}
       </span>
 
       {/* Progress bar — hidden on small screens to save horizontal space */}
-      <div
-        className="shrink-0 hidden sm:block"
-        role="progressbar"
-        aria-valuenow={progressPct}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={t('grid.doneProgress', { done: doneCount, total: totalCount })}
-        title={t('grid.doneProgress', { done: doneCount, total: totalCount })}
-        style={{
-          width: 80,
-          height: 4,
-          borderRadius: 'var(--radius-full)',
-          background: 'var(--color-border)',
-          overflow: 'hidden',
-        }}
-      >
+      {totalCount > 0 && (
         <div
+          className="shrink-0 hidden sm:block"
+          role="progressbar"
+          aria-valuenow={progressPct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t('grid.doneProgress', { done: doneCount, total: totalCount })}
+          title={t('grid.doneProgress', { done: doneCount, total: totalCount })}
           style={{
-            width: `${progressPct}%`,
-            height: '100%',
-            background: progressPct === 100
-              ? 'var(--color-status-done)'
-              : 'var(--color-accent)',
-            transition: 'width 200ms ease-out',
+            width: 64,
+            height: 3,
+            borderRadius: 'var(--radius-full)',
+            background: 'var(--color-bg-subtle)',
+            boxShadow: 'inset 0 0 0 1px var(--color-border)',
+            overflow: 'hidden',
+            marginLeft: 6,
           }}
-        />
-      </div>
+        >
+          <div
+            style={{
+              width: `${progressPct}%`,
+              height: '100%',
+              background: progressPct === 100
+                ? 'var(--color-status-done-solid)'
+                : 'var(--color-accent)',
+              transition: 'width 200ms ease-out',
+            }}
+          />
+        </div>
+      )}
 
-      {/* Spacer pushes the add button to the right */}
+      {/* Spacer pushes the delete button to the right */}
       <div className="flex-1" />
 
-      {/* Delete group (admin only) */}
+      {/* Delete group (admin only) — appears on header hover */}
       {onDeleteGroup && (
         <button
           type="button"
           onClick={onDeleteGroup}
           aria-label={t('grid.deleteGroupNamed', { name })}
-          className="inline-flex items-center justify-center transition-colors duration-150 hover:bg-[#FFF0F0] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-status-stuck)]"
+          className="inline-flex items-center justify-center opacity-0 group-hover/group-header:opacity-100 focus-visible:opacity-100 transition-[opacity,background-color] duration-150 hover:bg-[color:var(--color-status-stuck-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-status-stuck)]"
           style={{
             width: 28,
             height: 28,

@@ -8,11 +8,13 @@ import { Plus, Trash2 } from 'lucide-react';
  * `settings.options` via `onUpdateColumn`.
  */
 
+/* Curated warm-editorial swatches — still spans the full hue wheel (labels are
+   the user's choice) but every value is tuned to sit well on cream paper. */
 export const LABEL_PALETTE = [
-  '#16A34A', '#22C55E', '#65A30D', '#CA8A04', '#D97706', '#EA580C',
-  '#DC2626', '#E11D48', '#DB2777', '#C026D3', '#9333EA', '#7C3AED',
-  '#6366F1', '#2563EB', '#0EA5E9', '#0891B2', '#0D9488', '#059669',
-  '#475569', '#64748B', '#78716C', '#1F2937',
+  '#3E6B4E', '#4E9068', '#6E8B3D', '#98A04C', '#C79A3E', '#D98E32',
+  '#C4632B', '#C9463C', '#A63D57', '#96578A', '#7C5CB0', '#5B67B3',
+  '#3E6B8F', '#3E8FA0', '#4E9088', '#2E4A38', '#B78A5C', '#7A5A44',
+  '#8A8273', '#6B6459', '#5C554A', '#211E18',
 ];
 
 export const newOptionId = () => 'o' + Math.random().toString(36).slice(2, 9);

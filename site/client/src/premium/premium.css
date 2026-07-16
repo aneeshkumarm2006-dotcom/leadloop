@@ -23,19 +23,19 @@
   --accent-2: #4E7A5C;
   --accent-light: #EEF3EA;
   --accent-ink: #FFFFFF;
-  --done: #16A34A;   --done-bg: #E7F6EC;
-  --amber: #D97706;  --amber-bg: #FBF0DD;
-  --red: #DC2626;    --red-bg: #FBE7E7;
-  --neutral: #6B7280;
-  --sky: #0EA5E9;    --violet: #7C3AED; --teal: #0D9488; --pink: #DB2777; --orange: #EA580C;
-  /* ---- domain signature colors (each screen owns a hue) ---- */
+  --done: #2F6B47;   --done-bg: #E9F1E6;
+  --amber: #B07A18;  --amber-bg: #FBF0DD;
+  --red: #C0392E;    --red-bg: #F6E7E2;
+  --neutral: #6B6459;
+  --sky: #3E8FA0;    --violet: #96578A; --teal: #4E9088; --pink: #A63D57; --orange: #C4632B;
+  /* ---- domain signature colors (warm-editorial family; each screen owns a hue) ---- */
   --book: #E0982E;   --book-2: #F2754B; --book-tint: rgba(224,152,46,.12); --book-ink: #8A5410;
-  --autom: #7C3AED;  --autom-tint: rgba(124,58,237,.10); --autom-ink: #5B23B0;
-  --integ: #0E9F8E;  --integ-tint: rgba(14,159,142,.11); --integ-ink: #0A6E62;
+  --autom: #C4632B;  --autom-tint: rgba(196,99,43,.11);  --autom-ink: #8F4519;
+  --integ: #4E7A70;  --integ-tint: rgba(78,122,112,.12); --integ-ink: #35594F;
   --forms: #3E6B4E;  --forms-tint: rgba(62,107,78,.10);  --forms-ink: #284A36;
   --chip-trigger: #3E6B4E; --chip-trigger-bg: rgba(62,107,78,.10);
-  --chip-cond: #D97706;    --chip-cond-bg: rgba(217,119,6,.13);
-  --chip-action: #0E9F8E;  --chip-action-bg: rgba(14,159,142,.12);
+  --chip-cond: #B07A18;    --chip-cond-bg: rgba(199,154,62,.16);
+  --chip-action: #4E7A70;  --chip-action-bg: rgba(78,122,112,.13);
   --r-sm: 7px; --r-md: 11px; --r-lg: 15px; --r-xl: 22px; --r-pill: 999px;
   --sh-1: 0 1px 3px rgba(26,25,20,.06), 0 0 0 1px rgba(26,25,20,.045);
   --sh-2: 0 4px 14px -4px rgba(26,25,20,.12), 0 0 0 1px rgba(26,25,20,.05);

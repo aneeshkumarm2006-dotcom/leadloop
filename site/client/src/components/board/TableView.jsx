@@ -176,7 +176,7 @@ const compareBy = (a, b, columnId, dir) => {
   return dir === 'desc' ? -cmp : cmp;
 };
 
-const th = { padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', cursor: 'pointer', userSelect: 'none' };
+const th = { padding: '8px 12px', textAlign: 'left', fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap', cursor: 'pointer', userSelect: 'none' };
 const td = { padding: '8px 12px', fontSize: 13, color: 'var(--color-text-primary)', borderTop: '1px solid var(--color-border)', verticalAlign: 'middle' };
 
 const TableView = ({ board, tasks = [], members = [] }) => {

@@ -1,10 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Plus, UserPlus, Calendar, BarChart2, Zap } from 'lucide-react';
+import { Plus, UserPlus, Calendar, BarChart2, ArrowRight, Zap } from 'lucide-react';
 
 /**
- * QuickActions — colored shortcut buttons stacked in the dashboard sidebar.
- * See Macan_Design.md Sections 6.10 and 7.3.
+ * QuickActions — quiet shortcut rows in the dashboard sidebar. One accent
+ * family (forest on soft mint) instead of the old rainbow blocks; the row
+ * reveals a small arrow on hover.
  *
  * Phase 0 reframe (§0.5): CRM-flavoured labels via i18n, routed to existing
  * pages. Dedicated add-lead / log-viewing flows arrive with Phase 1 templates.
@@ -19,7 +20,6 @@ const ACTIONS = [
     icon: Plus,
     titleKey: 'dashboard.qaNewBoard',
     subtitleKey: 'dashboard.qaNewBoardSub',
-    color: 'var(--color-accent)',
     to: '/boards',
   },
   {
@@ -27,7 +27,6 @@ const ACTIONS = [
     icon: UserPlus,
     titleKey: 'dashboard.qaInviteTeam',
     subtitleKey: 'dashboard.qaInviteTeamSub',
-    color: '#16A34A',
     to: '/settings',
   },
   {
@@ -35,7 +34,6 @@ const ACTIONS = [
     icon: Calendar,
     titleKey: 'dashboard.qaCalendar',
     subtitleKey: 'dashboard.qaCalendarSub',
-    color: '#EA580C',
     to: '/calendar',
   },
   {
@@ -43,39 +41,52 @@ const ACTIONS = [
     icon: BarChart2,
     titleKey: 'dashboard.qaReports',
     subtitleKey: 'dashboard.qaReportsSub',
-    color: '#7C3AED',
     to: '/analytics',
   },
 ];
 
-const ActionButton = ({ icon: Icon, title, subtitle, color, onClick }) => (
+const ActionButton = ({ icon: Icon, title, subtitle, onClick }) => (
   <button
     type="button"
     onClick={onClick}
-    className="w-full flex items-center gap-3 text-left transition-transform duration-150 ease-in-out hover:-translate-y-px hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]"
+    className="group/qa w-full flex items-center gap-3 text-left transition-colors duration-150 hover:bg-[color:var(--color-bg-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]"
     style={{
-      height: 64,
-      padding: '0 16px',
-      borderRadius: 'var(--radius-lg)',
-      background: color,
-      color: '#FFFFFF',
+      padding: '9px 10px',
+      borderRadius: 'var(--radius-md)',
     }}
   >
-    <Icon size={24} color="#FFFFFF" aria-hidden="true" strokeWidth={2.2} />
-    <div className="min-w-0 flex-1">
-      <p
-        className="font-body font-semibold leading-tight"
-        style={{ fontSize: 14, color: '#FFFFFF' }}
+    <span
+      className="flex items-center justify-center shrink-0"
+      style={{
+        width: 32,
+        height: 32,
+        borderRadius: 'var(--radius-md)',
+        background: 'var(--color-accent-light)',
+      }}
+      aria-hidden="true"
+    >
+      <Icon size={16} color="var(--color-accent)" strokeWidth={2.2} />
+    </span>
+    <span className="min-w-0 flex-1">
+      <span
+        className="block font-body font-semibold leading-tight"
+        style={{ fontSize: 13.5, color: 'var(--color-text-primary)' }}
       >
         {title}
-      </p>
-      <p
-        className="font-body leading-tight mt-0.5"
-        style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)' }}
+      </span>
+      <span
+        className="block font-body leading-tight mt-0.5"
+        style={{ fontSize: 12, color: 'var(--color-text-muted)' }}
       >
         {subtitle}
-      </p>
-    </div>
+      </span>
+    </span>
+    <ArrowRight
+      size={14}
+      aria-hidden="true"
+      className="shrink-0 opacity-0 -translate-x-1 transition-[opacity,transform] duration-150 group-hover/qa:opacity-100 group-hover/qa:translate-x-0"
+      color="var(--color-accent)"
+    />
   </button>
 );
 
@@ -97,30 +108,26 @@ const QuickActions = ({ onCreateBoard }) => {
       style={{
         borderRadius: 'var(--radius-lg)',
         boxShadow: 'var(--shadow-card)',
-        padding: 20,
+        padding: 16,
       }}
     >
-      <div className="flex items-center gap-2">
-        <Zap size={18} color="#16A34A" aria-hidden="true" />
+      <div className="flex items-center gap-2 px-1">
+        <Zap size={16} color="var(--color-accent)" aria-hidden="true" />
         <h2
           className="font-display font-bold"
-          style={{
-            fontSize: 15,
-            color: 'var(--color-text-primary)',
-          }}
+          style={{ fontSize: 15, color: 'var(--color-text-primary)' }}
         >
           {t('dashboard.quickActions')}
         </h2>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3">
+      <div className="mt-2 flex flex-col gap-0.5">
         {ACTIONS.map((action) => (
           <ActionButton
             key={action.id}
             icon={action.icon}
             title={t(action.titleKey)}
             subtitle={t(action.subtitleKey)}
-            color={action.color}
             onClick={() => handleAction(action)}
           />
         ))}

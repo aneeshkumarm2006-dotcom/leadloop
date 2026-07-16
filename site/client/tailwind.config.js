@@ -23,6 +23,14 @@ export default {
         base: '#F6F1E7',
         surface: '#FFFFFF',
         subtle: '#F1EADD',
+        pine: {
+          DEFAULT: '#1F3627',
+          raise: '#29452F',
+          active: '#35543E',
+          text: '#EDE8DA',
+          muted: '#A9BCA7',
+          gold: '#D9B25F',
+        },
       },
       boxShadow: {
         card: '0 1px 3px rgba(33,30,24,0.06), 0 0 0 1px #E4DCCB',

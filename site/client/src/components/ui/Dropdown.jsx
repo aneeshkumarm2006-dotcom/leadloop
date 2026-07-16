@@ -89,7 +89,7 @@ const Dropdown = ({
             ? '1.5px solid var(--color-accent)'
             : '1.5px solid var(--color-border)',
           borderRadius: 'var(--radius-md)',
-          boxShadow: open ? '0 0 0 3px rgba(37, 99, 235, 0.12)' : 'none',
+          boxShadow: open ? '0 0 0 3px rgba(62, 107, 78, 0.15)' : 'none',
           color: selected
             ? 'var(--color-text-primary)'
             : 'var(--color-text-muted)',

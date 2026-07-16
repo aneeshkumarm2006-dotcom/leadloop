@@ -4,29 +4,31 @@
  * (see Macan_Design.md Section 2).
  */
 
+/* Warm-harmonized to the LeadLoop palette (globals.css --color-priority-*):
+   warm red / terracotta / gold / taupe on soft paper tints. */
 export const PRIORITY_COLORS = {
   critical: {
-    bg: '#FEF2F2',
-    text: '#DC2626',
-    solid: '#DC2626',
+    bg: '#F6E7E2',
+    text: '#B3261E',
+    solid: '#C9463C',
     label: 'Critical',
   },
   high: {
-    bg: '#FFF7ED',
-    text: '#EA580C',
-    solid: '#EA580C',
+    bg: '#F7EBDD',
+    text: '#A85423',
+    solid: '#C4632B',
     label: 'High',
   },
   medium: {
-    bg: '#FFFBEB',
-    text: '#D97706',
-    solid: '#D97706',
+    bg: '#FBF2DE',
+    text: '#8A6A24',
+    solid: '#C79A3E',
     label: 'Medium',
   },
   low: {
-    bg: '#F3F4F6',
-    text: '#6B7280',
-    solid: '#6B7280',
+    bg: '#F1EADD',
+    text: '#6B6459',
+    solid: '#B7AE9C',
     label: 'Low',
   },
 };

@@ -13,7 +13,7 @@ const COLOR_VARS = {
   green: 'var(--color-card-green)',
   orange: 'var(--color-card-orange)',
   purple: 'var(--color-card-purple)',
-  red: '#DC2626',
+  red: '#C9463C',
 };
 
 const ANIMATION_DURATION_MS = 800;
@@ -95,12 +95,8 @@ const StatCard = ({
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <p
-            className="font-body font-semibold uppercase truncate"
-            style={{
-              fontSize: 11,
-              letterSpacing: '0.06em',
-              color: 'var(--color-text-secondary)',
-            }}
+            className="ll-label truncate"
+            style={{ color: 'var(--color-text-secondary)' }}
           >
             {label}
           </p>

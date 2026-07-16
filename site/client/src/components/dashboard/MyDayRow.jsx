@@ -26,7 +26,7 @@ const relDue = (iso, t) => {
   return { label: new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), tone: 'norm' };
 };
 
-const toneColor = { over: '#DC2626', soon: '#D97706', norm: 'var(--color-text-muted)' };
+const toneColor = { over: '#B3261E', soon: '#8A6A24', norm: 'var(--color-text-muted)' };
 
 const statusOf = (task) => {
   const statuses = task.board?.statuses || [];
@@ -108,7 +108,7 @@ const MyDayRow = () => {
         </Card>
 
         {/* Today's & upcoming visits — empty until the booking system ships */}
-        <Card icon={Calendar} color="#7C3AED" title={t('myDay.visits')} count={leads ? 0 : null}>
+        <Card icon={Calendar} color="#96578A" title={t('myDay.visits')} count={leads ? 0 : null}>
           {leads == null ? <Skeleton n={3} /> : (
             <Empty icon={Calendar} title={t('myDay.noVisitsTitle')} sub={t('myDay.noVisitsSub')} />
           )}
@@ -117,11 +117,11 @@ const MyDayRow = () => {
         {/* Follow-ups due */}
         <Card
           icon={Clock}
-          color="#D97706"
+          color="#B07A18"
           title={t('myDay.followUps')}
           count={leads ? followUps.length : null}
           foot={leads && overdueCount > 0 ? (
-            <div className="flex items-center gap-1.5 font-body" style={{ padding: '10px 16px', borderTop: '1px solid var(--color-border)', color: '#DC2626', fontSize: 12.5, fontWeight: 600 }}>
+            <div className="flex items-center gap-1.5 font-body" style={{ padding: '10px 16px', borderTop: '1px solid var(--color-border)', color: 'var(--color-error)', fontSize: 12.5, fontWeight: 600 }}>
               <AlertTriangle size={15} /> {t('myDay.overdueFoot', { count: overdueCount })}
             </div>
           ) : null}
@@ -135,8 +135,8 @@ const MyDayRow = () => {
               const due = relDue(l.dueDate, t);
               const overdue = due.tone === 'over';
               return (
-                <Row key={l._id} onClick={() => openLead(l)} style={overdue ? { background: '#FEF2F2' } : undefined}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: overdue ? '#DC2626' : '#D97706', flexShrink: 0 }} />
+                <Row key={l._id} onClick={() => openLead(l)} style={overdue ? { background: 'var(--color-status-stuck-bg)' } : undefined}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: overdue ? '#C9463C' : '#C79A3E', flexShrink: 0 }} />
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <div className="truncate font-body" style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--color-text-primary)' }}>{l.name}</div>
                     <div className="truncate font-body" style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{l.board?.name || ''}</div>
