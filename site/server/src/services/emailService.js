@@ -77,7 +77,7 @@ const buildHtml = ({ taskName, priority, dueDate, taskLink }) => {
 <body>
   <div class="wrapper">
     <div class="header">
-      <div class="header-logo">Macan</div>
+      <div class="header-logo">LeadLoop</div>
     </div>
     <div class="body">
       <p class="title">You've been assigned a task</p>
@@ -100,7 +100,7 @@ const buildHtml = ({ taskName, priority, dueDate, taskLink }) => {
       </div>
     </div>
     <div class="footer">
-      <p>You received this email because a task was assigned to you in Macan. If you believe this is an error, contact your administrator.</p>
+      <p>You received this email because a task was assigned to you in LeadLoop. If you believe this is an error, contact your administrator.</p>
     </div>
   </div>
 </body>
@@ -155,11 +155,11 @@ const buildInviteHtml = ({ orgName, inviteLink, inviteCode }) => {
 <body>
   <div class="wrapper">
     <div class="header">
-      <div class="header-logo">Macan</div>
+      <div class="header-logo">LeadLoop</div>
     </div>
     <div class="body">
       <p class="title">You've been invited to join ${escapeHtml(orgName)}</p>
-      <p class="subtitle">An admin has invited you to collaborate on <strong>${escapeHtml(orgName)}</strong> in Macan. Use the invite code below or click the button to join.</p>
+      <p class="subtitle">An admin has invited you to collaborate on <strong>${escapeHtml(orgName)}</strong> in LeadLoop. Use the invite code below or click the button to join.</p>
       <div class="code-box">
         <div>
           <div class="code-label">Invite Code</div>
@@ -193,7 +193,7 @@ const sendInviteEmail = async ({ to, orgName, inviteLink, inviteCode }) => {
   await transporter.sendMail({
     from: process.env.EMAIL_FROM || 'noreply@davnoot.com',
     to,
-    subject: `You've been invited to join ${orgName} on Macan`,
+    subject: `You've been invited to join ${orgName} on LeadLoop`,
     html,
   });
 };
@@ -226,7 +226,7 @@ const buildMentionHtml = ({ mentionedByName, taskName, commentText, taskLink }) 
 <body>
   <div class="wrapper">
     <div class="header">
-      <div class="header-logo">Macan</div>
+      <div class="header-logo">LeadLoop</div>
     </div>
     <div class="body">
       <p class="title">You were mentioned in a comment</p>
@@ -241,7 +241,7 @@ const buildMentionHtml = ({ mentionedByName, taskName, commentText, taskLink }) 
       </div>
     </div>
     <div class="footer">
-      <p>You received this email because you were mentioned in a comment in Macan. If you believe this is an error, contact your administrator.</p>
+      <p>You received this email because you were mentioned in a comment in LeadLoop. If you believe this is an error, contact your administrator.</p>
     </div>
   </div>
 </body>
@@ -283,7 +283,7 @@ const sendMentionEmail = async ({ to, mentionedByName, taskName, commentText, ta
  */
 const sendAutomationDigestEmail = async ({ to, subject, message, taskLink }) => {
   const cta = taskLink
-    ? `<div class="cta"><a href="${taskLink}">Open in Macan &rarr;</a></div>`
+    ? `<div class="cta"><a href="${taskLink}">Open in LeadLoop &rarr;</a></div>`
     : '';
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -308,7 +308,7 @@ const sendAutomationDigestEmail = async ({ to, subject, message, taskLink }) => 
 <body>
   <div class="wrapper">
     <div class="header">
-      <div class="header-logo">Macan</div>
+      <div class="header-logo">LeadLoop</div>
     </div>
     <div class="body">
       <p class="title">${escapeHtml(subject)}</p>
@@ -316,7 +316,7 @@ const sendAutomationDigestEmail = async ({ to, subject, message, taskLink }) => 
       ${cta}
     </div>
     <div class="footer">
-      <p>You received this email from an automation in Macan.</p>
+      <p>You received this email from an automation in LeadLoop.</p>
     </div>
   </div>
 </body>

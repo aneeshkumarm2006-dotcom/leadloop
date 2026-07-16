@@ -320,7 +320,7 @@ const UpdatesTab = ({ task, onCountChange }) => {
             {t('itemTabs.updateViaEmail')}
           </button>
           <a
-            href="mailto:feedback@yourdomain.com?subject=Macan%20Updates%20Feedback"
+            href="mailto:feedback@yourdomain.com?subject=LeadLoop%20Updates%20Feedback"
             className="inline-flex items-center gap-1 font-body transition-colors duration-150 hover:bg-[color:var(--color-bg-subtle)]"
             style={{
               fontSize: 12,

@@ -57,11 +57,11 @@ const Logo = () => (
       aria-hidden="true"
     >
       <span className="font-display font-bold text-white text-[16px] leading-none">
-        M
+        L
       </span>
     </div>
     <span className="font-display font-bold text-[18px] text-[color:var(--color-text-primary)] tracking-tight">
-      Macan
+      LeadLoop
     </span>
   </div>
 );

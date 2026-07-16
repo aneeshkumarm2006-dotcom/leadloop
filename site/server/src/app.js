@@ -85,7 +85,7 @@ app.use(passport.initialize());
 
 // Health check
 app.get('/', (req, res) => {
-  res.json({ status: 'ok', service: 'macan-api' });
+  res.json({ status: 'ok', service: 'leadloop-api' });
 });
 
 // Routes

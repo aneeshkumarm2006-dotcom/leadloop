@@ -2,7 +2,7 @@
 
 > Single source of truth for turning this Monday.com-clone task tracker into a
 > **generic real-estate CRM SaaS** usable by any real-estate / leasing company.
-> Modeled on how a real leasing company (Rakotta, Montréal) configures Monday.com.
+> Modeled on how a real leasing company (a Montréal firm) configures Monday.com.
 >
 > Status: **planning** — no build started. Last updated: 2026-06-07.
 >
@@ -39,9 +39,9 @@ board engine and ship an opinionated real-estate experience on top of it.
    pivot to multi-tenant self-serve; the old Stripe-billing phase is now dropped —
    see §5 Phase 6.)
 
-## 3. Reference: how Rakotta built a RE CRM out of generic Monday primitives
+## 3. Reference: how the reference company built a RE CRM out of generic Monday primitives
 
-Everything Rakotta uses is **generic Monday primitives + configuration** — there
+Everything the reference company uses is **generic Monday primitives + configuration** — there
 is no real-estate-specific object anywhere. The "CRM" is:
 
 - **1 board** = the CRM (1,944 leads).
@@ -60,9 +60,9 @@ is no real-estate-specific object anywhere. The "CRM" is:
   permissions**. **Docs/Workdocs** workspace for SOPs/tenant letters.
 - Multi-**workspace** org with **folders**.
 
-> Two structural wins for us: (a) **no item limits** — Rakotta is at 99% of
+> Two structural wins for us: (a) **no item limits** — the reference company is at 99% of
 > Monday's board cap and shards leads across 3 archive boards; MongoDB has no such
-> ceiling. (b) **native email/SMS/WhatsApp** — Rakotta hacks around Monday's weak
+> ceiling. (b) **native email/SMS/WhatsApp** — the reference company hacks around Monday's weak
 > WhatsApp with `WHTSAPP` name prefixes; we have it built in.
 
 ## 4. Current state of THIS codebase
@@ -121,8 +121,8 @@ nothing is deleted.*
 - ♻️ **S** — Display terminology *Task/item* → **Lead/Contact/Deal** (keep model names internally; change labels/i18n only).
 - ♻️ **S** — Reframe Dashboard greeting/QuickActions + Onboarding for RE. Files: `client/src/components/dashboard/*`, `client/src/pages/OnboardingPage.jsx`.
 
-### Phase 1 — Core CRM parity (match Rakotta's CRM board)
-*Goal: open the app and see Rakotta's setup running.*
+### Phase 1 — Core CRM parity (match the reference CRM board)
+*Goal: open the app and see the reference setup running.*
 
 **Build**
 - 🔴 **M** — **RE pipeline template** seed: pipeline stages (groups), lead column

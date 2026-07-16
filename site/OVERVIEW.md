@@ -1,4 +1,4 @@
-# Rakotta Monday — Complete Site Reference
+# LeadLoop — Complete Site Reference
 
 > A full description of the site so anyone (or any AI) reading this knows the
 > whole product: what it is, every feature it has, its pages, its data, and how
@@ -10,7 +10,7 @@
 
 ## 1. What it is
 
-**Rakotta Monday** is a **"Monday.com for real estate"** — a board-based CRM that
+**LeadLoop** is a **"Monday.com for real estate"** — a board-based CRM that
 leasing and real-estate companies use to run their entire operation: capturing
 leads, booking property visits, moving deals through a pipeline, tracking
 listings, communicating with clients (email/SMS/WhatsApp), automating workflows,

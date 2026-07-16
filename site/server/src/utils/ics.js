@@ -36,7 +36,7 @@ const buildIcs = ({ uid, start, end, title, description, location, organizerEmai
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Macan CRM//Visit Booking//EN',
+    'PRODID:-//LeadLoop CRM//Visit Booking//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

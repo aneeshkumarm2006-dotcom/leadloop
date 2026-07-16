@@ -62,7 +62,7 @@
 
 ### Phase 1 — Core CRM parity (in progress)
 - ✅ **1.1 RE pipeline template** — template engine now seeds **pipeline-stage
-  GROUPS** + columns. New **"Real Estate CRM"** template (Rakotta-style leasing):
+  GROUPS** + columns. New **"Real Estate CRM"** template (reference leasing style):
   groups `New Lead → Contacted → Follow-up → Visit Booked → Application → Lease to
   Sign → Lease Signed → Blacklisted → Archived`; columns Lead, Lead Status,
   Building, Agent, Visit Type, Language (FR/EN), Inscription/Visit/Move-in dates,
@@ -129,7 +129,7 @@
 ### Phase 1b — Automations Hub (original scope note) — ✅
 - 🔴 Automations Hub page (Health · Usage · Workflows · Connections), general
   triggers/conditions/actions, usage/observability dashboard, custom composer.
-  *(Recommend trimming to the automations Rakotta actually uses — see analysis.)*
+  *(Recommend trimming to the automations the reference company actually uses — see analysis.)*
 
 ### Phase 2 — Reporting & dashboards — ✅ COMPLETE (2026-06-08)
 - ✅ **2.4 Per-widget visibility** — ChartWidget `visibility` (everyone | admins);

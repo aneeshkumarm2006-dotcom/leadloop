@@ -54,7 +54,7 @@ const start = async () => {
   // F7 — warn if the in-memory rate-limit bucket won't meter across replicas.
   warnIfMultiReplica();
   app.listen(PORT, () => {
-    console.log(`Macan API listening on port ${PORT}`);
+    console.log(`LeadLoop API listening on port ${PORT}`);
   });
 };
 

@@ -70,7 +70,7 @@ const priorityOptions = [
   { id: 'low', label: 'Low', color: COLOR.gray, order: 3 },
 ];
 
-// --- Leasing CRM option sets (Rakotta-style) --------------------------------
+// --- Leasing CRM option sets (reference leasing style) ----------------------
 
 // Lead status WITHIN a pipeline stage (the stages themselves are groups).
 const leadStatusOptions = [
@@ -100,7 +100,7 @@ const availabilityOptions = [
 ];
 
 // Pipeline stages = board groups (a lead moves between groups as it advances).
-// Mirrors how Rakotta configures Monday (PLAN.md §3 / §1.1).
+// Mirrors how the reference company configures Monday (PLAN.md §3 / §1.1).
 const leasingPipelineGroups = [
   'New Lead',
   'Contacted',
@@ -136,14 +136,14 @@ const realEstateLeads = {
 /**
  * Real-estate CRM (leasing) — the flagship template. Pipeline stages are
  * GROUPS; each lead is an item that moves between them. Columns mirror
- * Rakotta's lead fields (building / agent / visit-type / language / dates /
+ * the reference company's lead fields (building / agent / visit-type / language / dates /
  * email / phone / notes). PLAN.md §1.1.
  */
 const realEstateCrm = {
   id: 'real_estate_crm',
   name: 'Real Estate CRM',
   description:
-    'Leasing lead pipeline (Rakotta-style): stages as groups, with building, agent, visit-type, language and contact fields.',
+    'Leasing lead pipeline: stages as groups, with building, agent, visit-type, language and contact fields.',
   groups: leasingPipelineGroups,
   // A public intake form is auto-created with the board (PLAN.md §1.1). Field
   // keys map to the columns above; `required` marks must-fill fields. Bilingual

@@ -73,7 +73,7 @@ rename/reframe — almost nothing is deleted.*
 ---
 
 ## Phase 1 — Core CRM parity
-*Goal: open the app and see a leasing company's setup (à la Rakotta) running.*
+*Goal: open the app and see a real leasing company's setup running.*
 
 ### 1.1 RE pipeline template seed — 🔴 M
 - **What we build:** A seed that creates a CRM board with pipeline **groups** (New
