@@ -1,0 +1,896 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { downloadFile } from '../../utils/fileUrl';
+import {
+  AtSign,
+  Paperclip,
+  Smile,
+  Send,
+  Mail,
+  MessageSquare,
+  MessageSquarePlus,
+  Trash2,
+  Download,
+  Pencil,
+} from 'lucide-react';
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
+import Mention from '@tiptap/extension-mention';
+import RichEditor from './RichEditor';
+import * as updateService from '../../services/updateService';
+import useAuthStore from '../../store/authStore';
+import useToastStore from '../../store/toastStore';
+import useNotificationStore from '../../store/notificationStore';
+import useOrgStore from '../../store/orgStore';
+import { timeAgo, formatDate } from '../../utils/dateUtils';
+
+const COMMON_EMOJIS = ['👍', '🎉', '🙌', '🔥', '❤️', '✅', '🚀', '😄', '👀', '💡', '🤔', '😅'];
+
+/**
+ * UpdatesTab — full Updates panel mounted inside CommentPanel.
+ *
+ * Props:
+ *   task — populated task
+ *   onCountChange(n) — bubbles the current updates count up so the tab badge
+ *                     stays in sync as updates are added/removed
+ */
+const UpdatesTab = ({ task, onCountChange }) => {
+  const { t } = useTranslation();
+  const taskId = task?._id || null;
+  const currentUser = useAuthStore((s) => s.user);
+  const toast = useToastStore.getState();
+  const refreshNotifications = useNotificationStore((s) => s.fetchNotifications);
+  const currentOrgId = useOrgStore((s) => s.currentOrg?._id);
+
+  const [updates, setUpdates] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Composer state
+  const [bodyJson, setBodyJson] = useState(null);
+  const [bodyText, setBodyText] = useState('');
+  const [bodyMentions, setBodyMentions] = useState([]);
+  const [bodyEmpty, setBodyEmpty] = useState(true);
+  const [attachments, setAttachments] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+
+  const editorRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    onCountChange?.(updates.length);
+  }, [updates.length, onCountChange]);
+
+  // Initial load + refetch when the task switches
+  useEffect(() => {
+    if (!taskId) {
+      setUpdates([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    setError('');
+    updateService
+      .getUpdates(taskId)
+      .then((list) => {
+        if (!cancelled) setUpdates(list || []);
+      })
+      .catch((err) => {
+        console.error('Failed to load updates:', err);
+        if (!cancelled) {
+          setError(
+            err?.response?.data?.error ||
+              t('itemTabs.updatesLoadError')
+          );
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [taskId, t]);
+
+  const handleEditorChange = useCallback(({ json, text, mentions, isEmpty }) => {
+    setBodyJson(json);
+    setBodyText(text);
+    setBodyMentions(mentions);
+    setBodyEmpty(isEmpty);
+  }, []);
+
+  const handleSubmit = useCallback(async () => {
+    if (!taskId) return;
+    const hasContent = !bodyEmpty || attachments.length > 0;
+    if (!hasContent || submitting) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      const mentionIds = bodyMentions.map((m) => m._id);
+      const created = await updateService.addUpdate(taskId, {
+        body: bodyJson,
+        bodyText,
+        mentions: mentionIds,
+        attachments,
+      });
+      setUpdates((prev) => [created, ...prev]);
+      // Reset composer
+      editorRef.current?.commands?.clearContent?.();
+      setBodyJson(null);
+      setBodyText('');
+      setBodyMentions([]);
+      setBodyEmpty(true);
+      setAttachments([]);
+      refreshNotifications(currentOrgId || undefined);
+    } catch (err) {
+      console.error('Failed to post update:', err);
+      setError(
+        err?.response?.data?.error ||
+          t('itemTabs.updatePostError')
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }, [
+    taskId,
+    bodyEmpty,
+    bodyJson,
+    bodyText,
+    bodyMentions,
+    attachments,
+    submitting,
+    refreshNotifications,
+    t,
+  ]);
+
+  const handleDelete = useCallback(
+    async (updateId) => {
+      if (!taskId) return;
+      const ok = window.confirm(t('itemTabs.deleteUpdateConfirm'));
+      if (!ok) return;
+      try {
+        await updateService.deleteUpdate(taskId, updateId);
+        setUpdates((prev) => prev.filter((u) => u._id !== updateId));
+      } catch (err) {
+        console.error('Failed to delete update:', err);
+        toast.error(
+          err?.response?.data?.error || t('itemTabs.updateDeleteError')
+        );
+      }
+    },
+    [taskId, toast, t]
+  );
+
+  const handleEdit = useCallback(
+    async (updateId, payload) => {
+      if (!taskId) return null;
+      try {
+        const updated = await updateService.editUpdate(taskId, updateId, payload);
+        setUpdates((prev) => prev.map((u) => (u._id === updateId ? updated : u)));
+        return updated;
+      } catch (err) {
+        console.error('Failed to edit update:', err);
+        toast.error(
+          err?.response?.data?.error || t('itemTabs.updateEditError')
+        );
+        throw err;
+      }
+    },
+    [taskId, toast, t]
+  );
+
+  const handleFilesSelected = useCallback(
+    async (e) => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length || !taskId) return;
+      for (const f of files) {
+        try {
+          const attachment = await updateService.uploadAttachment(taskId, f);
+          setAttachments((prev) => [...prev, attachment]);
+        } catch (err) {
+          console.error('Upload failed:', err);
+          toast.error(t('itemTabs.uploadFailed', { name: f.name }));
+        }
+      }
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    },
+    [taskId, toast, t]
+  );
+
+  const handleCopyEmail = useCallback(async () => {
+    if (!taskId) return;
+    const email = `task-${taskId}@updates.yourdomain.com`;
+    try {
+      await navigator.clipboard.writeText(email);
+      toast.success(t('itemTabs.copiedEmail', { email }));
+    } catch {
+      toast.info(email);
+    }
+  }, [taskId, toast, t]);
+
+  const insertEmoji = useCallback((emoji) => {
+    const editor = editorRef.current;
+    if (editor) editor.chain().focus().insertContent(emoji).run();
+    setEmojiPickerOpen(false);
+  }, []);
+
+  const focusMention = useCallback(() => {
+    const editor = editorRef.current;
+    if (editor) editor.chain().focus().insertContent('@').run();
+  }, []);
+
+  return (
+    <div className="flex flex-col h-full" style={{ minHeight: 0 }}>
+      {/* Updates feed */}
+      <div
+        className="flex-1 overflow-y-auto"
+        style={{ padding: '12px 24px', minHeight: 0 }}
+      >
+        {loading ? (
+          <p
+            className="font-body text-center"
+            style={{
+              fontSize: 13,
+              color: 'var(--color-text-muted)',
+              padding: '24px 0',
+            }}
+          >
+            {t('itemTabs.loadingUpdates')}
+          </p>
+        ) : updates.length === 0 ? (
+          <div
+            className="flex flex-col items-center justify-center text-center"
+            style={{ padding: '44px 24px' }}
+          >
+            <div
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: '50%',
+                background: 'var(--color-accent-light)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <MessageSquarePlus size={28} color="var(--color-accent)" aria-hidden="true" />
+            </div>
+            <p
+              className="font-body"
+              style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 4 }}
+            >
+              {t('itemTabs.noUpdatesYet')}
+            </p>
+            <p
+              className="font-body"
+              style={{ fontSize: 13, color: 'var(--color-text-muted)', maxWidth: 300, lineHeight: 1.5 }}
+            >
+              {t('itemTabs.noUpdatesYetDesc')}
+            </p>
+          </div>
+        ) : (
+          <ul
+            className="flex flex-col"
+            style={{ padding: 0, margin: 0, listStyle: 'none', gap: 12 }}
+          >
+            {updates.map((u) => (
+              <li key={u._id}>
+                <UpdateCard
+                  update={u}
+                  currentUserId={currentUser?._id}
+                  onDelete={() => handleDelete(u._id)}
+                  onEdit={(payload) => handleEdit(u._id, payload)}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Sub-toolbar action buttons (above composer) */}
+      <div
+        style={{
+          borderTop: '1px solid var(--color-border)',
+          padding: '8px 16px 0 16px',
+          background: '#FFFFFF',
+        }}
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleCopyEmail}
+            className="inline-flex items-center gap-1 font-body transition-colors duration-150 hover:bg-[color:var(--color-bg-subtle)]"
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: 'var(--color-text-secondary)',
+              background: 'transparent',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              padding: '4px 10px',
+              cursor: 'pointer',
+            }}
+            title={t('itemTabs.copyLeadEmailAddress')}
+          >
+            <Mail size={12} aria-hidden="true" />
+            {t('itemTabs.updateViaEmail')}
+          </button>
+          <a
+            href="mailto:feedback@yourdomain.com?subject=Macan%20Updates%20Feedback"
+            className="inline-flex items-center gap-1 font-body transition-colors duration-150 hover:bg-[color:var(--color-bg-subtle)]"
+            style={{
+              fontSize: 12,
+              fontWeight: 500,
+              color: 'var(--color-text-secondary)',
+              background: 'transparent',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              padding: '4px 10px',
+              cursor: 'pointer',
+              textDecoration: 'none',
+            }}
+          >
+            <MessageSquare size={12} aria-hidden="true" />
+            {t('itemTabs.giveFeedback')}
+          </a>
+        </div>
+      </div>
+
+      {/* Composer */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+        style={{
+          padding: '8px 16px 16px 16px',
+          background: '#FFFFFF',
+          borderTop: '1px solid transparent',
+        }}
+      >
+        {error ? (
+          <p
+            className="font-body"
+            role="alert"
+            style={{
+              fontSize: 12,
+              color: 'var(--color-status-stuck)',
+              marginBottom: 6,
+            }}
+          >
+            {error}
+          </p>
+        ) : null}
+
+        <RichEditor
+          placeholder={t('itemTabs.writeUpdatePlaceholder')}
+          onChange={handleEditorChange}
+          editorRef={editorRef}
+        />
+
+        {/* Attachment chips (pending submission) */}
+        {attachments.length > 0 && (
+          <ul
+            className="flex flex-wrap gap-2"
+            style={{ listStyle: 'none', margin: '8px 0 0', padding: 0 }}
+          >
+            {attachments.map((a, i) => (
+              <li
+                key={`${a.url}-${i}`}
+                className="inline-flex items-center gap-1 font-body"
+                style={{
+                  fontSize: 12,
+                  color: 'var(--color-text-secondary)',
+                  background: 'var(--color-bg-subtle, #F3F4F6)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '3px 6px 3px 10px',
+                }}
+              >
+                <Paperclip size={11} aria-hidden="true" />
+                <span style={{ maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {a.name || 'file'}
+                </span>
+                <button
+                  type="button"
+                  aria-label={t('itemTabs.removeAttachment', { name: a.name })}
+                  onClick={() =>
+                    setAttachments((prev) => prev.filter((_, idx) => idx !== i))
+                  }
+                  style={{
+                    width: 16,
+                    height: 16,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    fontSize: 14,
+                    lineHeight: 1,
+                    padding: 0,
+                  }}
+                >
+                  ×
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Inline composer toolbar + send */}
+        <div className="mt-2 flex items-center gap-2">
+          <ToolbarIconButton onClick={focusMention} title={t('itemTabs.mentionSomeone')}>
+            <AtSign size={14} aria-hidden="true" />
+          </ToolbarIconButton>
+          <ToolbarIconButton
+            onClick={() => fileInputRef.current?.click()}
+            title={t('itemTabs.attachAFile')}
+          >
+            <Paperclip size={14} aria-hidden="true" />
+          </ToolbarIconButton>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFilesSelected}
+            style={{ display: 'none' }}
+          />
+
+          <div style={{ position: 'relative' }}>
+            <ToolbarIconButton
+              onClick={() => setEmojiPickerOpen((v) => !v)}
+              title={t('itemTabs.insertEmoji')}
+            >
+              <Smile size={14} aria-hidden="true" />
+            </ToolbarIconButton>
+            {emojiPickerOpen && (
+              <div
+                role="menu"
+                onMouseLeave={() => setEmojiPickerOpen(false)}
+                style={{
+                  position: 'absolute',
+                  bottom: '110%',
+                  left: 0,
+                  background: '#FFFFFF',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  boxShadow: 'var(--shadow-md)',
+                  padding: 4,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(6, 1fr)',
+                  gap: 2,
+                  zIndex: 120,
+                }}
+              >
+                {COMMON_EMOJIS.map((e) => (
+                  <button
+                    key={e}
+                    type="button"
+                    onClick={() => insertEmoji(e)}
+                    style={{
+                      width: 28,
+                      height: 28,
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      fontSize: 16,
+                      borderRadius: 4,
+                    }}
+                  >
+                    {e}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={(bodyEmpty && attachments.length === 0) || submitting}
+            className="ml-auto inline-flex items-center justify-center gap-2 font-body whitespace-nowrap transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]"
+            style={{
+              height: 32,
+              padding: '0 14px',
+              background: 'var(--color-accent)',
+              color: '#FFFFFF',
+              fontWeight: 600,
+              fontSize: 13,
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              cursor:
+                !bodyEmpty || attachments.length > 0 ? 'pointer' : 'not-allowed',
+            }}
+          >
+            <Send size={13} aria-hidden="true" />
+            {submitting ? t('itemTabs.posting') : t('itemTabs.update')}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+/**
+ * Single update card — author, timestamp, rich body, attachments, edit, delete.
+ *
+ * Author can toggle edit mode, which swaps the read-only body for a RichEditor
+ * pre-loaded with the existing TipTap document. Attachments aren't editable
+ * here — they were uploaded once and stay attached.
+ */
+const UpdateCard = ({ update, currentUserId, onDelete, onEdit }) => {
+  const { t } = useTranslation();
+  const author = update.author || {};
+  const isAuthor = author._id && currentUserId && author._id === currentUserId;
+  const [hovered, setHovered] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editBodyJson, setEditBodyJson] = useState(update.body || null);
+  const [editBodyText, setEditBodyText] = useState(update.bodyText || '');
+  const [editMentions, setEditMentions] = useState(
+    Array.isArray(update.mentions)
+      ? update.mentions.map((m) => ({ _id: m._id, name: m.name }))
+      : []
+  );
+  const [editEmpty, setEditEmpty] = useState(false);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const editEditorRef = useRef(null);
+
+  const handleEditorChange = useCallback(({ json, text, mentions, isEmpty }) => {
+    setEditBodyJson(json);
+    setEditBodyText(text);
+    setEditMentions(mentions);
+    setEditEmpty(isEmpty);
+  }, []);
+
+  const startEdit = () => {
+    setEditBodyJson(update.body || null);
+    setEditBodyText(update.bodyText || '');
+    setEditMentions(
+      Array.isArray(update.mentions)
+        ? update.mentions.map((m) => ({ _id: m._id, name: m.name }))
+        : []
+    );
+    setEditEmpty(false);
+    setEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+  };
+
+  const saveEdit = async () => {
+    const hasAttachments =
+      Array.isArray(update.attachments) && update.attachments.length > 0;
+    if (editEmpty && !hasAttachments) return;
+    setSavingEdit(true);
+    try {
+      await onEdit?.({
+        body: editBodyJson,
+        bodyText: editBodyText,
+        mentions: editMentions.map((m) => m._id),
+        attachments: update.attachments || [],
+      });
+      setEditing(false);
+    } catch {
+      // toast surfaced by parent
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  return (
+    <article
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: 'var(--color-bg-surface, #FFFFFF)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-md)',
+        padding: 12,
+        position: 'relative',
+      }}
+    >
+      <header className="flex items-center gap-2">
+        <Avatar user={author} size={28} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className="font-body"
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: 'var(--color-text-primary)',
+              }}
+            >
+              {author.name || t('itemTabs.unknown')}
+            </span>
+            <span
+              className="font-body"
+              title={formatDate(update.createdAt)}
+              style={{ fontSize: 11, color: 'var(--color-text-muted)' }}
+            >
+              {timeAgo(update.createdAt)}
+            </span>
+            {update.editedAt ? (
+              <span
+                className="font-body"
+                title={t('itemTabs.editedAt', { date: formatDate(update.editedAt) })}
+                style={{ fontSize: 11, color: 'var(--color-text-muted)', fontStyle: 'italic' }}
+              >
+                {t('itemTabs.edited')}
+              </span>
+            ) : null}
+          </div>
+        </div>
+        {isAuthor && hovered && !editing ? (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={startEdit}
+              aria-label={t('itemTabs.editUpdate')}
+              className="inline-flex items-center justify-center rounded transition-colors hover:bg-[color:var(--color-bg-subtle)]"
+              style={{
+                width: 24,
+                height: 24,
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--color-text-muted)',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              <Pencil size={13} aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              aria-label={t('itemTabs.deleteUpdate')}
+              className="inline-flex items-center justify-center rounded transition-colors hover:bg-[color:var(--color-bg-subtle)]"
+              style={{
+                width: 24,
+                height: 24,
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--color-text-muted)',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+            >
+              <Trash2 size={13} aria-hidden="true" />
+            </button>
+          </div>
+        ) : null}
+      </header>
+
+      <div style={{ marginTop: 8 }}>
+        {editing ? (
+          <>
+            <RichEditor
+              placeholder={t('itemTabs.editYourUpdatePlaceholder')}
+              onChange={handleEditorChange}
+              editorRef={editEditorRef}
+              initialContent={update.body || (update.bodyText || '')}
+            />
+            <div className="mt-2 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={cancelEdit}
+                disabled={savingEdit}
+                className="font-body transition-colors duration-150 hover:bg-[color:var(--color-bg-subtle)]"
+                style={{
+                  height: 30,
+                  padding: '0 12px',
+                  background: 'transparent',
+                  color: 'var(--color-text-secondary)',
+                  fontWeight: 500,
+                  fontSize: 13,
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: savingEdit ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {t('itemTabs.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={saveEdit}
+                disabled={
+                  savingEdit ||
+                  (editEmpty &&
+                    (!Array.isArray(update.attachments) ||
+                      update.attachments.length === 0))
+                }
+                className="font-body transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-accent-hover"
+                style={{
+                  height: 30,
+                  padding: '0 12px',
+                  background: 'var(--color-accent)',
+                  color: '#FFFFFF',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  border: 'none',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: savingEdit ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {savingEdit ? t('itemTabs.saving') : t('itemTabs.save')}
+              </button>
+            </div>
+          </>
+        ) : (
+          <ReadOnlyRichBody body={update.body} fallbackText={update.bodyText} />
+        )}
+      </div>
+
+      {Array.isArray(update.attachments) && update.attachments.length > 0 ? (
+        <ul
+          className="flex flex-wrap gap-2"
+          style={{
+            listStyle: 'none',
+            margin: '8px 0 0',
+            padding: 0,
+          }}
+        >
+          {update.attachments.map((a, i) => (
+            <li key={`${a.url}-${i}`}>
+              <button
+                type="button"
+                onClick={() => downloadFile(a.url, a.mime || '', a.name || 'file')}
+                className="inline-flex items-center gap-1 font-body transition-colors hover:bg-[color:var(--color-bg-subtle)]"
+                style={{
+                  fontSize: 12,
+                  color: 'var(--color-text-secondary)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  padding: '4px 8px',
+                  background: 'transparent',
+                  cursor: 'pointer',
+                }}
+                title={a.name || t('itemTabs.attachment')}
+              >
+                <Download size={11} aria-hidden="true" />
+                <span style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {a.name || t('itemTabs.attachment')}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </article>
+  );
+};
+
+/**
+ * Read-only renderer for a TipTap doc. Uses `useEditor` in editable:false
+ * mode — that way mentions, task lists, and other custom nodes render with
+ * the same plugins the composer uses, without pulling in @tiptap/html.
+ */
+const ReadOnlyRichBody = ({ body, fallbackText }) => {
+  const editor = useEditor(
+    {
+      editable: false,
+      content: body || (fallbackText ? { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: fallbackText }] }] } : ''),
+      extensions: [
+        StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+        TaskList,
+        TaskItem.configure({ nested: true }),
+        Mention.configure({
+          HTMLAttributes: { class: 'macan-mention' },
+          renderText: ({ node }) => `@${node.attrs.label || node.attrs.id}`,
+        }),
+      ],
+    },
+    [body, fallbackText]
+  );
+
+  if (!editor) return null;
+
+  return (
+    <div className="macan-rich-readonly">
+      <EditorContent editor={editor} />
+      <style>{`
+        .macan-rich-readonly .ProseMirror {
+          outline: none;
+          font-size: 14px;
+          line-height: 1.55;
+          color: var(--color-text-primary);
+        }
+        .macan-rich-readonly .ProseMirror p {
+          margin: 0 0 4px 0;
+        }
+        .macan-rich-readonly .ProseMirror p:last-child { margin-bottom: 0; }
+        .macan-rich-readonly .ProseMirror h1 { font-size: 18px; font-weight: 700; margin: 4px 0; }
+        .macan-rich-readonly .ProseMirror h2 { font-size: 16px; font-weight: 700; margin: 4px 0; }
+        .macan-rich-readonly .ProseMirror h3 { font-size: 14px; font-weight: 700; margin: 4px 0; }
+        .macan-rich-readonly .ProseMirror ul,
+        .macan-rich-readonly .ProseMirror ol {
+          padding-left: 20px;
+          margin: 4px 0;
+        }
+        .macan-rich-readonly .ProseMirror ul[data-type="taskList"] {
+          list-style: none;
+          padding-left: 0;
+        }
+        .macan-rich-readonly .ProseMirror ul[data-type="taskList"] li {
+          display: flex;
+          align-items: flex-start;
+          gap: 6px;
+          margin: 2px 0;
+        }
+        .macan-rich-readonly .ProseMirror ul[data-type="taskList"] li > label {
+          flex-shrink: 0;
+          margin-top: 2px;
+        }
+        .macan-rich-readonly .ProseMirror ul[data-type="taskList"] li > div {
+          flex: 1;
+        }
+        .macan-rich-readonly .ProseMirror .macan-mention {
+          color: var(--color-accent);
+          background: var(--color-accent-light, rgba(37,99,235,0.1));
+          padding: 1px 4px;
+          border-radius: 4px;
+          font-weight: 600;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+const ToolbarIconButton = ({ children, onClick, title }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    title={title}
+    aria-label={title}
+    className="inline-flex items-center justify-center rounded transition-colors duration-150 hover:bg-[color:var(--color-bg-subtle)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]"
+    style={{
+      width: 28,
+      height: 28,
+      background: 'transparent',
+      border: 'none',
+      color: 'var(--color-text-secondary)',
+      cursor: 'pointer',
+    }}
+  >
+    {children}
+  </button>
+);
+
+const Avatar = ({ user, size = 28 }) => {
+  const [imgError, setImgError] = useState(false);
+  const name = user?.name || '';
+  const initial = name.charAt(0).toUpperCase() || '?';
+  const hasPic = !!user?.profilePic && !imgError;
+  const base = { width: size, height: size, borderRadius: '50%', flexShrink: 0 };
+  if (hasPic) {
+    return (
+      <img
+        src={user.profilePic}
+        alt={name}
+        style={{ ...base, objectFit: 'cover' }}
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+  return (
+    <span
+      aria-label={name}
+      className="inline-flex items-center justify-center font-body font-semibold"
+      style={{
+        ...base,
+        background: 'var(--color-accent-light)',
+        color: 'var(--color-accent-text)',
+        fontSize: Math.round(size * 0.4),
+      }}
+    >
+      {initial}
+    </span>
+  );
+};
+
+export default UpdatesTab;

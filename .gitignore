@@ -1,0 +1,70 @@
+# === AI / tooling context ===
+_ai_context/
+.claude/
+.agents/
+
+# === Playwright ===
+.playwright-mcp/
+**/.playwright-mcp/
+playwright-report/
+test-results/
+playwright/.cache/
+
+# === Dependencies ===
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# === Build output ===
+.next/
+out/
+build/
+dist/
+dist-ssr/
+*.tsbuildinfo
+next-env.d.ts
+
+# === Testing ===
+coverage/
+
+# === Env files ===
+.env
+.env.*
+!.env.example
+env.txt
+server/env.txt
+
+# === Logs ===
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# === Deploy ===
+.vercel
+
+# === Misc ===
+*.local
+dump/
+test_out.txt
+.DS_Store
+*.pem
+
+# === Editor ===
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

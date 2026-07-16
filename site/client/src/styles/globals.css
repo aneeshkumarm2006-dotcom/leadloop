@@ -1,0 +1,468 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Familjen+Grotesk:ital,wght@0,400..700;1,400..700&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ==========================================================
+     COLORS — Section 2
+     Warm editorial palette ported from the LeadLoop landing page
+     (cream + forest green + gold). Light-mode only.
+     ========================================================== */
+
+  /* Backgrounds — warm cream neutrals */
+  --color-bg-base:      #F6F1E7;   /* Page background — warm cream */
+  --color-bg-surface:   #FFFFFF;   /* Cards, panels, nav */
+  --color-bg-elevated:  #FFFFFF;   /* Popovers, dropdown menus, floating panels */
+  --color-bg-subtle:    #F1EADD;   /* Hover rows, muted sections — warm sand */
+  --color-bg-input:     #FCFAF4;   /* Input fields — soft sand */
+
+  /* Text — warm ink ramp */
+  --color-text-primary:   #211E18; /* Headlines, body — warm ink */
+  --color-text-secondary: #5C554A; /* Subtitles, meta, labels — clay */
+  --color-text-muted:     #9A9184; /* Placeholders, disabled — taupe */
+  --color-text-inverse:   #FFFFFF; /* Text on dark/colored backgrounds */
+
+  /* Borders — warm hairlines */
+  --color-border:         #E4DCCB; /* Default border — warm line */
+  --color-border-strong:  #D2C7B0; /* Focused inputs, active rows */
+
+  /* Primary Accent — Forest Green (LeadLoop brand) */
+  --color-accent:         #3E6B4E; /* CTAs, active nav, links */
+  --color-accent-hover:   #345C43; /* Hover state */
+  --color-accent-light:   #EEF3EA; /* Accent backgrounds, badges — mint */
+  --color-accent-text:    #3E6B4E; /* Forest text on light bg */
+  --color-accent-rgb:     62, 107, 78; /* for rgba() glows */
+
+  /* Status Colors — warm-harmonized, readable pastel pills */
+  --color-status-done:          #2F6B47; /* Done — Forest green (text) */
+  --color-status-done-solid:    #4E9068; /* Done — fill */
+  --color-status-done-bg:       #E9F1E6;
+  --color-status-working:       #8A6A24; /* Working on it — Gold (text) */
+  --color-status-working-solid: #C79A3E; /* Working — fill */
+  --color-status-working-bg:    #FBF2DE;
+  --color-status-stuck:         #B3261E; /* Stuck — Warm red (text) */
+  --color-status-stuck-solid:   #C9463C; /* Stuck — fill */
+  --color-status-stuck-bg:      #F6E7E2;
+  --color-status-notstarted:    #6B6459; /* Not Started — Clay (text) */
+  --color-status-notstarted-solid: #B7AE9C; /* Not Started — fill */
+  --color-status-notstarted-bg: #F1EADD;
+
+  /* Priority Colors — warm-harmonized */
+  --color-priority-critical:  #B3261E; /* Critical — Warm red */
+  --color-priority-high:      #C4632B; /* High — Terracotta */
+  --color-priority-medium:    #C79A3E; /* Medium — Gold */
+  --color-priority-low:       #9A9184; /* Low — Taupe */
+
+  /* Stat Card Colors (dashboard) — warm earthy quartet */
+  --color-card-blue:    #3E6B4E; /* forest */
+  --color-card-green:   #6E8B3D; /* olive */
+  --color-card-orange:  #C0743A; /* terracotta */
+  --color-card-purple:  #B08A3C; /* gold */
+
+  /* Utility */
+  --color-shadow:    rgba(33, 30, 24, 0.06);
+  --color-shadow-md: rgba(33, 30, 24, 0.10);
+  --color-overlay:   rgba(33, 30, 24, 0.45);
+
+  /* ==========================================================
+     TYPOGRAPHY — Section 3
+     ========================================================== */
+
+  /* Font families — LeadLoop landing pairing */
+  --font-display: 'Bricolage Grotesque', system-ui, -apple-system, sans-serif;
+  --font-body:    'Familjen Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono:    'Space Mono', ui-monospace, 'SFMono-Regular', monospace;
+
+  /* Type scale */
+  --text-display:   2rem;      /* 32px */
+  --text-h1:        1.5rem;    /* 24px */
+  --text-h2:        1.125rem;  /* 18px */
+  --text-h3:        0.9375rem; /* 15px */
+  --text-body-lg:   0.9375rem; /* 15px */
+  --text-body:      0.875rem;  /* 14px */
+  --text-sm:        0.8125rem; /* 13px */
+  --text-xs:        0.75rem;   /* 12px */
+  --text-stat:      2.25rem;   /* 36px */
+
+  /* Line heights */
+  --leading-tight:   1.2;
+  --leading-snug:    1.4;
+  --leading-normal:  1.5;
+  --leading-relaxed: 1.65;
+
+  /* Letter spacing */
+  --tracking-tight:   -0.02em;
+  --tracking-normal:  0em;
+  --tracking-wide:    0.04em;
+  --tracking-widest:  0.08em;
+
+  /* ==========================================================
+     SPACING — Section 4 (8px base grid)
+     ========================================================== */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+
+  /* ==========================================================
+     RADIUS & SHADOWS — Section 5
+     ========================================================== */
+  --radius-sm:   6px;
+  --radius-md:   10px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-full: 9999px;
+
+  --shadow-sm:   0 1px 2px rgba(33,30,24,.05), 0 0 0 1px rgba(33,30,24,.045);
+  --shadow-md:   0 4px 14px -4px rgba(33,30,24,.12), 0 0 0 1px rgba(33,30,24,.05);
+  --shadow-lg:   0 18px 40px -12px rgba(33,30,24,.22), 0 0 0 1px rgba(33,30,24,.05);
+  --shadow-pop:  0 12px 32px -8px rgba(33,30,24,.20), 0 0 0 1px rgba(33,30,24,.07);
+  --shadow-card: 0 1px 3px rgba(33,30,24,.06), 0 0 0 1px var(--color-border);
+  /* Accent glow for primary CTAs + focus */
+  --shadow-accent: 0 4px 14px -3px rgba(var(--color-accent-rgb), .40);
+
+  /* Motion — premium easing + hover lift */
+  --ease:      cubic-bezier(.22, .61, .36, 1);
+  --ease-out:  cubic-bezier(.16, 1, .3, 1);
+  --dur-fast:  120ms;
+  --dur:       180ms;
+  --dur-slow:  280ms;
+}
+
+/* Base defaults */
+html,
+body {
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ==========================================================
+   ACCESSIBILITY — Section 20
+   Global :focus-visible ring for all interactive elements.
+   2px solid accent outline, 2px offset. Keyboard users only
+   (mouse clicks are suppressed by :focus-visible semantics).
+   ========================================================== */
+a:focus,
+button:focus,
+input:focus,
+textarea:focus,
+select:focus,
+[role="button"]:focus,
+[role="menuitem"]:focus,
+[role="option"]:focus,
+[role="tab"]:focus,
+[role="link"]:focus,
+[tabindex]:focus {
+  outline: none;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[role="menuitem"]:focus-visible,
+[role="option"]:focus-visible,
+[role="tab"]:focus-visible,
+[role="link"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Inputs/textareas/selects already have their own
+   focus border + shadow styling, so suppress the ring. */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
+/* Screen-reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================
+   PAGE TRANSITIONS — Section 9
+   Fade in + translateY(8px → 0) on every route change.
+   Applied by PageWrapper via the `macan-page-enter` class
+   (keyed on pathname so it re-plays on navigation).
+   ========================================================== */
+@keyframes macan-page-enter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.macan-page-enter {
+  animation: macan-page-enter 200ms ease-out both;
+}
+
+/* ==========================================================
+   NOTIFICATION BADGE PULSE — Section 9
+   Scale pulse 1s infinite on the unread-count dot.
+   ========================================================== */
+@keyframes macan-badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.25); }
+}
+
+.macan-badge-pulse {
+  animation: macan-badge-pulse 1s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .macan-page-enter {
+    animation: none;
+  }
+  .macan-badge-pulse {
+    animation: none;
+  }
+}
+
+/* ==========================================================
+   SKELETON SHIMMER — Loading placeholders
+   ========================================================== */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0;  }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.45; }
+  50%      { opacity: 0.85; }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-subtle) 0%,
+    #EDE4D2 40%,
+    var(--color-bg-subtle) 80%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    background: var(--color-bg-subtle);
+    animation: skeleton-pulse 2s ease-in-out infinite;
+  }
+}
+
+/* Responsive page padding — narrower on mobile/tablet */
+@media (max-width: 767px) {
+  .macan-page-enter {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    padding-top: 20px !important;
+    padding-bottom: 20px !important;
+  }
+}
+
+/* ==========================================================
+   NOTIFICATION TASK HIGHLIGHT — glow + dim overlay
+   When a user clicks a notification, the page dims and the
+   target task row glows to draw attention.
+   ========================================================== */
+
+/* Full-screen dim overlay behind the highlighted task */
+.macan-highlight-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(0, 0, 0, 0.35);
+  animation: macan-overlay-fade-in 300ms ease-out both;
+  cursor: pointer;
+}
+
+@keyframes macan-overlay-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* --- Highlighted task row ---
+   Each <td> is individually lifted above the overlay so only
+   the single row is visible while the rest of the page stays dimmed. */
+
+tr.macan-task-highlight > td {
+  position: relative;
+  z-index: 31;
+  animation: macan-task-glow-bg 2.5s ease-in-out both;
+}
+
+/* Left accent stripe on the first cell */
+tr.macan-task-highlight > td:first-child {
+  box-shadow: inset 4px 0 0 0 var(--color-accent);
+}
+
+/* Mobile card list items — full element can be lifted */
+li.macan-task-highlight {
+  position: relative;
+  z-index: 31;
+  animation: macan-task-glow 2.5s ease-in-out both;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes macan-task-glow-bg {
+  0%   { background-color: white; }
+  10%  { background-color: #E3EFE6; }
+  40%  { background-color: #EEF4EC; }
+  100% { background-color: white; }
+}
+
+@keyframes macan-task-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(62, 107, 78, 0.0);
+    background-color: white;
+  }
+  10% {
+    box-shadow: 0 0 20px 6px rgba(62, 107, 78, 0.35),
+                0 0 40px 12px rgba(62, 107, 78, 0.15);
+    background-color: #E3EFE6;
+  }
+  40% {
+    box-shadow: 0 0 16px 4px rgba(62, 107, 78, 0.25),
+                0 0 32px 8px rgba(62, 107, 78, 0.10);
+    background-color: #EEF4EC;
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(62, 107, 78, 0.0);
+    background-color: white;
+  }
+}
+
+/* Thin horizontal scrollbar for flexible-column grids (template boards). */
+.macan-thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+.macan-thin-scrollbar::-webkit-scrollbar {
+  height: 1px;
+  width: 1px;
+}
+.macan-thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.macan-thin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+}
+.macan-thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+.macan-thin-scrollbar::-webkit-scrollbar-button,
+.macan-thin-scrollbar::-webkit-scrollbar-button:start,
+.macan-thin-scrollbar::-webkit-scrollbar-button:end,
+.macan-thin-scrollbar::-webkit-scrollbar-button:horizontal:start,
+.macan-thin-scrollbar::-webkit-scrollbar-button:horizontal:end,
+.macan-thin-scrollbar::-webkit-scrollbar-button:vertical:start,
+.macan-thin-scrollbar::-webkit-scrollbar-button:vertical:end,
+.macan-thin-scrollbar::-webkit-scrollbar-button:single-button,
+.macan-thin-scrollbar::-webkit-scrollbar-button:double-button,
+.macan-thin-scrollbar::-webkit-scrollbar-corner {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .macan-highlight-overlay {
+    animation: none;
+  }
+  tr.macan-task-highlight > td {
+    animation: none;
+    background-color: var(--color-accent-light);
+  }
+  li.macan-task-highlight {
+    animation: none;
+    box-shadow: 0 0 0 3px var(--color-accent);
+    background-color: var(--color-accent-light);
+  }
+}
+
+/* ==========================================================
+   PREMIUM PRIMITIVES — shared polish utilities
+   Opt-in classes so any surface can pick up the elevated
+   shadow + hover-lift + crisp focus the premium pages use.
+   ========================================================== */
+
+/* Surface card — hairline + soft shadow, lifts on hover */
+.surface-card {
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--dur) var(--ease),
+              transform var(--dur) var(--ease);
+}
+.surface-card.is-interactive {
+  cursor: pointer;
+}
+.surface-card.is-interactive:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Generic hover lift for any element (boards, tiles, list rows) */
+.lift {
+  transition: box-shadow var(--dur) var(--ease),
+              transform var(--dur) var(--ease);
+}
+.lift:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+/* Subtle press feedback for clickable cards/buttons */
+.press:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* Crisp accent focus ring (cards, custom controls) */
+.ring-accent:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-bg-surface),
+              0 0 0 4px var(--color-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .surface-card,
+  .surface-card.is-interactive:hover,
+  .lift,
+  .lift:hover,
+  .press:active {
+    transition: none;
+    transform: none;
+  }
+}

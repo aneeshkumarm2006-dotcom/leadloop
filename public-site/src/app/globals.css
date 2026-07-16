@@ -1,0 +1,131 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---- shadcn semantic tokens (mapped to CSS vars so components stay on-brand) ---- */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-familjen);
+  --font-mono: var(--font-space-mono);
+  --font-display: var(--font-bricolage);
+  --font-heading: var(--font-bricolage);
+}
+
+/* ---- LeadLoop brand palette (light-only, literal values) ---- */
+@theme {
+  --color-cream: #f6f1e7;
+  --color-sand: #fcfaf4;
+  --color-ink: #211e18;
+  --color-forest: #3e6b4e;
+  --color-forest-dark: #345c43;
+  --color-forest-deep: #284a36;
+  --color-clay: #5c554a;
+  --color-clay-2: #6b6459;
+  --color-taupe: #9a9184;
+  --color-taupe-2: #b0a796;
+  --color-taupe-3: #b7ae9c;
+  --color-line: #e4dccb;
+  --color-line-2: #eee7d9;
+  --color-line-3: #f1eadd;
+  --color-line-4: #e0d7c5;
+  --color-gold: #b08a3c;
+  --color-gold-border: #e4c98a;
+  --color-gold-bg: #fbf2de;
+  --color-mint: #eef3ea;
+  --color-mint-border: #c9d6c6;
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: #f6f1e7;
+  --foreground: #211e18;
+  --card: #ffffff;
+  --card-foreground: #211e18;
+  --popover: #ffffff;
+  --popover-foreground: #211e18;
+  --primary: #3e6b4e;
+  --primary-foreground: #f6f1e7;
+  --secondary: #fcfaf4;
+  --secondary-foreground: #211e18;
+  --muted: #fcfaf4;
+  --muted-foreground: #5c554a;
+  --accent: #eef3ea;
+  --accent-foreground: #284a36;
+  --destructive: #b3261e;
+  --border: #e4dccb;
+  --input: #e4dccb;
+  --ring: #3e6b4e;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-cream text-ink font-sans antialiased;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  ::selection {
+    background: #3e6b4e;
+    color: #f6f1e7;
+  }
+}
+
+/* ---- entrance animation (hero) ---- */
+@keyframes llrise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ll-rise {
+  animation: llrise 0.8s cubic-bezier(0.2, 0.6, 0.2, 1) both;
+}
+
+.ll-rise-delayed {
+  animation: llrise 1s cubic-bezier(0.2, 0.6, 0.2, 1) 0.12s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
