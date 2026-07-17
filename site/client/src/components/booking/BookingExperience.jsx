@@ -49,7 +49,7 @@ const BookingExperience = ({ config, slots = [], lang: langProp, preview = false
   // The visitor chooses how to meet — it is NOT predefined on the link.
   const [meetingType, setMeetingType] = useState('in_person');
 
-  const accent = config?.branding?.accentColor || '#26221C';
+  const accent = config?.branding?.accentColor || '#3E6B4E';
   const accVars = { '--acc': accent, '--acc2': accent, '--acc-tint': `${accent}1A`, '--acc-tint2': `${accent}0D` };
   const isVirtual = meetingType === 'virtual';
   const whereText = isVirtual ? t('bookPublic.whatsappVideo', 'WhatsApp video call') : (config?.location || '');

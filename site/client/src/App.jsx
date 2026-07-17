@@ -30,7 +30,7 @@ import AutomationsPage from './pages/AutomationsPage';
 import AutomationsHubPage from './pages/AutomationsHubPage';
 import AutomationFormsPage from './pages/AutomationFormsPage';
 import AutomationsHubPremium from './pages/AutomationsHubPremium';
-import IntegrationsPremium from './pages/IntegrationsPremium';
+// IntegrationsPremium — hidden; route redirects to /workspace (see below).
 import BookingPremium from './pages/BookingPremium';
 import IntegrationsPage from './pages/IntegrationsPage';
 import LeadIntakePage from './pages/LeadIntakePage';
@@ -197,8 +197,10 @@ function App() {
               <Route path="/automations/hub-classic" element={<AutomationsHubPage />} />
               {/* Premium Design — "Mad Libs" automation forms builder (admin-only) */}
               <Route path="/automations/forms" element={<AutomationFormsPage />} />
-              {/* Premium Design — Integrations / Connections marketplace (teal) */}
-              <Route path="/integrations" element={<IntegrationsPremium />} />
+              {/* Integrations hidden from the app — route redirects to Workspace.
+                  Restore by pointing this at <IntegrationsPremium /> again and
+                  re-adding the sidebar link in PageWrapper.jsx. */}
+              <Route path="/integrations" element={<Navigate to="/workspace" replace />} />
               {/* Booking — links manager + live preview + workflows, one page (amber) */}
               <Route path="/booking" element={<BookingPremium />} />
               {/* Retired Calendly-style standalone app → fold into /booking */}

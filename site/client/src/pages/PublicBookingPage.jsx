@@ -58,7 +58,7 @@ const PublicBookingPage = () => {
   if (loading) return <Frame><div className="pb-msg">{t('bookPublic.loading')}</div></Frame>;
   if (notFound) return <Frame><div className="pb-msg">{t('bookPublic.notAvailable')}</div></Frame>;
 
-  const accent = config?.branding?.accentColor || '#26221C';
+  const accent = config?.branding?.accentColor || '#3E6B4E';
   const accVars = { '--acc': accent, '--acc2': accent, '--acc-tint': `${accent}1A`, '--acc-tint2': `${accent}0D` };
   const logoChar = (config?.branding?.headline || config?.title || 'V').trim().charAt(0).toUpperCase();
 

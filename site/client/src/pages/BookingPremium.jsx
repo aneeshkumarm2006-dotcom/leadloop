@@ -20,11 +20,13 @@ import useBoardStore from '../store/boardStore';
 import useOrgStore from '../store/orgStore';
 import useToastStore from '../store/toastStore';
 
+// Forest green is the default (on-brand). The warmer hues remain available so a
+// team can brand an individual building's page differently if they want.
 const ACCENTS = [
-  { id: 'amber', c: '#E0982E', c2: '#F2754B' },
-  { id: 'coral', c: '#F2754B', c2: '#E0982E' },
   { id: 'forest', c: '#3E6B4E', c2: '#4E9068' },
   { id: 'spruce', c: '#4E7A70', c2: '#6FA096' },
+  { id: 'amber', c: '#E0982E', c2: '#F2754B' },
+  { id: 'coral', c: '#F2754B', c2: '#E0982E' },
   { id: 'plum', c: '#96578A', c2: '#B47AA8' },
 ];
 const accentObj = (hex) => ACCENTS.find((a) => a.c.toLowerCase() === String(hex || '').toLowerCase()) || ACCENTS[0];
@@ -50,6 +52,7 @@ function LinkCard({ link, members, lang, onToggle, onEdit, onOpen, onDelete }) {
     <div className="link-card">
       <div className="link-cover" style={{ background: `linear-gradient(135deg, ${acc.c}, ${acc.c2})` }}>
         <div className="pub-cover" />
+        <span className="lc-mono">{(link.title || 'V').trim().charAt(0).toUpperCase()}</span>
         <span className="lc-dur">{link.durationMinutes} min</span>
         {!link.active && <span className="lc-paused">{L({ en: 'Paused', fr: 'En pause' }, lang)}</span>}
       </div>

@@ -29,7 +29,7 @@
   --neutral: #6B6459;
   --sky: #3E8FA0;    --violet: #96578A; --teal: #4E9088; --pink: #A63D57; --orange: #C4632B;
   /* ---- domain signature colors (warm-editorial family; each screen owns a hue) ---- */
-  --book: #E0982E;   --book-2: #F2754B; --book-tint: rgba(224,152,46,.12); --book-ink: #8A5410;
+  --book: #3E6B4E;   --book-2: #4E9068; --book-tint: rgba(62,107,78,.12); --book-ink: #2C5138;
   --autom: #C4632B;  --autom-tint: rgba(196,99,43,.11);  --autom-ink: #8F4519;
   --integ: #4E7A70;  --integ-tint: rgba(78,122,112,.12); --integ-ink: #35594F;
   --forms: #3E6B4E;  --forms-tint: rgba(62,107,78,.10);  --forms-ink: #284A36;
@@ -66,7 +66,7 @@
   --sh-2: 0 4px 14px -4px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.05);
   --sh-3: 0 18px 40px -12px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
   --sh-pop: 0 12px 32px -8px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08);
-  --book: #F0B057;  --book-2: #F5916A; --book-tint: rgba(240,176,87,.15); --book-ink: #F0B057;
+  --book: #5FB07E;  --book-2: #7BC698; --book-tint: rgba(95,176,126,.16); --book-ink: #86D0A2;
   --autom: #A78BFA; --autom-tint: rgba(167,139,250,.16); --autom-ink: #C4B2FB;
   --integ: #34D8C4; --integ-tint: rgba(52,216,196,.15); --integ-ink: #5FE3D2;
   --forms: #818CF8; --forms-tint: rgba(129,140,248,.16); --forms-ink: #A5AEF9;
@@ -493,7 +493,7 @@ textarea.bf-input { height: auto; min-height: 88px; padding: 12px 14px; resize: 
 @media (max-width: 720px) { .integ-grid { grid-template-columns: 1fr; } }
 
 /* ============================================================
-   BOOKING (honey / amber)  — admin manager + public flow
+   BOOKING (forest green — on brand)  — admin manager + public flow
    ============================================================ */
 .book { --bk: var(--book); --bk2: var(--book-2); }
 
@@ -504,6 +504,9 @@ textarea.bf-input { height: auto; min-height: 88px; padding: 12px 14px; resize: 
 .link-card:hover { transform: translateY(-3px); box-shadow: var(--sh-2); }
 .link-cover { height: 96px; position: relative; display: flex; align-items: flex-end; padding: 12px 14px; }
 .link-cover .lc-dur { background: rgba(255,255,255,.9); color: #1A1914; font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 999px; backdrop-filter: blur(4px); }
+.link-cover .lc-mono { position: absolute; top: 12px; left: 14px; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+  font-family: var(--font-display); font-weight: 800; font-size: 16px; color: #fff; background: rgba(255,255,255,.18);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.35); backdrop-filter: blur(3px); }
 .link-cover .lc-paused { position: absolute; top: 12px; right: 12px; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: rgba(20,19,15,.5); color: #fff; backdrop-filter: blur(4px); }
 .link-body { padding: 15px 16px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
 .link-body .lb-title { font-weight: 700; font-size: 15.5px; font-family: var(--font-display); letter-spacing: -.01em; }

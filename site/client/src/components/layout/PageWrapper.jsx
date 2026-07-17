@@ -11,7 +11,6 @@ import {
   ChevronDown,
   Zap,
   Sparkles,
-  Plug,
   CalendarClock,
 } from 'lucide-react';
 import Navbar from './Navbar';
@@ -315,14 +314,8 @@ const OrgSidebar = () => {
                   onClick={() => navigate('/automations/forms')}
                 />
               )}
-              {isAdmin && (
-                <SidebarLink
-                  icon={Plug}
-                  label={t('integrationsPremium.nav')}
-                  active={pathname === '/integrations'}
-                  onClick={() => navigate('/integrations')}
-                />
-              )}
+              {/* Integrations link hidden — page is out of the app for now.
+                  Restore this block to bring it back. */}
               {isAdmin && (
                 <SidebarLink
                   icon={CalendarClock}
