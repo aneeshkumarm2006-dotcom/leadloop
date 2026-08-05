@@ -19,6 +19,7 @@ const SignupPage = () => {
 
   return (
     <AuthScreen
+      mode="signup"
       title={t('pages.signupTitle')}
       subtitle={t('pages.signupSubtitle')}
       googleLabel={t('pages.signUpWithGoogle')}

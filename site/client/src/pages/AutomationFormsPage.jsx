@@ -8,6 +8,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import PageWrapper from '../components/layout/PageWrapper';
+import Dropdown from '../components/ui/Dropdown';
 import Icon from '../premium/PremiumIcons';
 import { Toggle, LoadingState } from '../premium/PremiumShared';
 import {
@@ -41,13 +42,12 @@ function BoardPicker({ boards, value, onChange, lang }) {
   return (
     <div className="blank-field">
       <label>{L({ en: 'Which board should this run on?', fr: 'Sur quel tableau l’exécuter ?' }, lang)}</label>
-      <div className="bf-control">
-        <select className="bf-select" value={value} onChange={(e) => onChange(e.target.value)}>
-          {boards.length === 0 && <option value="">{L({ en: 'No boards yet', fr: 'Aucun tableau' }, lang)}</option>}
-          {boards.map((b) => <option key={b._id} value={b._id}>{b.name}</option>)}
-        </select>
-        <span className="bf-caret"><Icon name="chevronDown" size={16} /></span>
-      </div>
+      <Dropdown
+        placeholder={L({ en: 'No boards yet', fr: 'Aucun tableau' }, lang)}
+        options={boards.map((b) => ({ value: b._id, label: b.name }))}
+        value={value}
+        onChange={onChange}
+      />
     </div>
   );
 }
@@ -107,12 +107,11 @@ function BlankField({ name, spec, value, onChange, lang }) {
   return (
     <div className="blank-field">
       <label>{label}</label>
-      <div className="bf-control">
-        <select className="bf-select" value={value} onChange={(e) => onChange(e.target.value)}>
-          {opts.map((o) => <option key={o} value={o}>{valLabel(spec.kind, o, lang)}</option>)}
-        </select>
-        <span className="bf-caret"><Icon name="chevronDown" size={16} /></span>
-      </div>
+      <Dropdown
+        options={opts.map((o) => ({ value: o, label: valLabel(spec.kind, o, lang) }))}
+        value={value}
+        onChange={onChange}
+      />
       {help[name] && <div className="bf-help">{L(help[name], lang)}</div>}
     </div>
   );
@@ -241,12 +240,11 @@ function BuilderChip({ slotType, slot, onPick, lang }) {
               {opt.param.kind === 'text' ? (
                 <textarea className="bf-input" rows={3} style={{ fontSize: 14 }} value={slot.val || ''} onChange={(e) => setVal(e.target.value)} />
               ) : (
-                <div className="bf-control">
-                  <select className="bf-select" style={{ height: 40, fontSize: 14 }} value={slot.val || ''} onChange={(e) => setVal(e.target.value)}>
-                    {VOCAB[opt.param.kind]().map((v) => <option key={v} value={v}>{valLabel(opt.param.kind, v, lang)}</option>)}
-                  </select>
-                  <span className="bf-caret"><Icon name="chevronDown" size={15} /></span>
-                </div>
+                <Dropdown
+                  options={VOCAB[opt.param.kind]().map((v) => ({ value: v, label: valLabel(opt.param.kind, v, lang) }))}
+                  value={slot.val || ''}
+                  onChange={setVal}
+                />
               )}
             </>
           )}
@@ -405,14 +403,11 @@ function ModelPicker({ lang, provider, model, onProvider, onModel }) {
           </button>
         ))}
       </div>
-      <div className="mm-select-wrap">
-        <select className="mm-select" value={model || ''} onChange={(e) => onModel(e.target.value)}>
-          {(AI_MODELS[provider] || []).map((m) => (
-            <option key={m.id} value={m.id}>{m.label}</option>
-          ))}
-        </select>
-        <span className="mm-caret"><Icon name="chevronDown" size={15} /></span>
-      </div>
+      <Dropdown
+        options={(AI_MODELS[provider] || []).map((m) => ({ value: m.id, label: m.label }))}
+        value={model || ''}
+        onChange={onModel}
+      />
     </div>
   );
 }

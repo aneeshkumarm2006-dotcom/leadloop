@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Share2, AlertCircle, Check } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
+import Dropdown from '../ui/Dropdown';
+import DatePickerPopover from '../ui/DatePickerPopover';
 import useWorkspaceStore from '../../store/workspaceStore';
 
 /**
@@ -154,25 +156,22 @@ const ShareBoardModal = ({ isOpen, onClose, board }) => {
 
           <div>
             <label style={labelStyle} htmlFor="share-role">Access level</label>
-            <select
-              id="share-role"
+            <Dropdown
+              options={[
+                { value: 'viewer', label: 'Viewer — can read, not edit' },
+                { value: 'editor', label: 'Editor — can read & edit' },
+              ]}
               value={role}
-              onChange={(e) => setRole(e.target.value)}
-              style={fieldStyle}
-            >
-              <option value="viewer">Viewer — can read, not edit</option>
-              <option value="editor">Editor — can read &amp; edit</option>
-            </select>
+              onChange={setRole}
+            />
           </div>
 
           <div>
             <label style={labelStyle} htmlFor="share-expiry">Expires (optional)</label>
-            <input
-              id="share-expiry"
-              type="date"
+            <DatePickerPopover
               value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
-              style={fieldStyle}
+              onChange={setExpiresAt}
+              placeholder="Pick a date"
             />
           </div>
 

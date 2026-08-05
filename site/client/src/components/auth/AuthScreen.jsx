@@ -1,4 +1,9 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+
+import useAuthStore from '../../store/authStore';
+import * as authService from '../../services/authService';
 
 /** Google "G" mark for the OAuth button. */
 const GoogleIcon = () => (
@@ -58,14 +63,231 @@ const Wordmark = ({ light = false }) => (
   </div>
 );
 
+/** Labelled text input matching the card's border/radius tokens. */
+const Field = ({ id, label, ...rest }) => (
+  <label htmlFor={id} className="block">
+    <span className="mb-1.5 block text-[13px] font-semibold text-[color:var(--color-text-secondary)]">
+      {label}
+    </span>
+    <input
+      id={id}
+      className="h-11 w-full bg-white px-3 font-body text-[14px] text-[color:var(--color-text-primary)] outline-none transition-colors focus:border-[color:var(--color-accent)]"
+      style={{
+        border: '1.5px solid var(--color-border)',
+        borderRadius: 'var(--radius-md)',
+      }}
+      {...rest}
+    />
+  </label>
+);
+
+/** Full-width accent submit button. */
+const PrimaryButton = ({ children, ...rest }) => (
+  <button
+    className="flex h-11 w-full items-center justify-center gap-2 font-body text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
+    style={{
+      background: 'var(--color-accent)',
+      borderRadius: 'var(--radius-md)',
+    }}
+    {...rest}
+  >
+    {children}
+  </button>
+);
+
+const STEP = {
+  FORM: 'form',
+  VERIFY: 'verify',
+  FORGOT: 'forgot',
+  RESET: 'reset',
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /**
- * Shared split-screen auth shell for the login & signup pages. The left brand
- * panel is decorative (accent gradient, hidden on small screens); the right
- * side hosts the card. Auth itself is Google OAuth only — both pages funnel to
- * the same backend flow, so this component just varies the framing copy.
+ * Shared split-screen auth shell for the login & signup pages. Offers BOTH the
+ * existing Google OAuth flow AND an email+password flow with a verification-code
+ * step, plus a forgot/reset-password path. `mode` ('login' | 'signup') selects
+ * which credential form the FORM step renders.
  */
-const AuthScreen = ({ title, subtitle, googleLabel, onGoogle, error, footer }) => {
+const AuthScreen = ({ title, subtitle, googleLabel, onGoogle, error, footer, mode = 'login' }) => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const login = useAuthStore((s) => s.login);
+  const fetchCurrentUser = useAuthStore((s) => s.fetchCurrentUser);
+
+  const isSignup = mode === 'signup';
+
+  const [step, setStep] = useState(STEP.FORM);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [err, setErr] = useState('');
+  const [info, setInfo] = useState('');
+
+  const resetMessages = () => {
+    setErr('');
+    setInfo('');
+  };
+
+  // Read a human error out of an axios failure, preferring the server's message
+  // and falling back to a generic i18n string (never leaks internals).
+  const errorMessage = (e) =>
+    e?.response?.data?.error || t('pages.authGenericError');
+
+  // Mirror AuthCallbackPage: store the token, load the user, route onward.
+  const completeLogin = async (token) => {
+    login(token);
+    const user = await fetchCurrentUser();
+    if (!user) {
+      setErr(t('pages.signInFailed'));
+      return;
+    }
+    const savedRedirect = sessionStorage.getItem('postLoginRedirect');
+    sessionStorage.removeItem('postLoginRedirect');
+    if (savedRedirect) {
+      navigate(savedRedirect, { replace: true });
+      return;
+    }
+    const hasOrg = Array.isArray(user.organisations) && user.organisations.length > 0;
+    navigate(hasOrg ? '/workspace' : '/onboarding', { replace: true });
+  };
+
+  const handleCredentialSubmit = async (e) => {
+    e.preventDefault();
+    resetMessages();
+    const emailNorm = email.trim().toLowerCase();
+
+    if (isSignup && !name.trim()) return setErr(t('pages.errNameRequired'));
+    if (!EMAIL_RE.test(emailNorm)) return setErr(t('pages.errEmailInvalid'));
+    if (isSignup && password.length < 8) return setErr(t('pages.errPasswordShort'));
+    if (!password) return setErr(t('pages.errPasswordRequired'));
+
+    setSubmitting(true);
+    try {
+      if (isSignup) {
+        const data = await authService.register({
+          name: name.trim(),
+          email: emailNorm,
+          password,
+        });
+        if (data?.pendingVerification) {
+          setStep(STEP.VERIFY);
+          setInfo(t('pages.codeSentTo', { email: emailNorm }));
+        }
+      } else {
+        const data = await authService.loginWithPassword({ email: emailNorm, password });
+        if (data?.pendingVerification) {
+          setStep(STEP.VERIFY);
+          setInfo(t('pages.pendingVerificationInfo'));
+        } else if (data?.token) {
+          await completeLogin(data.token);
+        }
+      }
+    } catch (e2) {
+      setErr(errorMessage(e2));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleVerify = async (e) => {
+    e.preventDefault();
+    resetMessages();
+    if (!/^\d{6}$/.test(code.trim())) return setErr(t('pages.errCodeInvalid'));
+    setSubmitting(true);
+    try {
+      const data = await authService.verifyEmail({
+        email: email.trim().toLowerCase(),
+        code: code.trim(),
+      });
+      if (data?.token) await completeLogin(data.token);
+    } catch (e2) {
+      setErr(errorMessage(e2));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    resetMessages();
+    setSubmitting(true);
+    try {
+      await authService.resendCode({ email: email.trim().toLowerCase() });
+      setInfo(t('pages.resendSent'));
+    } catch (e2) {
+      setErr(errorMessage(e2));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleForgotSubmit = async (e) => {
+    e.preventDefault();
+    resetMessages();
+    const emailNorm = email.trim().toLowerCase();
+    if (!EMAIL_RE.test(emailNorm)) return setErr(t('pages.errEmailInvalid'));
+    setSubmitting(true);
+    try {
+      await authService.forgotPassword({ email: emailNorm });
+      setStep(STEP.RESET);
+      setInfo(t('pages.forgotSent'));
+    } catch (e2) {
+      setErr(errorMessage(e2));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    resetMessages();
+    if (!/^\d{6}$/.test(code.trim())) return setErr(t('pages.errCodeInvalid'));
+    if (newPassword.length < 8) return setErr(t('pages.errPasswordShort'));
+    setSubmitting(true);
+    try {
+      await authService.resetPassword({
+        email: email.trim().toLowerCase(),
+        code: code.trim(),
+        newPassword,
+      });
+      setPassword('');
+      setNewPassword('');
+      setCode('');
+      setStep(STEP.FORM);
+      setInfo(t('pages.resetSuccess'));
+    } catch (e2) {
+      setErr(errorMessage(e2));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const goToStep = (next) => {
+    resetMessages();
+    setStep(next);
+  };
+
+  // Heading copy per step (FORM uses the page-provided title/subtitle).
+  const heading =
+    step === STEP.VERIFY
+      ? t('pages.verifyTitle')
+      : step === STEP.FORGOT
+        ? t('pages.forgotTitle')
+        : step === STEP.RESET
+          ? t('pages.resetTitle')
+          : title;
+  const subheading =
+    step === STEP.VERIFY
+      ? t('pages.verifySubtitle')
+      : step === STEP.FORGOT
+        ? t('pages.forgotSubtitle')
+        : step === STEP.RESET
+          ? t('pages.resetSubtitle')
+          : subtitle;
 
   return (
     <div className="min-h-screen w-full flex bg-base">
@@ -118,28 +340,200 @@ const AuthScreen = ({ title, subtitle, googleLabel, onGoogle, error, footer }) =
             }}
           >
             <h1 className="font-display text-[24px] font-extrabold tracking-tight text-[color:var(--color-text-primary)]">
-              {title}
+              {heading}
             </h1>
             <p className="mt-2 text-[14px] leading-relaxed text-[color:var(--color-text-secondary)]">
-              {subtitle}
+              {subheading}
             </p>
 
-            <button
-              type="button"
-              onClick={onGoogle}
-              className="mt-8 flex h-11 w-full items-center justify-center gap-3 bg-white font-body text-[14px] font-semibold text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:var(--color-bg-subtle)]"
-              style={{
-                border: '1.5px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-              }}
-            >
-              <GoogleIcon />
-              {googleLabel}
-            </button>
+            {/* --- FORM step: Google + email/password ------------------------ */}
+            {step === STEP.FORM && (
+              <>
+                <button
+                  type="button"
+                  onClick={onGoogle}
+                  className="mt-8 flex h-11 w-full items-center justify-center gap-3 bg-white font-body text-[14px] font-semibold text-[color:var(--color-text-primary)] transition-colors hover:bg-[color:var(--color-bg-subtle)]"
+                  style={{
+                    border: '1.5px solid var(--color-border)',
+                    borderRadius: 'var(--radius-md)',
+                  }}
+                >
+                  <GoogleIcon />
+                  {googleLabel}
+                </button>
 
-            {error && (
+                <div className="my-6 flex items-center gap-3">
+                  <span className="h-px flex-1 bg-[color:var(--color-border)]" />
+                  <span className="text-[12px] font-medium uppercase tracking-wide text-[color:var(--color-text-muted)]">
+                    {t('pages.orDivider')}
+                  </span>
+                  <span className="h-px flex-1 bg-[color:var(--color-border)]" />
+                </div>
+
+                <form onSubmit={handleCredentialSubmit} className="space-y-4">
+                  {isSignup && (
+                    <Field
+                      id="auth-name"
+                      label={t('pages.nameLabel')}
+                      type="text"
+                      autoComplete="name"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder={t('pages.namePlaceholder')}
+                    />
+                  )}
+                  <Field
+                    id="auth-email"
+                    label={t('pages.emailLabel')}
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t('pages.emailPlaceholder')}
+                  />
+                  <Field
+                    id="auth-password"
+                    label={t('pages.passwordLabel')}
+                    type="password"
+                    autoComplete={isSignup ? 'new-password' : 'current-password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={t('pages.passwordPlaceholder')}
+                  />
+                  {isSignup && (
+                    <p className="text-[12px] text-[color:var(--color-text-muted)]">
+                      {t('pages.passwordMinHint')}
+                    </p>
+                  )}
+                  <PrimaryButton type="submit" disabled={submitting}>
+                    {isSignup
+                      ? t('pages.createAccountButton')
+                      : t('pages.signInButton')}
+                  </PrimaryButton>
+                </form>
+
+                {!isSignup && (
+                  <button
+                    type="button"
+                    onClick={() => goToStep(STEP.FORGOT)}
+                    className="mt-4 block w-full text-center text-[13px] font-semibold text-[color:var(--color-accent)] hover:underline"
+                  >
+                    {t('pages.forgotPassword')}
+                  </button>
+                )}
+              </>
+            )}
+
+            {/* --- VERIFY step ---------------------------------------------- */}
+            {step === STEP.VERIFY && (
+              <form onSubmit={handleVerify} className="mt-8 space-y-4">
+                <Field
+                  id="auth-code"
+                  label={t('pages.codeLabel')}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder={t('pages.codePlaceholder')}
+                />
+                <PrimaryButton type="submit" disabled={submitting}>
+                  {t('pages.verifyButton')}
+                </PrimaryButton>
+                <div className="flex items-center justify-between text-[13px]">
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={submitting}
+                    className="font-semibold text-[color:var(--color-accent)] hover:underline disabled:opacity-60"
+                  >
+                    {t('pages.resendCode')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => goToStep(STEP.FORM)}
+                    className="font-semibold text-[color:var(--color-text-secondary)] hover:underline"
+                  >
+                    {t('pages.back')}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* --- FORGOT step ---------------------------------------------- */}
+            {step === STEP.FORGOT && (
+              <form onSubmit={handleForgotSubmit} className="mt-8 space-y-4">
+                <Field
+                  id="auth-forgot-email"
+                  label={t('pages.emailLabel')}
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={t('pages.emailPlaceholder')}
+                />
+                <PrimaryButton type="submit" disabled={submitting}>
+                  {t('pages.sendResetCode')}
+                </PrimaryButton>
+                <button
+                  type="button"
+                  onClick={() => goToStep(STEP.FORM)}
+                  className="block w-full text-center text-[13px] font-semibold text-[color:var(--color-text-secondary)] hover:underline"
+                >
+                  {t('pages.backToSignIn')}
+                </button>
+              </form>
+            )}
+
+            {/* --- RESET step ----------------------------------------------- */}
+            {step === STEP.RESET && (
+              <form onSubmit={handleReset} className="mt-8 space-y-4">
+                <Field
+                  id="auth-reset-code"
+                  label={t('pages.codeLabel')}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder={t('pages.codePlaceholder')}
+                />
+                <Field
+                  id="auth-new-password"
+                  label={t('pages.newPasswordLabel')}
+                  type="password"
+                  autoComplete="new-password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder={t('pages.passwordPlaceholder')}
+                />
+                <p className="text-[12px] text-[color:var(--color-text-muted)]">
+                  {t('pages.passwordMinHint')}
+                </p>
+                <PrimaryButton type="submit" disabled={submitting}>
+                  {t('pages.resetButton')}
+                </PrimaryButton>
+                <button
+                  type="button"
+                  onClick={() => goToStep(STEP.FORM)}
+                  className="block w-full text-center text-[13px] font-semibold text-[color:var(--color-text-secondary)] hover:underline"
+                >
+                  {t('pages.backToSignIn')}
+                </button>
+              </form>
+            )}
+
+            {/* Inline info / error messaging (shared across steps) */}
+            {info && (
+              <p className="mt-4 text-center text-xs text-[color:var(--color-text-secondary)]">
+                {info}
+              </p>
+            )}
+            {(err || (error && step === STEP.FORM)) && (
               <p className="mt-3 text-center text-xs text-[color:var(--color-status-stuck)]">
-                {t('pages.signInFailed')}
+                {err || t('pages.signInFailed')}
               </p>
             )}
 

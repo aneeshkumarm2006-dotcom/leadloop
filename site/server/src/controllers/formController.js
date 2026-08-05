@@ -11,6 +11,7 @@ const mongoose = require('mongoose');
 const Board = require('../models/Board');
 const Organisation = require('../models/Organisation');
 const Form = require('../models/Form');
+const TaskGroup = require('../models/TaskGroup');
 const { submitForm: runSubmit, FormSubmitError } = require('../services/formSubmissionService');
 
 const isOrgAdmin = (org, userId) =>
@@ -45,6 +46,18 @@ const loadBoardAdmin = async (boardId, userId) => {
   if (ctx.error) return ctx;
   if (!isOrgAdmin(ctx.org, userId)) return { status: 403, error: 'Admin access required' };
   return ctx;
+};
+
+/**
+ * Resolve a requested landing group to a valid id for this board, or null.
+ * A group from another board (or a bad id) is dropped to null so the submission
+ * falls back to the board's first stage rather than mis-filing the lead.
+ */
+const resolveGroupForBoard = async (boardId, groupRaw) => {
+  if (!groupRaw) return null;
+  if (!mongoose.Types.ObjectId.isValid(String(groupRaw))) return null;
+  const group = await TaskGroup.findOne({ _id: groupRaw, board: boardId }).select('_id');
+  return group ? group._id : null;
 };
 
 let fieldSeq = 0;
@@ -98,6 +111,7 @@ const brandingOut = (f) => ({
 const serializeForm = (f) => ({
   _id: f._id,
   boardId: f.boardId,
+  group: f.group || null,
   slug: f.slug,
   name: f.name,
   fieldMap: f.fieldMap || [],
@@ -201,6 +215,7 @@ const createForm = async (req, res) => {
 
     const form = await Form.create({
       boardId: ctx.board._id,
+      group: await resolveGroupForBoard(ctx.board._id, body.group),
       name,
       fieldMap: sanitizeFieldMap(body.fieldMap),
       welcomeMessage: typeof body.welcomeMessage === 'string' ? body.welcomeMessage : '',
@@ -253,6 +268,7 @@ const updateForm = async (req, res) => {
       if (!name) return res.status(400).json({ error: 'name cannot be empty' });
       form.name = name;
     }
+    if (body.group !== undefined) form.group = await resolveGroupForBoard(form.boardId, body.group);
     if (body.fieldMap !== undefined) form.fieldMap = sanitizeFieldMap(body.fieldMap);
     if (body.welcomeMessage !== undefined) form.welcomeMessage = String(body.welcomeMessage || '');
     if (body.postSubmitRedirectUrl !== undefined) form.postSubmitRedirectUrl = String(body.postSubmitRedirectUrl || '');

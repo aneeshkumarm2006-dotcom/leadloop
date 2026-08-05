@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import RecipeCard from './RecipeCard';
+import Dropdown from '../ui/Dropdown';
 
 /**
  * RecipeCatalogue — the F6 recipe card grid with a region filter (F6.4).
@@ -67,24 +68,13 @@ const RecipeCatalogue = ({
             style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 13, color: 'var(--color-text-primary)' }}
           />
         </div>
-        <select
-          value={region}
-          onChange={(e) => setRegion(e.target.value)}
-          className="font-body"
-          style={{
-            height: 38,
-            padding: '0 10px',
-            borderRadius: 'var(--radius-md)',
-            border: '1.5px solid var(--color-border)',
-            background: 'var(--color-bg-input)',
-            color: 'var(--color-text-primary)',
-            fontSize: 13,
-          }}
-        >
-          {REGION_OPTIONS.map((r) => (
-            <option key={r} value={r}>{r}</option>
-          ))}
-        </select>
+        <div style={{ width: 180 }}>
+          <Dropdown
+            options={REGION_OPTIONS.map((r) => ({ value: r, label: r }))}
+            value={region}
+            onChange={setRegion}
+          />
+        </div>
       </div>
 
       {error && (

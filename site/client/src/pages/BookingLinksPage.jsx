@@ -6,6 +6,8 @@ import PageWrapper from '../components/layout/PageWrapper';
 import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import Dropdown from '../components/ui/Dropdown';
+import TimePickerPopover from '../components/ui/TimePickerPopover';
 import useBoardStore from '../store/boardStore';
 import useOrgStore from '../store/orgStore';
 import useToastStore from '../store/toastStore';
@@ -222,9 +224,9 @@ const BookingLinkForm = ({ initial, board, groups, members, lang, onClose, onSub
                 </button>
                 {hours[d].enabled ? (
                   <div className="flex items-center gap-2">
-                    <input type="time" value={hours[d].start} onChange={(e) => setDay(d, { start: e.target.value })} style={timeStyle} />
+                    <TimePickerPopover value={hours[d].start} onChange={(v) => setDay(d, { start: v })} />
                     <span style={{ color: 'var(--color-text-muted)' }}>–</span>
-                    <input type="time" value={hours[d].end} onChange={(e) => setDay(d, { end: e.target.value })} style={timeStyle} />
+                    <TimePickerPopover value={hours[d].end} onChange={(v) => setDay(d, { end: v })} />
                   </div>
                 ) : <span className="font-body" style={{ fontSize: 12.5, color: 'var(--color-text-muted)' }}>{t('booking.unavailable')}</span>}
               </div>
@@ -289,11 +291,8 @@ const Field = ({ label, children }) => (
   </label>
 );
 const Select = ({ value, onChange, options }) => (
-  <select value={value} onChange={(e) => onChange(e.target.value)} style={selectStyle}>
-    {options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-  </select>
+  <Dropdown options={options} value={value} onChange={onChange} />
 );
 const selectStyle = { width: '100%', height: 38, padding: '0 10px', fontSize: 14, border: '1.5px solid var(--color-border-strong)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-surface, #fff)', color: 'var(--color-text-primary)' };
-const timeStyle = { height: 34, padding: '0 8px', fontSize: 13, border: '1.5px solid var(--color-border-strong)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-surface, #fff)', color: 'var(--color-text-primary)' };
 
 export default BookingLinksPage;

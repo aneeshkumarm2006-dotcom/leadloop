@@ -14,6 +14,7 @@ const LoginPage = () => {
 
   return (
     <AuthScreen
+      mode="login"
       title={t('pages.loginTitle')}
       subtitle={t('pages.loginSubtitle')}
       googleLabel={t('pages.signInWithGoogle')}

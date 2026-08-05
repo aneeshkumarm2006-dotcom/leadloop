@@ -25,6 +25,7 @@ const Board = require('../models/Board');
 const Form = require('../models/Form');
 const Submission = require('../models/Submission');
 const Task = require('../models/Task');
+const TaskGroup = require('../models/TaskGroup');
 const eventBus = require('./eventBus');
 const { createTaskWithColumnValues } = require('./taskCreation');
 
@@ -114,6 +115,29 @@ const resolveValueForColumn = (board, columnId, value) => {
   return value;
 };
 
+/** Normalise a key for loose label matching (lowercase, strip non-alphanumerics). */
+const normKey = (s) => String(s == null ? '' : s).toLowerCase().replace(/[^a-z0-9]/g, '');
+
+/**
+ * Resolve a field's submitted value from the payload. The in-app public form
+ * posts by `formFieldId`; externally hand-built forms (e.g. the marketing site)
+ * can't know those ids, so we also accept a value keyed by the field's label
+ * (loosely normalised) or its bound `columnId`. `formFieldId` wins when present,
+ * so existing submissions are unaffected.
+ */
+const resolveRawValue = (body, field) => {
+  if (Object.prototype.hasOwnProperty.call(body, field.formFieldId)) return body[field.formFieldId];
+  const wantLabel = normKey(field.label);
+  if (wantLabel) {
+    const hit = Object.keys(body).find((k) => normKey(k) === wantLabel);
+    if (hit !== undefined) return body[hit];
+  }
+  if (field.columnId && Object.prototype.hasOwnProperty.call(body, String(field.columnId))) {
+    return body[String(field.columnId)];
+  }
+  return undefined;
+};
+
 /**
  * Validate + coerce the payload against the form's fieldMap. Returns
  * `{ values: { [formFieldId]: coerced }, missingRequired: [label] }`.
@@ -123,7 +147,7 @@ const validatePayload = (form, payload) => {
   const values = {};
   const missingRequired = [];
   for (const field of form.fieldMap || []) {
-    const raw = body[field.formFieldId];
+    const raw = resolveRawValue(body, field);
     const coerced = coerceValue(field.type, raw);
     if (field.required && isEmpty(coerced)) {
       missingRequired.push(field.label || field.formFieldId);
@@ -195,6 +219,15 @@ const submitForm = async (slug, { payload = {}, turnstileToken, ip, userAgent } 
     });
   }
 
+  // Landing stage — honour the form's configured group when it still exists on
+  // the board; otherwise leave null so taskCreation drops the lead into the
+  // board's first group by order.
+  let landingGroupId = null;
+  if (form.group) {
+    const g = await TaskGroup.findOne({ _id: form.group, board: board._id }).select('_id');
+    landingGroupId = g ? g._id : null;
+  }
+
   let task;
   const warnings = [];
 
@@ -220,6 +253,7 @@ const submitForm = async (slug, { payload = {}, turnstileToken, ip, userAgent } 
     const created = await createTaskWithColumnValues({
       board,
       columnValues,
+      groupId: landingGroupId,
       createdBy: board.createdBy,
     });
     task = created.task;
@@ -228,7 +262,7 @@ const submitForm = async (slug, { payload = {}, turnstileToken, ip, userAgent } 
   } else {
     // AC5 — legacy board: fold into name/note + a documented warning.
     const { name, note } = mapToLegacyFields(form, values);
-    const created = await createTaskWithColumnValues({ board, name, createdBy: board.createdBy });
+    const created = await createTaskWithColumnValues({ board, name, groupId: landingGroupId, createdBy: board.createdBy });
     task = created.task;
     if (note) {
       await Task.updateOne({ _id: task._id }, { $set: { note } }).catch((err) =>

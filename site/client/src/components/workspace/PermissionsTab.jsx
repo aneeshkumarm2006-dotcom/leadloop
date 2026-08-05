@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Shield, Plus, Trash2, LayoutList, Folder as FolderIcon, Building2 } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
+import Dropdown from '../ui/Dropdown';
+import DatePickerPopover from '../ui/DatePickerPopover';
 import * as workspaceService from '../../services/workspaceService';
 import useToastStore from '../../store/toastStore';
 
@@ -191,12 +193,12 @@ const GrantForm = ({ members, boards, folders, onClose, onSubmit }) => {
     >
       <div className="flex flex-col gap-4">
         <Field label={t('perm.member')}>
-          <select value={granteeUserId} onChange={(e) => setGranteeUserId(e.target.value)} style={select}>
-            {members.length === 0 && <option value="">{t('perm.noMembers')}</option>}
-            {members.map((m) => (
-              <option key={m._id} value={String(m._id)}>{m.name || m.email}</option>
-            ))}
-          </select>
+          <Dropdown
+            placeholder={t('perm.noMembers')}
+            options={members.map((m) => ({ value: String(m._id), label: m.name || m.email }))}
+            value={granteeUserId}
+            onChange={setGranteeUserId}
+          />
         </Field>
 
         <Field label={t('perm.scope')}>
@@ -226,12 +228,12 @@ const GrantForm = ({ members, boards, folders, onClose, onSubmit }) => {
 
         {scope !== 'workspace' && (
           <Field label={scope === 'board' ? t('perm.board') : t('perm.folder')}>
-            <select value={resourceId} onChange={(e) => setResourceId(e.target.value)} style={select}>
-              {resourceOptions.length === 0 && <option value="">—</option>}
-              {resourceOptions.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+            <Dropdown
+              placeholder="—"
+              options={resourceOptions}
+              value={resourceId}
+              onChange={setResourceId}
+            />
           </Field>
         )}
 
@@ -257,7 +259,7 @@ const GrantForm = ({ members, boards, folders, onClose, onSubmit }) => {
         </Field>
 
         <Field label={t('perm.expiresOptional')}>
-          <input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} style={select} />
+          <DatePickerPopover value={expiresAt} onChange={setExpiresAt} placeholder="Pick a date" />
         </Field>
 
         {err && <p className="font-body" style={{ fontSize: 13, color: 'var(--color-status-stuck)' }}>{err}</p>}
@@ -290,6 +292,5 @@ const RoleBadge = ({ role, t }) => {
 
 const th = { padding: '8px 12px', fontWeight: 600 };
 const td = { padding: '10px 12px', color: 'var(--color-text-primary)', verticalAlign: 'top' };
-const select = { width: '100%', height: 38, padding: '0 10px', fontSize: 14, border: '1.5px solid var(--color-border-strong)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-surface, #fff)', color: 'var(--color-text-primary)' };
 
 export default PermissionsTab;

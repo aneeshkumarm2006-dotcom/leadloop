@@ -9,6 +9,7 @@ import PageWrapper from '../components/layout/PageWrapper';
 import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
+import Dropdown from '../components/ui/Dropdown';
 import useBoardStore from '../store/boardStore';
 import useOrgStore from '../store/orgStore';
 import useToastStore from '../store/toastStore';
@@ -76,17 +77,14 @@ const SequenceForm = ({ initial, emailColumns, onSave, onCancel, t }) => {
           <label className="block" style={{ fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: 6 }}>
             {t('sequences.emailColumn')}
           </label>
-          <select
+          <Dropdown
+            options={[
+              { value: '', label: t('sequences.emailColumnAuto') },
+              ...emailColumns.map((c) => ({ value: c._id, label: c.name })),
+            ]}
             value={emailColumnId}
-            onChange={(e) => setEmailColumnId(e.target.value)}
-            className="w-full font-body"
-            style={{ fontSize: 14, padding: '9px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-bg-input)' }}
-          >
-            <option value="">{t('sequences.emailColumnAuto')}</option>
-            {emailColumns.map((c) => (
-              <option key={c._id} value={c._id}>{c.name}</option>
-            ))}
-          </select>
+            onChange={setEmailColumnId}
+          />
         </div>
         <label className="flex items-center gap-2" style={{ alignSelf: 'flex-end', paddingBottom: 9, cursor: 'pointer' }}>
           <input type="checkbox" checked={stopOnReply} onChange={(e) => setStopOnReply(e.target.checked)} />
@@ -126,12 +124,14 @@ const SequenceForm = ({ initial, emailColumns, onSave, onCancel, t }) => {
                   onChange={(e) => setStep(i, { delayAmount: e.target.value })}
                   style={{ width: 64, fontSize: 13, padding: '5px 8px', borderRadius: 7, border: '1px solid var(--color-border)' }}
                 />
-                <select
-                  value={s.delayUnit} onChange={(e) => setStep(i, { delayUnit: e.target.value })}
-                  style={{ fontSize: 13, padding: '5px 8px', borderRadius: 7, border: '1px solid var(--color-border)', background: 'var(--color-bg-input)' }}
-                >
-                  {DELAY_UNITS.map((u) => <option key={u} value={u}>{t(`sequences.unit_${u}`)}</option>)}
-                </select>
+                <div style={{ width: 130 }}>
+                  <Dropdown
+                    size="sm"
+                    options={DELAY_UNITS.map((u) => ({ value: u, label: t(`sequences.unit_${u}`) }))}
+                    value={s.delayUnit}
+                    onChange={(v) => setStep(i, { delayUnit: v })}
+                  />
+                </div>
                 <span>{t('sequences.thenSend')}</span>
               </div>
 

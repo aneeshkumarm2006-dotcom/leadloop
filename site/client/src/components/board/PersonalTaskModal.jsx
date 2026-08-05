@@ -3,6 +3,7 @@ import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import DatePickerPopover from '../ui/DatePickerPopover';
+import Dropdown from '../ui/Dropdown';
 import { createTask } from '../../services/taskService';
 
 /**
@@ -48,29 +49,12 @@ const SelectField = ({ label, value, onChange, options, disabled }) => (
     >
       {label}
     </label>
-    <select
+    <Dropdown
+      options={options}
       value={value}
-      onChange={onChange}
+      onChange={(val) => onChange({ target: { value: val } })}
       disabled={disabled}
-      className="w-full font-body"
-      style={{
-        height: 38,
-        padding: '0 10px',
-        borderRadius: 'var(--radius-md)',
-        border: '1.5px solid var(--color-border)',
-        background: 'var(--color-bg-input)',
-        color: 'var(--color-text-primary)',
-        fontSize: 14,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.6 : 1,
-      }}
-    >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
+    />
   </div>
 );
 

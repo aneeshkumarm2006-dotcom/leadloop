@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import Dropdown from '../ui/Dropdown';
 
 /**
  * BoardFormModal — used for both creating and editing a board.
@@ -184,16 +185,11 @@ const BoardFormModal = ({
             >
               Folder
             </label>
-            <select
+            <Dropdown
+              options={folders.map((f) => ({ value: String(f._id), label: f.name }))}
               value={values.folderId}
-              onChange={(e) => setValues((v) => ({ ...v, folderId: e.target.value }))}
-              className="w-full font-body focus:outline-none"
-              style={{ height: 40, padding: '0 10px', fontSize: 14, border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-surface, #fff)', color: 'var(--color-text-primary)' }}
-            >
-              {folders.map((f) => (
-                <option key={f._id} value={String(f._id)}>{f.name}</option>
-              ))}
-            </select>
+              onChange={(v) => setValues((prev) => ({ ...prev, folderId: v }))}
+            />
           </div>
         )}
 

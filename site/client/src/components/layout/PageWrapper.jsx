@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import Navbar from './Navbar';
 import SidebarFolders from './SidebarFolders';
+import ProductTour from '../onboarding/ProductTour';
 import useOrgStore from '../../store/orgStore';
 import useAuthStore from '../../store/authStore';
 import useBoardStore from '../../store/boardStore';
@@ -46,10 +47,11 @@ const LoopMark = ({ size = 18 }) => (
 );
 
 /** A single sidebar nav row (icon + label) with the pine active pill. */
-const SidebarLink = ({ icon: Icon, label, active, onClick }) => (
+const SidebarLink = ({ icon: Icon, label, active, onClick, tourId }) => (
   <button
     type="button"
     onClick={onClick}
+    data-tour={tourId}
     className="w-full flex items-center gap-2.5 text-left transition-colors duration-100"
     style={{
       height: 34,
@@ -120,8 +122,8 @@ const OrgSidebar = () => {
   // live as Workspace-Home tabs; board-level things (Calendar) are board views.
   // "My Leads" stays here as the personal, cross-board view.
   const navItems = [
-    { to: '/workspace', label: t('workspace.home'), icon: Home },
-    { to: '/my-tasks', label: t('nav.myLeads'), icon: UserCheck },
+    { to: '/workspace', label: t('workspace.home'), icon: Home, tourId: 'workspace-home' },
+    { to: '/my-tasks', label: t('nav.myLeads'), icon: UserCheck, tourId: 'my-leads' },
   ];
 
   const handleSwitch = (orgId) => {
@@ -230,6 +232,7 @@ const OrgSidebar = () => {
           type="button"
           onClick={() => setSwitcherOpen((v) => !v)}
           aria-expanded={switcherOpen}
+          data-tour="workspace"
           className="w-full flex items-center gap-2 rounded-md px-2 py-1.5 transition-colors"
           style={{ background: switcherOpen ? 'var(--color-pine-raise)' : 'transparent' }}
           onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--color-pine-raise)'; }}
@@ -296,6 +299,7 @@ const OrgSidebar = () => {
                   label={item.label}
                   active={pathname === item.to}
                   onClick={() => navigate(item.to)}
+                  tourId={item.tourId}
                 />
               ))}
               {isAdmin && (
@@ -304,6 +308,7 @@ const OrgSidebar = () => {
                   label={t('automationsHub.title')}
                   active={pathname.startsWith('/automations') && pathname !== '/automations/forms'}
                   onClick={() => navigate('/automations/hub')}
+                  tourId="automations"
                 />
               )}
               {isAdmin && (
@@ -322,6 +327,7 @@ const OrgSidebar = () => {
                   label={t('bookingPremium.nav')}
                   active={pathname === '/booking'}
                   onClick={() => navigate('/booking')}
+                  tourId="booking"
                 />
               )}
             </nav>
@@ -479,6 +485,7 @@ const PageWrapper = ({
           </div>
         </div>
       </div>
+      {showNav && <ProductTour />}
     </div>
   );
 };

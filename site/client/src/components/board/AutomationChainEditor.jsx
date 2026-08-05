@@ -26,6 +26,7 @@ import SortableItem from '../dnd/SortableItem';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 import ConditionTreeBuilder from './ConditionTreeBuilder';
+import Dropdown from '../ui/Dropdown';
 import { ActionConfigField, FieldLabel, Toggle } from './automationFields';
 import {
   catalogEntry,
@@ -137,12 +138,12 @@ const TriggerChip = ({ triggerType, tc, setTc, board, groups = [], saving }) => 
     body = (
       <div>
         <FieldLabel>Column to watch</FieldLabel>
-        <select value={tc.columnId || ''} disabled={saving} onChange={(e) => setTc({ columnId: e.target.value })} style={selectStyle(saving)}>
-          <option value="">Any column</option>
-          {(cols || []).map((c) => (
-            <option key={c._id} value={c._id}>{c.name}</option>
-          ))}
-        </select>
+        <Dropdown
+          options={[{ value: '', label: 'Any column' }, ...(cols || []).map((c) => ({ value: c._id, label: c.name }))]}
+          value={tc.columnId || ''}
+          onChange={(v) => setTc({ columnId: v })}
+          disabled={saving}
+        />
       </div>
     );
   } else if (triggerType === 'STATUS_BECAME') {
@@ -153,26 +154,23 @@ const TriggerChip = ({ triggerType, tc, setTc, board, groups = [], saving }) => 
       <div className="flex flex-col gap-2">
         <div>
           <FieldLabel>Status column</FieldLabel>
-          <select
+          <Dropdown
+            placeholder={statusCols.length === 0 ? '— no status columns —' : 'Select column…'}
+            options={statusCols.map((c) => ({ value: c._id, label: c.name }))}
             value={tc.columnId || ''}
+            onChange={(v) => setTc({ columnId: v, toValue: '' })}
             disabled={saving || statusCols.length === 0}
-            onChange={(e) => setTc({ columnId: e.target.value, toValue: '' })}
-            style={selectStyle(saving || statusCols.length === 0)}
-          >
-            <option value="">{statusCols.length === 0 ? '— no status columns —' : 'Select column…'}</option>
-            {statusCols.map((c) => (
-              <option key={c._id} value={c._id}>{c.name}</option>
-            ))}
-          </select>
+          />
         </div>
         <div>
           <FieldLabel>Becomes</FieldLabel>
-          <select value={tc.toValue || ''} disabled={saving || !tc.columnId} onChange={(e) => setTc({ toValue: e.target.value })} style={selectStyle(saving || !tc.columnId)}>
-            <option value="">Select value…</option>
-            {opts.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+          <Dropdown
+            placeholder="Select value…"
+            options={opts}
+            value={tc.toValue || ''}
+            onChange={(v) => setTc({ toValue: v })}
+            disabled={saving || !tc.columnId}
+          />
         </div>
       </div>
     );
@@ -181,12 +179,13 @@ const TriggerChip = ({ triggerType, tc, setTc, board, groups = [], saving }) => 
     body = (
       <div>
         <FieldLabel>Checkbox column</FieldLabel>
-        <select value={tc.columnId || ''} disabled={saving || checkboxCols.length === 0} onChange={(e) => setTc({ columnId: e.target.value })} style={selectStyle(saving || checkboxCols.length === 0)}>
-          <option value="">{checkboxCols.length === 0 ? '— no checkbox columns —' : 'Select column…'}</option>
-          {checkboxCols.map((c) => (
-            <option key={c._id} value={c._id}>{c.name}</option>
-          ))}
-        </select>
+        <Dropdown
+          placeholder={checkboxCols.length === 0 ? '— no checkbox columns —' : 'Select column…'}
+          options={checkboxCols.map((c) => ({ value: c._id, label: c.name }))}
+          value={tc.columnId || ''}
+          onChange={(v) => setTc({ columnId: v })}
+          disabled={saving || checkboxCols.length === 0}
+        />
       </div>
     );
   } else if (triggerType === 'NUMBER_CROSSED') {
@@ -195,20 +194,23 @@ const TriggerChip = ({ triggerType, tc, setTc, board, groups = [], saving }) => 
       <div className="flex flex-col gap-2">
         <div>
           <FieldLabel>Number column</FieldLabel>
-          <select value={tc.columnId || ''} disabled={saving || numberCols.length === 0} onChange={(e) => setTc({ columnId: e.target.value })} style={selectStyle(saving || numberCols.length === 0)}>
-            <option value="">{numberCols.length === 0 ? '— no number columns —' : 'Select column…'}</option>
-            {numberCols.map((c) => (
-              <option key={c._id} value={c._id}>{c.name}</option>
-            ))}
-          </select>
+          <Dropdown
+            placeholder={numberCols.length === 0 ? '— no number columns —' : 'Select column…'}
+            options={numberCols.map((c) => ({ value: c._id, label: c.name }))}
+            value={tc.columnId || ''}
+            onChange={(v) => setTc({ columnId: v })}
+            disabled={saving || numberCols.length === 0}
+          />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
             <FieldLabel>Direction</FieldLabel>
-            <select value={tc.direction || 'above'} disabled={saving} onChange={(e) => setTc({ direction: e.target.value })} style={selectStyle(saving)}>
-              <option value="above">rises to ≥</option>
-              <option value="below">falls to ≤</option>
-            </select>
+            <Dropdown
+              options={[{ value: 'above', label: 'rises to ≥' }, { value: 'below', label: 'falls to ≤' }]}
+              value={tc.direction || 'above'}
+              onChange={(v) => setTc({ direction: v })}
+              disabled={saving}
+            />
           </div>
           <div>
             <FieldLabel>Threshold</FieldLabel>
@@ -227,12 +229,12 @@ const TriggerChip = ({ triggerType, tc, setTc, board, groups = [], saving }) => 
     body = (
       <div>
         <FieldLabel>Destination group</FieldLabel>
-        <select value={tc.groupId || ''} disabled={saving} onChange={(e) => setTc({ groupId: e.target.value })} style={selectStyle(saving)}>
-          <option value="">Any group</option>
-          {(groups || []).map((g) => (
-            <option key={g._id} value={g._id}>{g.name}</option>
-          ))}
-        </select>
+        <Dropdown
+          options={[{ value: '', label: 'Any group' }, ...(groups || []).map((g) => ({ value: g._id, label: g.name }))]}
+          value={tc.groupId || ''}
+          onChange={(v) => setTc({ groupId: v })}
+          disabled={saving}
+        />
       </div>
     );
   } else if (triggerType === 'UPDATE_POSTED') {
@@ -249,12 +251,13 @@ const TriggerChip = ({ triggerType, tc, setTc, board, groups = [], saving }) => 
       <div className="flex flex-col gap-2">
         <div>
           <FieldLabel>Date column</FieldLabel>
-          <select value={tc.columnId || ''} disabled={saving || dateCols.length === 0} onChange={(e) => setTc({ columnId: e.target.value })} style={selectStyle(saving || dateCols.length === 0)}>
-            <option value="">{dateCols.length === 0 ? '— no date columns —' : 'Select column…'}</option>
-            {dateCols.map((c) => (
-              <option key={c._id} value={c._id}>{c.name}</option>
-            ))}
-          </select>
+          <Dropdown
+            placeholder={dateCols.length === 0 ? '— no date columns —' : 'Select column…'}
+            options={dateCols.map((c) => ({ value: c._id, label: c.name }))}
+            value={tc.columnId || ''}
+            onChange={(v) => setTc({ columnId: v })}
+            disabled={saving || dateCols.length === 0}
+          />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -269,11 +272,12 @@ const TriggerChip = ({ triggerType, tc, setTc, board, groups = [], saving }) => 
           </div>
           <div>
             <FieldLabel>Relative to date</FieldLabel>
-            <select value={tc.comparison || 'on'} disabled={saving} onChange={(e) => setTc({ comparison: e.target.value })} style={selectStyle(saving)}>
-              {DATE_COMPARISONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+            <Dropdown
+              options={DATE_COMPARISONS}
+              value={tc.comparison || 'on'}
+              onChange={(v) => setTc({ comparison: v })}
+              disabled={saving}
+            />
           </div>
         </div>
       </div>
@@ -283,12 +287,13 @@ const TriggerChip = ({ triggerType, tc, setTc, board, groups = [], saving }) => 
     body = (
       <div>
         <FieldLabel>Person column</FieldLabel>
-        <select value={tc.columnId || ''} disabled={saving || personCols.length === 0} onChange={(e) => setTc({ columnId: e.target.value })} style={selectStyle(saving || personCols.length === 0)}>
-          <option value="">{personCols.length === 0 ? '— no person columns —' : 'Select column…'}</option>
-          {personCols.map((c) => (
-            <option key={c._id} value={c._id}>{c.name}</option>
-          ))}
-        </select>
+        <Dropdown
+          placeholder={personCols.length === 0 ? '— no person columns —' : 'Select column…'}
+          options={personCols.map((c) => ({ value: c._id, label: c.name }))}
+          value={tc.columnId || ''}
+          onChange={(v) => setTc({ columnId: v })}
+          disabled={saving || personCols.length === 0}
+        />
       </div>
     );
   } else if (DORMANT_TRIGGERS.includes(triggerType)) {
@@ -323,17 +328,25 @@ const ConditionChip = ({ condition, onChange, onRemove, groups, statuses, saving
       : (groups || []).map((g) => ({ value: g._id, label: g.name }));
   return (
     <div className="flex items-center gap-2" style={{ padding: '8px 10px', border: '1.5px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-input)' }}>
-      <select value={condition.type} disabled={saving} onChange={(e) => onChange({ type: e.target.value, value: '' })} style={{ ...selectStyle(saving), height: 30, flex: 1 }}>
-        {CONDITION_TYPES.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
-      <select value={condition.value || ''} disabled={saving || valueOptions.length === 0} onChange={(e) => onChange({ ...condition, value: e.target.value })} style={{ ...selectStyle(saving), height: 30, flex: 1 }}>
-        <option value="">{valueOptions.length === 0 ? '— none —' : 'Select…'}</option>
-        {valueOptions.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <Dropdown
+          size="sm"
+          options={CONDITION_TYPES}
+          value={condition.type}
+          onChange={(v) => onChange({ type: v, value: '' })}
+          disabled={saving}
+        />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <Dropdown
+          size="sm"
+          placeholder={valueOptions.length === 0 ? '— none —' : 'Select…'}
+          options={valueOptions}
+          value={condition.value || ''}
+          onChange={(v) => onChange({ ...condition, value: v })}
+          disabled={saving || valueOptions.length === 0}
+        />
+      </div>
       <button type="button" aria-label="Remove condition" onClick={onRemove} disabled={saving} className="flex items-center justify-center rounded-md hover:bg-[color:var(--color-bg-subtle)]" style={{ width: 26, height: 26, border: '1.5px solid var(--color-border)', background: 'transparent', cursor: saving ? 'not-allowed' : 'pointer' }}>
         <X size={11} color="var(--color-text-secondary)" />
       </button>
@@ -391,19 +404,18 @@ const ActionChip = ({ action, index, onChange, onRemove, catalog, board, groups,
             <span className="font-body" style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', minWidth: 54 }}>
               {index === 0 ? 'Then' : 'and then'}
             </span>
-            <select
-              value={action.type}
-              disabled={saving}
-              onChange={(e) => changeType(e.target.value)}
-              className="font-body"
-              style={{ ...selectStyle(saving), height: 30, flex: '1 1 0' }}
-            >
-              {types.map((c) => (
-                <option key={c.type} value={c.type}>
-                  {(c.describe || ACTION_LABELS[c.type] || c.type) + (c.disabled ? ' · Phase 3' : '')}
-                </option>
-              ))}
-            </select>
+            <div style={{ flex: '1 1 0', minWidth: 0 }}>
+              <Dropdown
+                size="sm"
+                options={types.map((c) => ({
+                  value: c.type,
+                  label: (c.describe || ACTION_LABELS[c.type] || c.type) + (c.disabled ? ' · Phase 3' : ''),
+                }))}
+                value={action.type}
+                onChange={changeType}
+                disabled={saving}
+              />
+            </div>
             <button type="button" aria-label="Remove action" onClick={onRemove} disabled={saving} className="flex items-center justify-center rounded-md hover:bg-[color:var(--color-bg-subtle)]" style={{ width: 26, height: 26, border: '1.5px solid var(--color-border)', background: 'transparent', cursor: saving ? 'not-allowed' : 'pointer' }}>
               <X size={11} color="var(--color-text-secondary)" />
             </button>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import AssigneePicker from './AssigneePicker';
 import TemplateVariableMenu from './TemplateVariableMenu';
+import Dropdown from '../ui/Dropdown';
+import DatePickerPopover from '../ui/DatePickerPopover';
 import * as webhookService from '../../services/webhookService';
 import * as whatsappService from '../../services/whatsappService';
 import {
@@ -9,7 +11,6 @@ import {
   optionsForColumn,
   findColumn,
   PRIORITIES,
-  selectStyle,
   smallInputStyle,
 } from './automationFieldUtils';
 
@@ -98,18 +99,13 @@ export const ColumnValueField = ({ board, columnId, value, onChange, members, di
   if (col.type === 'status' || col.type === 'dropdown') {
     const opts = optionsForColumn(col);
     return (
-      <select
+      <Dropdown
+        placeholder="Select value…"
+        options={opts}
         value={value || ''}
+        onChange={onChange}
         disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        style={selectStyle(disabled)}
-        className="font-body"
-      >
-        <option value="">Select value…</option>
-        {opts.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
+      />
     );
   }
   if (col.type === 'checkbox') {
@@ -142,13 +138,10 @@ export const ColumnValueField = ({ board, columnId, value, onChange, members, di
   if (col.type === 'date') {
     const dateVal = typeof value === 'string' ? value.slice(0, 10) : '';
     return (
-      <input
-        type="date"
+      <DatePickerPopover
         value={dateVal}
+        onChange={onChange}
         disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        style={smallInputStyle(disabled)}
-        className="font-body"
       />
     );
   }
@@ -240,20 +233,13 @@ export const EndpointField = ({ board, value, onChange, disabled }) => {
   }
 
   return (
-    <select
+    <Dropdown
+      placeholder={endpoints === null ? 'Loading endpoints…' : 'Select endpoint…'}
+      options={(endpoints || []).map((ep) => ({ value: ep._id, label: ep.url }))}
       value={value || ''}
+      onChange={onChange}
       disabled={disabled || endpoints === null}
-      onChange={(e) => onChange(e.target.value)}
-      style={selectStyle(disabled)}
-      className="font-body"
-    >
-      <option value="">{endpoints === null ? 'Loading endpoints…' : 'Select endpoint…'}</option>
-      {(endpoints || []).map((ep) => (
-        <option key={ep._id} value={ep._id}>
-          {ep.url}
-        </option>
-      ))}
-    </select>
+    />
   );
 };
 
@@ -302,20 +288,18 @@ export const WhatsAppTemplateField = ({ board, value, onChange, disabled }) => {
   }
 
   return (
-    <select
+    <Dropdown
+      placeholder={templates === null ? 'Loading templates…' : 'Select template…'}
+      options={(templates || [])
+        .filter((t) => t.status === 'approved')
+        .map((t) => ({
+          value: t.providerTemplateId,
+          label: t.name || t.providerTemplateId,
+        }))}
       value={value || ''}
+      onChange={onChange}
       disabled={disabled || templates === null}
-      onChange={(e) => onChange(e.target.value)}
-      style={selectStyle(disabled)}
-      className="font-body"
-    >
-      <option value="">{templates === null ? 'Loading templates…' : 'Select template…'}</option>
-      {(templates || []).map((t) => (
-        <option key={t._id} value={t.providerTemplateId} disabled={t.status !== 'approved'}>
-          {(t.name || t.providerTemplateId) + (t.status !== 'approved' ? ` (${t.status})` : '')}
-        </option>
-      ))}
-    </select>
+    />
   );
 };
 
@@ -370,21 +354,23 @@ export const ActionConfigField = ({ field, config, onPatch, board, groups, membe
       break;
     case 'group':
       control = (
-        <select value={value || ''} disabled={disabled} onChange={(e) => set(e.target.value)} style={selectStyle(disabled)} className="font-body">
-          <option value="">Select group…</option>
-          {groups.map((g) => (
-            <option key={g._id} value={g._id}>{g.name}</option>
-          ))}
-        </select>
+        <Dropdown
+          placeholder="Select group…"
+          options={groups.map((g) => ({ value: g._id, label: g.name }))}
+          value={value || ''}
+          onChange={set}
+          disabled={disabled}
+        />
       );
       break;
     case 'priority':
       control = (
-        <select value={value || 'medium'} disabled={disabled} onChange={(e) => set(e.target.value)} style={selectStyle(disabled)} className="font-body">
-          {PRIORITIES.map((p) => (
-            <option key={p.value} value={p.value}>{p.label}</option>
-          ))}
-        </select>
+        <Dropdown
+          options={PRIORITIES}
+          value={value || 'medium'}
+          onChange={set}
+          disabled={disabled}
+        />
       );
       break;
     case 'users':
@@ -395,12 +381,13 @@ export const ActionConfigField = ({ field, config, onPatch, board, groups, membe
     case 'column': {
       const cols = field.columnType ? columnsOfType(board, field.columnType) : boardColumns(board);
       control = (
-        <select value={value || ''} disabled={disabled || cols.length === 0} onChange={(e) => set(e.target.value)} style={selectStyle(disabled)} className="font-body">
-          <option value="">{cols.length === 0 ? '— no matching columns —' : 'Select column…'}</option>
-          {cols.map((c) => (
-            <option key={c._id} value={c._id}>{c.name}</option>
-          ))}
-        </select>
+        <Dropdown
+          placeholder={cols.length === 0 ? '— no matching columns —' : 'Select column…'}
+          options={cols.map((c) => ({ value: c._id, label: c.name }))}
+          value={value || ''}
+          onChange={set}
+          disabled={disabled || cols.length === 0}
+        />
       );
       break;
     }
@@ -412,23 +399,16 @@ export const ActionConfigField = ({ field, config, onPatch, board, groups, membe
     case 'userOrColumn': {
       const personCols = columnsOfType(board, 'person');
       control = (
-        <select value={value || ''} disabled={disabled} onChange={(e) => set(e.target.value)} style={selectStyle(disabled)} className="font-body">
-          <option value="">Select recipient…</option>
-          {(members || []).length > 0 && (
-            <optgroup label="People">
-              {(members || []).map((m) => (
-                <option key={m._id} value={m._id}>{m.name}</option>
-              ))}
-            </optgroup>
-          )}
-          {personCols.length > 0 && (
-            <optgroup label="From a person column">
-              {personCols.map((c) => (
-                <option key={c._id} value={c._id}>{c.name}</option>
-              ))}
-            </optgroup>
-          )}
-        </select>
+        <Dropdown
+          placeholder="Select recipient…"
+          options={[
+            ...(members || []).map((m) => ({ value: m._id, label: m.name })),
+            ...personCols.map((c) => ({ value: c._id, label: `${c.name} (column)` })),
+          ]}
+          value={value || ''}
+          onChange={set}
+          disabled={disabled}
+        />
       );
       break;
     }
@@ -442,11 +422,12 @@ export const ActionConfigField = ({ field, config, onPatch, board, groups, membe
       break;
     case 'select':
       control = (
-        <select value={value || ''} disabled={disabled} onChange={(e) => set(e.target.value)} style={selectStyle(disabled)} className="font-body">
-          {(field.options || []).map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+        <Dropdown
+          options={(field.options || []).map((o) => ({ value: o.value, label: o.label }))}
+          value={value || ''}
+          onChange={set}
+          disabled={disabled}
+        />
       );
       break;
     case 'keyValue':

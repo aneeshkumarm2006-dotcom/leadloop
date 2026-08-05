@@ -27,6 +27,16 @@ export const createBoard = async (payload) => {
 };
 
 /**
+ * Built-in board templates (Real-estate CRM, Listings, Leads). Used by the
+ * create-board gallery. Pass the chosen template's `id` as `payload.template`
+ * to createBoard to seed pipeline-stage groups + columns + a starter form.
+ */
+export const getBoardTemplates = async () => {
+  const { data } = await api.get('/api/boards/templates');
+  return data.templates || [];
+};
+
+/**
  * PUT /api/boards/:id — update a board (admin only).
  */
 export const updateBoard = async (id, payload) => {

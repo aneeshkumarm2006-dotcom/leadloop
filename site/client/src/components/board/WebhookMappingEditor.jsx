@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Wand2, Check, X } from 'lucide-react';
 import Button from '../ui/Button';
+import Dropdown from '../ui/Dropdown';
 
 /**
  * WebhookMappingEditor — build the inbound `{ [columnId]: jsonPath }` mapping.
@@ -192,16 +193,15 @@ const WebhookMappingEditor = ({ board, endpoint, onSave, onTest }) => {
                   </div>
                   <div className="flex-1 flex items-center gap-2">
                     {detectedPaths.length > 0 && (
-                      <select
-                        value={detectedPaths.includes(current) ? current : ''}
-                        onChange={(e) => setColumnPath(String(col._id), e.target.value)}
-                        style={{ ...inputStyle, width: 180 }}
-                      >
-                        <option value="">{t('automation.webhookPickField')}</option>
-                        {detectedPaths.map((p) => (
-                          <option key={p} value={p}>{p}</option>
-                        ))}
-                      </select>
+                      <div style={{ width: 180 }}>
+                        <Dropdown
+                          size="sm"
+                          placeholder={t('automation.webhookPickField')}
+                          options={detectedPaths.map((p) => ({ value: p, label: p }))}
+                          value={detectedPaths.includes(current) ? current : ''}
+                          onChange={(v) => setColumnPath(String(col._id), v)}
+                        />
+                      </div>
                     )}
                     <input
                       type="text"

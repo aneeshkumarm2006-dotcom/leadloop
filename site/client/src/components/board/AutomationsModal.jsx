@@ -14,6 +14,8 @@ import {
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import Dropdown from '../ui/Dropdown';
+import DatePickerPopover from '../ui/DatePickerPopover';
 import AssigneePicker from './AssigneePicker';
 import AutomationRunLog from './AutomationRunLog';
 import TemplateVariableMenu from './TemplateVariableMenu';
@@ -636,7 +638,7 @@ const WeekdayChips = ({ value, onChange, disabled }) => {
   );
 };
 
-const SelectField = ({ label, value, onChange, options, disabled, listId }) => (
+const SelectField = ({ label, value, onChange, options, disabled }) => (
   <div>
     {label && (
       <label
@@ -646,30 +648,12 @@ const SelectField = ({ label, value, onChange, options, disabled, listId }) => (
         {label}
       </label>
     )}
-    <select
-      value={value}
-      onChange={onChange}
+    <Dropdown
+      options={options.map((opt) => ({ value: String(opt.value), label: opt.label }))}
+      value={String(value)}
+      onChange={(val) => onChange({ target: { value: val } })}
       disabled={disabled}
-      list={listId}
-      className="w-full font-body"
-      style={{
-        height: 38,
-        padding: '0 10px',
-        borderRadius: 'var(--radius-md)',
-        border: '1.5px solid var(--color-border)',
-        background: 'var(--color-bg-input)',
-        color: 'var(--color-text-primary)',
-        fontSize: 14,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        opacity: disabled ? 0.6 : 1,
-      }}
-    >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
+    />
   </div>
 );
 
@@ -753,53 +737,25 @@ const ConditionRow = ({
         background: 'var(--color-bg-input)',
       }}
     >
-      <select
-        value={condition.type}
-        disabled={disabled}
-        onChange={(e) => onChange({ ...condition, type: e.target.value, value: '' })}
-        className="font-body"
-        style={{
-          height: 32,
-          padding: '0 8px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1.5px solid var(--color-border)',
-          background: 'var(--color-bg-surface)',
-          color: 'var(--color-text-primary)',
-          fontSize: 13,
-          flex: '1 1 0',
-          minWidth: 0,
-        }}
-      >
-        {CONDITION_TYPES.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-      <select
-        value={condition.value || ''}
-        disabled={disabled || valueOptions.length === 0}
-        onChange={(e) => onChange({ ...condition, value: e.target.value })}
-        className="font-body"
-        style={{
-          height: 32,
-          padding: '0 8px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1.5px solid var(--color-border)',
-          background: 'var(--color-bg-surface)',
-          color: 'var(--color-text-primary)',
-          fontSize: 13,
-          flex: '1 1 0',
-          minWidth: 0,
-        }}
-      >
-        <option value="">{valueOptions.length === 0 ? t('automation.noneAvailable') : t('automation.selectPlaceholder')}</option>
-        {valueOptions.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+      <div style={{ flex: '1 1 0', minWidth: 0 }}>
+        <Dropdown
+          size="sm"
+          options={CONDITION_TYPES}
+          value={condition.type}
+          onChange={(v) => onChange({ ...condition, type: v, value: '' })}
+          disabled={disabled}
+        />
+      </div>
+      <div style={{ flex: '1 1 0', minWidth: 0 }}>
+        <Dropdown
+          size="sm"
+          placeholder={valueOptions.length === 0 ? t('automation.noneAvailable') : t('automation.selectPlaceholder')}
+          options={valueOptions}
+          value={condition.value || ''}
+          onChange={(v) => onChange({ ...condition, value: v })}
+          disabled={disabled || valueOptions.length === 0}
+        />
+      </div>
       <button
         type="button"
         aria-label={t('automation.removeCondition')}
@@ -851,18 +807,13 @@ const ColumnValueField = ({ board, columnId, value, onChange, members, disabled 
   if (col.type === 'status' || col.type === 'dropdown') {
     const opts = optionsForColumn(col);
     return (
-      <select
+      <Dropdown
+        placeholder={t('automation.selectValue')}
+        options={opts}
         value={value || ''}
+        onChange={onChange}
         disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        style={selectStyle(disabled)}
-        className="font-body"
-      >
-        <option value="">{t('automation.selectValue')}</option>
-        {opts.map((o) => (
-          <option key={o.value} value={o.value}>{o.label}</option>
-        ))}
-      </select>
+      />
     );
   }
   if (col.type === 'checkbox') {
@@ -893,13 +844,10 @@ const ColumnValueField = ({ board, columnId, value, onChange, members, disabled 
   if (col.type === 'date') {
     const dateVal = typeof value === 'string' ? value.slice(0, 10) : '';
     return (
-      <input
-        type="date"
+      <DatePickerPopover
         value={dateVal}
+        onChange={onChange}
         disabled={disabled}
-        onChange={(e) => onChange(e.target.value)}
-        style={smallInputStyle(disabled)}
-        className="font-body"
       />
     );
   }
@@ -999,21 +947,23 @@ const ActionConfigField = ({ field, config, onPatch, board, groups, members, dis
       break;
     case 'group':
       control = (
-        <select value={value || ''} disabled={disabled} onChange={(e) => set(e.target.value)} style={selectStyle(disabled)} className="font-body">
-          <option value="">{t('automation.selectGroup')}</option>
-          {groups.map((g) => (
-            <option key={g._id} value={g._id}>{g.name}</option>
-          ))}
-        </select>
+        <Dropdown
+          placeholder={t('automation.selectGroup')}
+          options={groups.map((g) => ({ value: g._id, label: g.name }))}
+          value={value || ''}
+          onChange={set}
+          disabled={disabled}
+        />
       );
       break;
     case 'priority':
       control = (
-        <select value={value || 'medium'} disabled={disabled} onChange={(e) => set(e.target.value)} style={selectStyle(disabled)} className="font-body">
-          {PRIORITIES.map((p) => (
-            <option key={p.value} value={p.value}>{p.label}</option>
-          ))}
-        </select>
+        <Dropdown
+          options={PRIORITIES}
+          value={value || 'medium'}
+          onChange={set}
+          disabled={disabled}
+        />
       );
       break;
     case 'users':
@@ -1024,12 +974,13 @@ const ActionConfigField = ({ field, config, onPatch, board, groups, members, dis
     case 'column': {
       const cols = field.columnType ? columnsOfType(board, field.columnType) : boardColumns(board);
       control = (
-        <select value={value || ''} disabled={disabled || cols.length === 0} onChange={(e) => set(e.target.value)} style={selectStyle(disabled)} className="font-body">
-          <option value="">{cols.length === 0 ? t('automation.noMatchingColumns') : t('automation.selectColumn')}</option>
-          {cols.map((c) => (
-            <option key={c._id} value={c._id}>{c.name}</option>
-          ))}
-        </select>
+        <Dropdown
+          placeholder={cols.length === 0 ? t('automation.noMatchingColumns') : t('automation.selectColumn')}
+          options={cols.map((c) => ({ value: c._id, label: c.name }))}
+          value={value || ''}
+          onChange={set}
+          disabled={disabled || cols.length === 0}
+        />
       );
       break;
     }
@@ -1041,23 +992,16 @@ const ActionConfigField = ({ field, config, onPatch, board, groups, members, dis
     case 'userOrColumn': {
       const personCols = columnsOfType(board, 'person');
       control = (
-        <select value={value || ''} disabled={disabled} onChange={(e) => set(e.target.value)} style={selectStyle(disabled)} className="font-body">
-          <option value="">{t('automation.selectRecipient')}</option>
-          {(members || []).length > 0 && (
-            <optgroup label={t('automation.peopleGroup')}>
-              {(members || []).map((m) => (
-                <option key={m._id} value={m._id}>{m.name}</option>
-              ))}
-            </optgroup>
-          )}
-          {personCols.length > 0 && (
-            <optgroup label={t('automation.fromPersonColumn')}>
-              {personCols.map((c) => (
-                <option key={c._id} value={c._id}>{c.name}</option>
-              ))}
-            </optgroup>
-          )}
-        </select>
+        <Dropdown
+          placeholder={t('automation.selectRecipient')}
+          options={[
+            ...(members || []).map((m) => ({ value: m._id, label: m.name })),
+            ...personCols.map((c) => ({ value: c._id, label: `${c.name} (${t('automation.fromPersonColumn')})` })),
+          ]}
+          value={value || ''}
+          onChange={set}
+          disabled={disabled}
+        />
       );
       break;
     }
@@ -1071,11 +1015,12 @@ const ActionConfigField = ({ field, config, onPatch, board, groups, members, dis
       break;
     case 'select':
       control = (
-        <select value={value || ''} disabled={disabled} onChange={(e) => set(e.target.value)} style={selectStyle(disabled)} className="font-body">
-          {(field.options || []).map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
+        <Dropdown
+          options={(field.options || []).map((o) => ({ value: o.value, label: o.label }))}
+          value={value || ''}
+          onChange={set}
+          disabled={disabled}
+        />
       );
       break;
     case 'keyValue':
@@ -1158,29 +1103,18 @@ const ActionRow = ({
         >
           {index === 0 ? t('automation.then') : t('automation.andThen')}
         </span>
-        <select
-          value={action.type}
-          disabled={disabled}
-          onChange={(e) => changeType(e.target.value)}
-          className="font-body"
-          style={{
-            height: 32,
-            padding: '0 8px',
-            borderRadius: 'var(--radius-sm)',
-            border: '1.5px solid var(--color-border)',
-            background: 'var(--color-bg-surface)',
-            color: 'var(--color-text-primary)',
-            fontSize: 13,
-            flex: '1 1 0',
-            minWidth: 0,
-          }}
-        >
-          {types.map((c) => (
-            <option key={c.type} value={c.type}>
-              {(c.describe || ACTION_LABELS[c.type] || c.type) + (c.disabled ? t('automation.phase3Suffix') : '')}
-            </option>
-          ))}
-        </select>
+        <div style={{ flex: '1 1 0', minWidth: 0 }}>
+          <Dropdown
+            size="sm"
+            options={types.map((c) => ({
+              value: c.type,
+              label: (c.describe || ACTION_LABELS[c.type] || c.type) + (c.disabled ? t('automation.phase3Suffix') : ''),
+            }))}
+            value={action.type}
+            onChange={changeType}
+            disabled={disabled}
+          />
+        </div>
         <button
           type="button"
           aria-label={t('automation.removeAction')}
@@ -1509,19 +1443,12 @@ const TriggerConfigForm = ({ form, setForm, board, members, groups, saving }) =>
     return wrap(
       <div>
         <FieldLabel>{t('automation.columnToWatch')}</FieldLabel>
-        <select
+        <Dropdown
+          options={[{ value: '', label: t('automation.anyColumn') }, ...cols.map((c) => ({ value: c._id, label: c.name }))]}
           value={tc.columnId || ''}
+          onChange={(v) => setTc({ columnId: v })}
           disabled={saving}
-          onChange={(e) => setTc({ columnId: e.target.value })}
-          style={selectStyle(saving)}
-        >
-          <option value="">{t('automation.anyColumn')}</option>
-          {cols.map((c) => (
-            <option key={c._id} value={c._id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        />
         <p className="font-body" style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
           {t('automation.anyColumnHint')}
         </p>
@@ -1537,52 +1464,33 @@ const TriggerConfigForm = ({ form, setForm, board, members, groups, saving }) =>
       <>
         <div>
           <FieldLabel>{t('automation.statusColumn')}</FieldLabel>
-          <select
+          <Dropdown
+            placeholder={statusCols.length === 0 ? t('automation.noStatusColumns') : t('automation.selectColumn')}
+            options={statusCols.map((c) => ({ value: c._id, label: c.name }))}
             value={tc.columnId || ''}
+            onChange={(v) => setTc({ columnId: v, toValue: '', fromValue: '' })}
             disabled={saving || statusCols.length === 0}
-            onChange={(e) => setTc({ columnId: e.target.value, toValue: '', fromValue: '' })}
-            style={selectStyle(saving || statusCols.length === 0)}
-          >
-            <option value="">{statusCols.length === 0 ? t('automation.noStatusColumns') : t('automation.selectColumn')}</option>
-            {statusCols.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
             <FieldLabel>{t('automation.fromOptional')}</FieldLabel>
-            <select
+            <Dropdown
+              options={[{ value: '', label: t('automation.anyValue') }, ...valueOptions]}
               value={tc.fromValue || ''}
+              onChange={(v) => setTc({ fromValue: v })}
               disabled={saving || !tc.columnId}
-              onChange={(e) => setTc({ fromValue: e.target.value })}
-              style={selectStyle(saving || !tc.columnId)}
-            >
-              <option value="">{t('automation.anyValue')}</option>
-              {valueOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            />
           </div>
           <div>
             <FieldLabel>{t('automation.becomes')}</FieldLabel>
-            <select
+            <Dropdown
+              placeholder={t('automation.selectValue')}
+              options={valueOptions}
               value={tc.toValue || ''}
+              onChange={(v) => setTc({ toValue: v })}
               disabled={saving || !tc.columnId}
-              onChange={(e) => setTc({ toValue: e.target.value })}
-              style={selectStyle(saving || !tc.columnId)}
-            >
-              <option value="">{t('automation.selectValue')}</option>
-              {valueOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            />
           </div>
         </div>
       </>
@@ -1594,19 +1502,13 @@ const TriggerConfigForm = ({ form, setForm, board, members, groups, saving }) =>
     return wrap(
       <div>
         <FieldLabel>{t('automation.checkboxColumn')}</FieldLabel>
-        <select
+        <Dropdown
+          placeholder={checkboxCols.length === 0 ? t('automation.noCheckboxColumns') : t('automation.selectColumn')}
+          options={checkboxCols.map((c) => ({ value: c._id, label: c.name }))}
           value={tc.columnId || ''}
+          onChange={(v) => setTc({ columnId: v })}
           disabled={saving || checkboxCols.length === 0}
-          onChange={(e) => setTc({ columnId: e.target.value })}
-          style={selectStyle(saving || checkboxCols.length === 0)}
-        >
-          <option value="">{checkboxCols.length === 0 ? t('automation.noCheckboxColumns') : t('automation.selectColumn')}</option>
-          {checkboxCols.map((c) => (
-            <option key={c._id} value={c._id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        />
         <p className="font-body" style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
           {t('automation.checkboxCheckedHint')}
         </p>
@@ -1620,19 +1522,13 @@ const TriggerConfigForm = ({ form, setForm, board, members, groups, saving }) =>
       <>
         <div>
           <FieldLabel>{t('automation.numberColumn')}</FieldLabel>
-          <select
+          <Dropdown
+            placeholder={numberCols.length === 0 ? t('automation.noNumberColumns') : t('automation.selectColumn')}
+            options={numberCols.map((c) => ({ value: c._id, label: c.name }))}
             value={tc.columnId || ''}
+            onChange={(v) => setTc({ columnId: v })}
             disabled={saving || numberCols.length === 0}
-            onChange={(e) => setTc({ columnId: e.target.value })}
-            style={selectStyle(saving || numberCols.length === 0)}
-          >
-            <option value="">{numberCols.length === 0 ? t('automation.noNumberColumns') : t('automation.selectColumn')}</option>
-            {numberCols.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -1669,19 +1565,12 @@ const TriggerConfigForm = ({ form, setForm, board, members, groups, saving }) =>
     return wrap(
       <div>
         <FieldLabel>{t('automation.destinationGroup')}</FieldLabel>
-        <select
+        <Dropdown
+          options={[{ value: '', label: t('automation.anyGroup') }, ...(groups || []).map((g) => ({ value: g._id, label: g.name }))]}
           value={tc.groupId || ''}
+          onChange={(v) => setTc({ groupId: v })}
           disabled={saving}
-          onChange={(e) => setTc({ groupId: e.target.value })}
-          style={selectStyle(saving)}
-        >
-          <option value="">{t('automation.anyGroup')}</option>
-          {(groups || []).map((g) => (
-            <option key={g._id} value={g._id}>
-              {g.name}
-            </option>
-          ))}
-        </select>
+        />
         <p className="font-body" style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
           {t('automation.movedToGroupHint')}
         </p>
@@ -1710,19 +1599,13 @@ const TriggerConfigForm = ({ form, setForm, board, members, groups, saving }) =>
       <>
         <div>
           <FieldLabel>{t('automation.dateColumn')}</FieldLabel>
-          <select
+          <Dropdown
+            placeholder={dateCols.length === 0 ? t('automation.noDateColumns') : t('automation.selectColumn')}
+            options={dateCols.map((c) => ({ value: c._id, label: c.name }))}
             value={tc.columnId || ''}
+            onChange={(v) => setTc({ columnId: v })}
             disabled={saving || dateCols.length === 0}
-            onChange={(e) => setTc({ columnId: e.target.value })}
-            style={selectStyle(saving || dateCols.length === 0)}
-          >
-            <option value="">{dateCols.length === 0 ? t('automation.noDateColumns') : t('automation.selectColumn')}</option>
-            {dateCols.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div>
@@ -1760,35 +1643,22 @@ const TriggerConfigForm = ({ form, setForm, board, members, groups, saving }) =>
       <>
         <div>
           <FieldLabel>{t('automation.personColumn')}</FieldLabel>
-          <select
+          <Dropdown
+            placeholder={personCols.length === 0 ? t('automation.noPersonColumns') : t('automation.selectColumn')}
+            options={personCols.map((c) => ({ value: c._id, label: c.name }))}
             value={tc.columnId || ''}
+            onChange={(v) => setTc({ columnId: v })}
             disabled={saving || personCols.length === 0}
-            onChange={(e) => setTc({ columnId: e.target.value })}
-            style={selectStyle(saving || personCols.length === 0)}
-          >
-            <option value="">{personCols.length === 0 ? t('automation.noPersonColumns') : t('automation.selectColumn')}</option>
-            {personCols.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div>
           <FieldLabel>{t('automation.specificUserOptional')}</FieldLabel>
-          <select
+          <Dropdown
+            options={[{ value: '', label: t('automation.anyUser') }, ...(members || []).map((m) => ({ value: m._id, label: m.name }))]}
             value={tc.userId || ''}
+            onChange={(v) => setTc({ userId: v })}
             disabled={saving}
-            onChange={(e) => setTc({ userId: e.target.value })}
-            style={selectStyle(saving)}
-          >
-            <option value="">{t('automation.anyUser')}</option>
-            {(members || []).map((m) => (
-              <option key={m._id} value={m._id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       </>
     );
@@ -1931,27 +1801,13 @@ const GroupCreatedTemplateRow = ({
       </button>
     </div>
     <div className="grid grid-cols-2 gap-2">
-      <select
+      <Dropdown
+        size="sm"
+        options={PRIORITIES}
         value={template.priority || 'medium'}
+        onChange={(v) => onChange({ ...template, priority: v })}
         disabled={disabled}
-        onChange={(e) => onChange({ ...template, priority: e.target.value })}
-        className="font-body"
-        style={{
-          height: 32,
-          padding: '0 8px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1.5px solid var(--color-border)',
-          background: 'var(--color-bg-surface)',
-          color: 'var(--color-text-primary)',
-          fontSize: 13,
-        }}
-      >
-        {PRIORITIES.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
+      />
       <input
         type="number"
         min={0}
@@ -2889,10 +2745,13 @@ const AutomationsModal = ({
           >
             {t('automation.dayOfMonthLabel')}
           </label>
-          <select
+          <Dropdown
+            options={[
+              ...Array.from({ length: 28 }, (_, i) => i + 1).map((d) => ({ value: String(d), label: String(d) })),
+              { value: 'last', label: t('automation.lastDayOfMonth') },
+            ]}
             value={form.useLastDayOfMonth ? 'last' : String(form.dayOfMonth)}
-            onChange={(e) => {
-              const v = e.target.value;
+            onChange={(v) => {
               if (v === 'last') {
                 setForm((f) => ({ ...f, useLastDayOfMonth: true }));
               } else {
@@ -2904,26 +2763,7 @@ const AutomationsModal = ({
               }
             }}
             disabled={saving}
-            className="w-full font-body"
-            style={{
-              height: 38,
-              padding: '0 10px',
-              borderRadius: 'var(--radius-md)',
-              border: '1.5px solid var(--color-border)',
-              background: 'var(--color-bg-input)',
-              color: 'var(--color-text-primary)',
-              fontSize: 14,
-              cursor: saving ? 'not-allowed' : 'pointer',
-              opacity: saving ? 0.6 : 1,
-            }}
-          >
-            {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
-              <option key={d} value={String(d)}>
-                {d}
-              </option>
-            ))}
-            <option value="last">{t('automation.lastDayOfMonth')}</option>
-          </select>
+          />
         </div>
       )}
 
@@ -2946,29 +2786,12 @@ const AutomationsModal = ({
             {t('automation.timezoneLabel')}
           </label>
           {tzList ? (
-            <select
+            <Dropdown
+              options={tzList.map((tz) => ({ value: tz, label: tz }))}
               value={form.timezone}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, timezone: e.target.value }))
-              }
+              onChange={(v) => setForm((f) => ({ ...f, timezone: v }))}
               disabled={saving}
-              className="w-full font-body"
-              style={{
-                height: 38,
-                padding: '0 10px',
-                borderRadius: 'var(--radius-md)',
-                border: '1.5px solid var(--color-border)',
-                background: 'var(--color-bg-input)',
-                color: 'var(--color-text-primary)',
-                fontSize: 14,
-              }}
-            >
-              {tzList.map((tz) => (
-                <option key={tz} value={tz}>
-                  {tz}
-                </option>
-              ))}
-            </select>
+            />
           ) : (
             <Input
               value={form.timezone}

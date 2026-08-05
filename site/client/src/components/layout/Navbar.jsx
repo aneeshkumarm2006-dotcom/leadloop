@@ -305,6 +305,7 @@ const SearchBar = ({ className = '' }) => {
   return (
     <div
       ref={wrapperRef}
+      data-tour="search"
       className={['relative flex items-center', className].filter(Boolean).join(' ')}
       style={{ maxWidth: 380, width: '100%' }}
     >

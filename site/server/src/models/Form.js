@@ -43,6 +43,14 @@ const formSchema = new mongoose.Schema(
       ref: 'Board',
       required: true,
     },
+    // Landing stage — the board group a submitted lead drops into. Optional;
+    // when unset (or the group is later removed) the submission falls back to
+    // the board's first group by order. Validated against the board on save.
+    group: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'TaskGroup',
+      default: null,
+    },
     // Public URL handle. Generated in pre('validate') from the name + a short
     // random suffix; the unique index is the hard guarantee.
     slug: { type: String, unique: true },

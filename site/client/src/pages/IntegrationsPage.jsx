@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Webhook } from 'lucide-react';
 import PageWrapper from '../components/layout/PageWrapper';
+import Dropdown from '../components/ui/Dropdown';
 import useAuthStore from '../store/authStore';
 import useOrgStore from '../store/orgStore';
 import useBoardStore from '../store/boardStore';
@@ -77,25 +78,12 @@ const IntegrationsPage = ({ boardId: boardIdProp = null }) => {
           <label className="font-body font-medium text-xs uppercase tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>
             Board
           </label>
-          <select
+          <Dropdown
+            placeholder="Choose a board…"
+            options={boardOptions}
             value={pickedBoardId || ''}
-            onChange={(e) => setPickedBoardId(e.target.value || null)}
-            className="font-body"
-            style={{
-              height: 38,
-              padding: '0 10px',
-              borderRadius: 'var(--radius-md)',
-              border: '1.5px solid var(--color-border)',
-              background: 'var(--color-bg-input)',
-              color: 'var(--color-text-primary)',
-              fontSize: 14,
-            }}
-          >
-            <option value="">Choose a board…</option>
-            {boardOptions.map((o) => (
-              <option key={o.value} value={o.value}>{o.label}</option>
-            ))}
-          </select>
+            onChange={(v) => setPickedBoardId(v || null)}
+          />
         </div>
       )}
 

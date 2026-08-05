@@ -5,6 +5,7 @@
    ============================================================ */
 import { useState } from 'react';
 import Icon from '../../premium/PremiumIcons';
+import Dropdown from '../../components/ui/Dropdown';
 import { L } from '../../premium/premiumData';
 import * as bookingService from '../../services/bookingService';
 
@@ -148,11 +149,11 @@ export default function WorkflowEditor({ workflow, eventTypes, orgId, lang, onCl
 
           <div className="bk-section">
             <h3><span className="bs-ic"><Icon name="clock" size={15} /></span>{L({ en: 'When this happens', fr: 'Quand cela se produit' }, lang)}</h3>
-            <div className="bf-control">
-              <select className="bf-select" value={triggerValue(triggerType, beforeMinutes)} onChange={(e) => setTrigger(e.target.value)}>
-                {TRIGGERS.map((tg) => <option key={tg.value} value={tg.value}>{L(tg.label, lang)}</option>)}
-              </select><span className="bf-caret"><Icon name="chevronDown" size={15} /></span>
-            </div>
+            <Dropdown
+              options={TRIGGERS.map((tg) => ({ value: tg.value, label: L(tg.label, lang) }))}
+              value={triggerValue(triggerType, beforeMinutes)}
+              onChange={(v) => setTrigger(v)}
+            />
           </div>
 
           <div className="bk-section">

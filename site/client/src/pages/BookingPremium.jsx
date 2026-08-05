@@ -9,6 +9,8 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import PageWrapper from '../components/layout/PageWrapper';
 import Icon from '../premium/PremiumIcons';
+import Dropdown from '../components/ui/Dropdown';
+import TimePickerPopover from '../components/ui/TimePickerPopover';
 import { Toggle, Sk } from '../premium/PremiumShared';
 import BookingExperience from '../components/booking/BookingExperience';
 import { buildPreviewSlots } from '../components/booking/previewSlots';
@@ -228,15 +230,20 @@ function BookingEditor({ link, boards, members, lang, onClose, onSaved, onPrevie
             <div className="bs-sub">{L({ en: 'New visits become leads on this board & group.', fr: 'Les visites deviennent des prospects sur ce tableau et ce groupe.' }, lang)}</div>
             <div className="bk-row">
               <div className="blank-field"><label>{L({ en: 'Board', fr: 'Tableau' }, lang)}</label>
-                <div className="bf-control"><select className="bf-select" value={cfg.board} disabled={!!link} onChange={(e) => set('board', e.target.value)}>
-                  <option value="">{L({ en: 'Select…', fr: 'Choisir…' }, lang)}</option>
-                  {boards.map((b) => <option key={b._id} value={b._id}>{b.name}</option>)}
-                </select><span className="bf-caret"><Icon name="chevronDown" size={15} /></span></div></div>
+                <Dropdown
+                  options={boards.map((b) => ({ value: b._id, label: b.name }))}
+                  value={cfg.board}
+                  disabled={!!link}
+                  onChange={(v) => set('board', v)}
+                  placeholder={L({ en: 'Select…', fr: 'Choisir…' }, lang)}
+                /></div>
               <div className="blank-field"><label>{L({ en: 'Group', fr: 'Groupe' }, lang)}</label>
-                <div className="bf-control"><select className="bf-select" value={cfg.group} onChange={(e) => set('group', e.target.value)}>
-                  <option value="">{L({ en: 'Select…', fr: 'Choisir…' }, lang)}</option>
-                  {groups.map((g) => <option key={g._id} value={g._id}>{g.name}</option>)}
-                </select><span className="bf-caret"><Icon name="chevronDown" size={15} /></span></div></div>
+                <Dropdown
+                  options={groups.map((g) => ({ value: g._id, label: g.name }))}
+                  value={cfg.group}
+                  onChange={(v) => set('group', v)}
+                  placeholder={L({ en: 'Select…', fr: 'Choisir…' }, lang)}
+                /></div>
             </div>
           </div>
 
@@ -244,7 +251,11 @@ function BookingEditor({ link, boards, members, lang, onClose, onSaved, onPrevie
             <h3><span className="bs-ic"><Icon name="form" size={15} /></span>{L({ en: 'Event details', fr: 'Détails de l’événement' }, lang)}</h3>
             <div className="blank-field"><label>{L({ en: 'Title', fr: 'Titre' }, lang)}</label><input className="bf-input" value={cfg.title} onChange={(e) => set('title', e.target.value)} /></div>
             <div className="blank-field"><label>{L({ en: 'Duration', fr: 'Durée' }, lang)}</label>
-              <div className="bf-control" style={{ maxWidth: 200 }}><select className="bf-select" value={cfg.durationMinutes} onChange={(e) => set('durationMinutes', +e.target.value)}>{[15, 20, 30, 45, 60, 90].map((d) => <option key={d} value={d}>{d} min</option>)}</select><span className="bf-caret"><Icon name="chevronDown" size={15} /></span></div></div>
+              <div style={{ maxWidth: 200 }}><Dropdown
+                options={[15, 20, 30, 45, 60, 90].map((d) => ({ value: String(d), label: `${d} min` }))}
+                value={String(cfg.durationMinutes)}
+                onChange={(v) => set('durationMinutes', +v)}
+              /></div></div>
 
             {/* Property address — shown when a visitor chooses an in-person visit. */}
             <div className="blank-field"><label>{L({ en: 'Property address (for in-person visits)', fr: 'Adresse (visites en personne)' }, lang)}</label><input className="bf-input" value={cfg.location} onChange={(e) => set('location', e.target.value)} placeholder={L({ en: 'e.g. 1200 Rue Sherbrooke, Montréal', fr: 'ex. 1200 Rue Sherbrooke, Montréal' }, lang)} /></div>
@@ -266,9 +277,9 @@ function BookingEditor({ link, boards, members, lang, onClose, onSaved, onPrevie
                       {!on && <span className="avail-off">{L({ en: 'Unavailable', fr: 'Indisponible' }, lang)}</span>}
                       {cfg.dayRanges[i].map((r, k) => (
                         <div className="avail-range" key={k}>
-                          <input type="time" value={r.start} onChange={(e) => setRange(i, k, 'start', e.target.value)} />
+                          <TimePickerPopover value={r.start} onChange={(v) => setRange(i, k, 'start', v)} />
                           <span>–</span>
-                          <input type="time" value={r.end} onChange={(e) => setRange(i, k, 'end', e.target.value)} />
+                          <TimePickerPopover value={r.end} onChange={(v) => setRange(i, k, 'end', v)} />
                           <button type="button" className="link-act" onClick={() => removeRange(i, k)} title={L({ en: 'Remove', fr: 'Retirer' }, lang)}><Icon name="x" size={14} /></button>
                         </div>
                       ))}

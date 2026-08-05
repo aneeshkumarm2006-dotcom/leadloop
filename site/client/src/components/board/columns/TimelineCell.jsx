@@ -1,33 +1,39 @@
 import { useEffect, useRef, useState } from 'react';
-import { cellInputStyle, cellWrapperStyle, formatDateInput } from './cellShared';
+import { cellWrapperStyle, formatDateInput } from './cellShared';
 import CellPlaceholder from './CellPlaceholder';
+import DatePickerPopover from '../../ui/DatePickerPopover';
 
 /**
- * TimelineCell — a span between two dates. Renders both inputs inline.
+ * TimelineCell — a span between two dates. Click to edit, then pick start/end
+ * with the custom calendar (no native date inputs).
  */
 const TimelineCell = ({ value, readOnly, onChange }) => {
   const [editing, setEditing] = useState(false);
-  const [start, setStart] = useState(formatDateInput(value?.start));
-  const [end, setEnd] = useState(formatDateInput(value?.end));
-  const startRef = useRef(null);
+  const wrapRef = useRef(null);
 
-  useEffect(() => {
-    setStart(formatDateInput(value?.start));
-    setEnd(formatDateInput(value?.end));
-  }, [value]);
-  useEffect(() => {
-    if (editing && startRef.current) startRef.current.focus();
-  }, [editing]);
+  const startYmd = formatDateInput(value?.start);
+  const endYmd = formatDateInput(value?.end);
 
-  const commit = () => {
+  const commit = (start, end) => {
     const next = {};
     if (start) next.start = new Date(start).toISOString();
     if (end) next.end = new Date(end).toISOString();
     const payload = Object.keys(next).length ? next : null;
-    const prev = value || null;
-    if (JSON.stringify(payload) !== JSON.stringify(prev)) onChange?.(payload);
-    setEditing(false);
+    if (JSON.stringify(payload) !== JSON.stringify(value || null)) onChange?.(payload);
   };
+
+  // Exit editing on outside click. The pickers portal their calendars to body
+  // (role="dialog"), so ignore clicks landing inside an open calendar.
+  useEffect(() => {
+    if (!editing) return undefined;
+    const onDown = (e) => {
+      if (wrapRef.current?.contains(e.target)) return;
+      if (e.target.closest?.('[role="dialog"]')) return;
+      setEditing(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [editing]);
 
   if (readOnly || !editing) {
     const label =
@@ -38,35 +44,18 @@ const TimelineCell = ({ value, readOnly, onChange }) => {
         : '';
     return (
       <div
-        style={{ ...cellWrapperStyle, cursor: readOnly ? 'default' : 'text' }}
+        style={{ ...cellWrapperStyle, cursor: readOnly ? 'default' : 'pointer' }}
         onClick={() => !readOnly && setEditing(true)}
       >
-        {label ? (
-          <span>{label}</span>
-        ) : !readOnly ? (
-          <CellPlaceholder text="Set timeline" />
-        ) : null}
+        {label ? <span>{label}</span> : !readOnly ? <CellPlaceholder text="Set timeline" /> : null}
       </div>
     );
   }
 
   return (
-    <div style={{ display: 'flex', gap: 4, padding: 4 }}>
-      <input
-        ref={startRef}
-        type="date"
-        value={start}
-        onChange={(e) => setStart(e.target.value)}
-        onBlur={commit}
-        style={{ ...cellInputStyle, border: '1px solid var(--color-border)' }}
-      />
-      <input
-        type="date"
-        value={end}
-        onChange={(e) => setEnd(e.target.value)}
-        onBlur={commit}
-        style={{ ...cellInputStyle, border: '1px solid var(--color-border)' }}
-      />
+    <div ref={wrapRef} style={{ display: 'flex', gap: 4, padding: 4 }}>
+      <DatePickerPopover value={startYmd} placeholder="Start" onChange={(v) => commit(v, endYmd)} />
+      <DatePickerPopover value={endYmd} placeholder="End" onChange={(v) => commit(startYmd, v)} />
     </div>
   );
 };

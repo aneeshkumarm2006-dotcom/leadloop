@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Clock, MapPin, Check, ChevronLeft, ChevronRight, Globe, Download, ArrowLeft, ArrowRight, Calendar, Video,
 } from 'lucide-react';
+import Dropdown from '../ui/Dropdown';
 
 /**
  * BookingExperience — the visitor-facing booking UI (neutral-ink 3-pane design,
@@ -205,12 +206,11 @@ const BookingExperience = ({ config, slots = [], lang: langProp, preview = false
                   <CalGrid view={viewMonth} setView={setViewMonth} availableDates={availableDates} today={todayKey(tz)} selected={selectedDate} onSelect={(k) => { setSelectedDate(k); setSelectedSlot(null); }} lang={lang} />
                   <div className="tz">
                     <label><Globe size={15} />{t('bookPublic.timezone')}</label>
-                    <div className="sel-wrap">
-                      <select value={tz} onChange={(e) => { setTz(e.target.value); setSelectedDate(null); setSelectedSlot(null); }}>
-                        {allTimezones().map((z) => <option key={z} value={z}>{z.replace(/_/g, ' ')}</option>)}
-                      </select>
-                      <span className="caret"><ChevronLeft size={16} style={{ transform: 'rotate(-90deg)' }} /></span>
-                    </div>
+                    <Dropdown
+                      options={allTimezones().map((z) => ({ value: z, label: z.replace(/_/g, ' ') }))}
+                      value={tz}
+                      onChange={(v) => { setTz(v); setSelectedDate(null); setSelectedSlot(null); }}
+                    />
                   </div>
                 </>
               )}

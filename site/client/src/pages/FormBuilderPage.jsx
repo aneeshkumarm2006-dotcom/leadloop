@@ -34,6 +34,7 @@ import useOrgStore from '../store/orgStore';
 import useBoardStore from '../store/boardStore';
 import useToastStore from '../store/toastStore';
 import * as formService from '../services/formService';
+import { getGroups } from '../services/taskService';
 
 /**
  * FormBuilderPage — the column-mapped public-form builder (F13.5). Each form
@@ -129,6 +130,8 @@ const FormBuilderPage = () => {
 
   const isEdit = !!formId;
   const [boardId, setBoardId] = useState(searchParams.get('boardId') || null);
+  const [group, setGroup] = useState(''); // landing stage; '' = board's first stage
+  const [groups, setGroups] = useState([]);
   const [name, setName] = useState('');
   const [fields, setFields] = useState([]);
   const [welcomeMessage, setWelcomeMessage] = useState('');
@@ -167,6 +170,7 @@ const FormBuilderPage = () => {
       .then((f) => {
         if (cancelled) return;
         setBoardId(String(f.boardId));
+        setGroup(f.group ? String(f.group) : '');
         setName(f.name || '');
         setFields((f.fieldMap || []).map((fm) => ({ ...fm })));
         setWelcomeMessage(f.welcomeMessage || '');
@@ -189,6 +193,26 @@ const FormBuilderPage = () => {
       cancelled = true;
     };
   }, [isEdit, formId, t]);
+
+  // Load the selected board's stages (groups) for the Landing-stage picker.
+  useEffect(() => {
+    if (!boardId) {
+      setGroups([]);
+      return undefined;
+    }
+    let cancelled = false;
+    getGroups(boardId)
+      .then((gs) => {
+        if (cancelled) return;
+        setGroups(gs || []);
+        // Drop a stale group that isn't on this board (e.g. after switching boards).
+        setGroup((g) => (g && (gs || []).some((x) => String(x._id) === String(g)) ? g : ''));
+      })
+      .catch(() => !cancelled && setGroups([]));
+    return () => {
+      cancelled = true;
+    };
+  }, [boardId]);
 
   const board = boardId ? getBoardById(boardId) : null;
   const columns = useMemo(() => board?.columns || [], [board]);
@@ -244,6 +268,7 @@ const FormBuilderPage = () => {
 
   const buildPayload = () => ({
     name: name.trim(),
+    group: group || null,
     fieldMap: fields.map((f) => ({
       formFieldId: f.formFieldId,
       label: f.label,
@@ -289,7 +314,7 @@ const FormBuilderPage = () => {
       setSaving(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [boardId, name, fields, welcomeMessage, postSubmitRedirectUrl, captchaEnabled, enabled, branding, isEdit, formId]);
+  }, [boardId, group, name, fields, welcomeMessage, postSubmitRedirectUrl, captchaEnabled, enabled, branding, isEdit, formId]);
 
   const setBrand = (patch) => setBranding((b) => ({ ...b, ...patch }));
 
@@ -330,6 +355,10 @@ const FormBuilderPage = () => {
       </PageWrapper>
     );
   }
+
+  // Preview mirrors the public /f/:slug page (brand rail + fields + forest CTA).
+  const previewAccent = branding.accentColor || '#3E6B4E';
+  const previewHeadline = branding.headline || name || t('pages.untitledForm');
 
   return (
     <PageWrapper>
@@ -378,6 +407,21 @@ const FormBuilderPage = () => {
                 onChange={(v) => setBoardId(v)}
                 placeholder={t('pages.pickABoard')}
               />
+            )}
+            {boardId && (
+              <label className="font-body" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                {t('pages.landingStage')}
+                <div style={{ marginTop: 6 }}>
+                  <Dropdown
+                    options={[{ value: '', label: t('pages.landingStageDefault') }, ...groups.map((g) => ({ value: String(g._id), label: g.name }))]}
+                    value={group}
+                    onChange={setGroup}
+                  />
+                </div>
+                <p className="font-body" style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: 6, fontWeight: 400 }}>
+                  {t('pages.landingStageHint')}
+                </p>
+              </label>
             )}
             <Input label={t('pages.formName')} required placeholder={t('pages.formNamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} />
             <Input label={t('pages.thankYouMessage')} multiline rows={2} placeholder={t('pages.thankYouMessagePlaceholder')} value={welcomeMessage} onChange={(e) => setWelcomeMessage(e.target.value)} />
@@ -442,19 +486,13 @@ const FormBuilderPage = () => {
                 />
                 <label className="font-body" style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text-secondary)' }}>
                   {t('pages.sourceColumnLabel')}
-                  <select
-                    value={sourceColumnId}
-                    onChange={(e) => setSourceColumnId(e.target.value)}
-                    className="font-body focus:outline-none"
-                    style={{ width: '100%', height: 38, padding: '0 10px', marginTop: 6, border: '1.5px solid var(--color-border-strong)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg-surface, #fff)', color: 'var(--color-text-primary)', fontSize: 14 }}
-                  >
-                    <option value="">{t('pages.sourceColumnNone')}</option>
-                    {columns
-                      .filter((c) => ['text', 'dropdown', 'status', 'tags'].includes(c.type))
-                      .map((c) => (
-                        <option key={c._id} value={String(c._id)}>{c.name}</option>
-                      ))}
-                  </select>
+                  <div style={{ marginTop: 6 }}>
+                    <Dropdown
+                      options={[{ value: '', label: t('pages.sourceColumnNone') }, ...columns.filter((c) => ['text', 'dropdown', 'status', 'tags'].includes(c.type)).map((c) => ({ value: String(c._id), label: c.name }))]}
+                      value={sourceColumnId}
+                      onChange={setSourceColumnId}
+                    />
+                  </div>
                 </label>
               </div>
             </div>
@@ -518,52 +556,48 @@ const FormBuilderPage = () => {
           </div>
         </div>
 
-        {/* --- Live preview --- */}
-        <div style={sectionCard}>
-          <h2 className="font-display font-semibold mb-1" style={{ fontSize: 15, color: 'var(--color-text-primary)' }}>{t('pages.livePreview')}</h2>
-          <p className="font-body mb-4" style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{t('pages.howVisitorsSeeForm')}</p>
-          <div style={{ background: '#fff', border: '1px solid var(--color-border)', borderRadius: 12, padding: 24 }}>
-            <h3 style={{ fontSize: 20, fontWeight: 800, color: '#0F172A', marginBottom: 18 }}>{name || t('pages.untitledForm')}</h3>
-            <div className="flex flex-col gap-4">
-              {fields.map((field) => (
-                <div key={field.formFieldId}>
-                  <label style={{ display: 'block', marginBottom: 5, fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em', color: '#475569' }}>
-                    {field.label || t('pages.field')}{field.required && <span style={{ color: '#DC2626', marginLeft: 4 }}>*</span>}
-                  </label>
-                  {field.type === 'dropdown' ? (
-                    <select disabled style={previewInput}>
-                      <option>{t('pages.selectPlaceholder')}</option>
-                      {(field.options || []).map((o) => <option key={o}>{o}</option>)}
-                    </select>
-                  ) : field.type === 'checkbox' ? (
-                    <input type="checkbox" disabled style={{ width: 18, height: 18 }} />
-                  ) : field.type === 'long_text' ? (
-                    <textarea disabled rows={3} style={{ ...previewInput, height: 'auto' }} />
-                  ) : (
-                    <input disabled type={field.type === 'email' ? 'email' : field.type === 'number' ? 'number' : 'text'} style={previewInput} />
-                  )}
-                </div>
-              ))}
-              {fields.length === 0 && <p style={{ fontSize: 13, color: '#94A3B8' }}>{t('pages.addFieldsToPreview')}</p>}
-              {captchaEnabled && <div style={{ height: 60, border: '1px dashed #CBD5E1', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, color: '#94A3B8' }}>{t('pages.captchaChallenge')}</div>}
-              <button disabled style={{ height: 42, borderRadius: 8, border: 'none', background: '#3E6B4E', color: '#fff', fontSize: 15, fontWeight: 600, opacity: 0.9 }}>{t('pages.submit')}</button>
+        {/* --- Live preview (mirrors the public /f/:slug page) --- */}
+        <div style={{ ...sectionCard, position: 'sticky', top: 16, alignSelf: 'start' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 10.5, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#2F6B47' }}>
+            <span style={{ width: 7, height: 7, borderRadius: 99, background: '#2F6B47', display: 'inline-block' }} />
+            {t('pages.livePreview')}
+          </span>
+          <p className="font-body mb-4 mt-1" style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{t('pages.howVisitorsSeeForm')}</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '124px 1fr', border: '1px solid var(--color-border)', borderRadius: 14, overflow: 'hidden', boxShadow: '0 8px 26px -14px rgba(33,30,24,.22)', background: '#fff' }}>
+            {/* mini brand rail */}
+            <div style={{ background: `linear-gradient(160deg, ${previewAccent}, #284A36)`, color: '#EDF3EC', padding: '16px 13px', display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <span style={{ width: 30, height: 30, borderRadius: 9, background: 'rgba(255,255,255,.16)', display: 'grid', placeItems: 'center', fontFamily: 'var(--font-display, sans-serif)', fontWeight: 800, fontSize: 13, color: '#fff' }}>
+                {(previewHeadline || 'F').trim().charAt(0).toUpperCase()}
+              </span>
+              <div style={{ fontFamily: 'var(--font-display, sans-serif)', fontWeight: 700, fontSize: 14, lineHeight: 1.12, color: '#fff', wordBreak: 'break-word' }}>{previewHeadline}</div>
+              <div style={{ fontSize: 9.5, color: '#CBDDCD', marginTop: 2 }}>● Takes about a minute</div>
+            </div>
+            {/* mini form panel */}
+            <div style={{ padding: '16px 16px 14px' }}>
+              <div className="flex flex-col" style={{ gap: 11 }}>
+                {fields.length === 0 && <p style={{ fontSize: 12.5, color: 'var(--color-text-muted)' }}>{t('pages.addFieldsToPreview')}</p>}
+                {fields.map((field) => (
+                  <div key={field.formFieldId}>
+                    <div style={{ fontSize: 9.5, textTransform: 'uppercase', letterSpacing: '0.03em', fontWeight: 700, color: '#5C554A', marginBottom: 5 }}>
+                      {field.label || t('pages.field')}{field.required && <span style={{ color: '#C0392E', marginLeft: 3 }}>*</span>}
+                    </div>
+                    {field.type === 'checkbox' ? (
+                      <input type="checkbox" disabled style={{ width: 16, height: 16, accentColor: previewAccent }} />
+                    ) : (
+                      <div style={{ height: field.type === 'long_text' ? 44 : 32, borderRadius: 8, border: '1.5px solid #D6CCB6', background: '#FCFAF4' }} />
+                    )}
+                  </div>
+                ))}
+                {captchaEnabled && <div style={{ height: 44, border: '1px dashed #D6CCB6', borderRadius: 8, display: 'grid', placeItems: 'center', fontSize: 11, color: '#9A9184' }}>{t('pages.captchaChallenge')}</div>}
+                <div style={{ height: 38, borderRadius: 99, background: previewAccent, color: '#fff', display: 'grid', placeItems: 'center', fontSize: 12.5, fontWeight: 700, marginTop: 2 }}>{t('pages.submit')}</div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </PageWrapper>
   );
-};
-
-const previewInput = {
-  width: '100%',
-  height: 38,
-  padding: '0 12px',
-  fontSize: 14,
-  border: '1.5px solid #E2E8F0',
-  borderRadius: 8,
-  background: '#F8FAFC',
-  color: '#0F172A',
 };
 
 export default FormBuilderPage;

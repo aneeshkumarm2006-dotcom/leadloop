@@ -8,6 +8,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import PageWrapper from '../components/layout/PageWrapper';
+import Dropdown from '../components/ui/Dropdown';
 import Icon from '../premium/PremiumIcons';
 import { Sk } from '../premium/PremiumShared';
 import { L } from '../premium/premiumData';
@@ -237,13 +238,12 @@ export default function IntegrationsPremium() {
               <div className="sheet-body" style={{ overflowY: 'auto' }}>
                 <div className="blank-field" style={{ maxWidth: 360 }}>
                   <label>{L({ en: 'Board', fr: 'Tableau' }, lang)}</label>
-                  <div className="bf-control">
-                    <select className="bf-select" value={whBoardId} onChange={(e) => setWhBoardId(e.target.value)}>
-                      {boards.length === 0 && <option value="">{L({ en: 'No boards yet', fr: 'Aucun tableau' }, lang)}</option>}
-                      {boards.map((b) => <option key={b._id} value={b._id}>{b.name}</option>)}
-                    </select>
-                    <span className="bf-caret"><Icon name="chevronDown" size={16} /></span>
-                  </div>
+                  <Dropdown
+                    placeholder={L({ en: 'No boards yet', fr: 'Aucun tableau' }, lang)}
+                    options={boards.map((b) => ({ value: b._id, label: b.name }))}
+                    value={whBoardId}
+                    onChange={setWhBoardId}
+                  />
                 </div>
                 {whBoardId && getBoardById(whBoardId)
                   ? <IntegrationsTab boardId={whBoardId} board={getBoardById(whBoardId)} />
@@ -265,13 +265,12 @@ export default function IntegrationsPremium() {
               <div className="sheet-body" style={{ overflowY: 'auto' }}>
                 <div className="blank-field" style={{ maxWidth: 360, marginBottom: 16 }}>
                   <label>{L({ en: 'Board receiving the leads', fr: 'Tableau recevant les prospects' }, lang)}</label>
-                  <div className="bf-control">
-                    <select className="bf-select" value={laBoardId} onChange={(e) => setLaBoardId(e.target.value)}>
-                      {boards.length === 0 && <option value="">{L({ en: 'No boards yet', fr: 'Aucun tableau' }, lang)}</option>}
-                      {boards.map((b) => <option key={b._id} value={b._id}>{b.name}</option>)}
-                    </select>
-                    <span className="bf-caret"><Icon name="chevronDown" size={16} /></span>
-                  </div>
+                  <Dropdown
+                    placeholder={L({ en: 'No boards yet', fr: 'Aucun tableau' }, lang)}
+                    options={boards.map((b) => ({ value: b._id, label: b.name }))}
+                    value={laBoardId}
+                    onChange={setLaBoardId}
+                  />
                 </div>
                 {laBoardId
                   ? <ApiConnectSection boardId={laBoardId} />

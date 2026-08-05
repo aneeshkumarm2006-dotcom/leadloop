@@ -62,11 +62,14 @@ const DatePickerPopover = ({
   onChange,
   placeholder = 'Pick a date',
   disabled = false,
+  startOpen = false,   // open immediately on mount (for click-to-edit cells)
+  onClose,             // fired whenever the popover closes
 }) => {
   const selected = parseDate(value);
   const today    = new Date();
 
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(startOpen);
+  const close = () => { setOpen(false); onClose?.(); };
   const [viewYear,  setViewYear]  = useState(() => selected?.getFullYear()  ?? today.getFullYear());
   const [viewMonth, setViewMonth] = useState(() => selected?.getMonth()      ?? today.getMonth());
   const [pos, setPos] = useState({ top: 0, left: 0, up: false });
@@ -84,7 +87,7 @@ const DatePickerPopover = ({
       setViewYear(today.getFullYear());
       setViewMonth(today.getMonth());
     }
-    setOpen((prev) => !prev);
+    setOpen((prev) => { if (prev) onClose?.(); return !prev; });
   };
 
   // Close on outside click / Escape
@@ -93,9 +96,9 @@ const DatePickerPopover = ({
     const onDown = (e) => {
       if (triggerRef.current?.contains(e.target)) return;
       if (popRef.current?.contains(e.target)) return;
-      setOpen(false);
+      close();
     };
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('mousedown', onDown);
     document.addEventListener('keydown', onKey);
     return () => {
@@ -137,10 +140,10 @@ const DatePickerPopover = ({
 
   const selectDay = (day) => {
     onChange?.(toValue(new Date(viewYear, viewMonth, day)));
-    setOpen(false);
+    close();
   };
-  const clearDate = () => { onChange?.(''); setOpen(false); };
-  const selectToday = () => { onChange?.(toValue(today)); setOpen(false); };
+  const clearDate = () => { onChange?.(''); close(); };
+  const selectToday = () => { onChange?.(toValue(today)); close(); };
 
   const daysInMonth = getDaysInMonth(viewYear, viewMonth);
   const firstDay    = getFirstDayOfMonth(viewYear, viewMonth);

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check, Eye, EyeOff } from 'lucide-react';
 import Button from '../ui/Button';
+import Dropdown from '../ui/Dropdown';
 import { ClaudeIcon, OpenAIIcon } from '../icons/AiBrandIcons';
 import { AI_MODELS, defaultModelFor } from '../icons/aiModels';
 import { updateAiSettings } from '../../services/profileService';
@@ -202,16 +203,13 @@ const AiKeysConfigForm = () => {
             })}
           </div>
 
-          <select
-            value={model || ''}
-            onChange={(e) => chooseModel(e.target.value)}
-            className="font-body text-[13px] text-[color:var(--color-text-primary)] bg-[color:var(--color-bg-surface)] px-3 focus:outline-none focus:border-[color:var(--color-accent)]"
-            style={{ height: 38, border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}
-          >
-            {(AI_MODELS[provider] || []).map((m) => (
-              <option key={m.id} value={m.id}>{m.label}</option>
-            ))}
-          </select>
+          <div style={{ width: 240 }}>
+            <Dropdown
+              options={(AI_MODELS[provider] || []).map((m) => ({ value: m.id, label: m.label }))}
+              value={model || ''}
+              onChange={chooseModel}
+            />
+          </div>
         </div>
       </section>
     </div>

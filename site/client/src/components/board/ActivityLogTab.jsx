@@ -3,6 +3,7 @@ import { RefreshCw, Filter as FilterIcon } from 'lucide-react';
 import * as activityService from '../../services/activityService';
 import useOrgStore from '../../store/orgStore';
 import ActivityEntry from './ActivityEntry';
+import Dropdown from '../ui/Dropdown';
 
 // Mirrored from server/src/models/ActivityLog.js ACTIVITY_TYPES — keep in sync
 // when adding new event types. Used for the type filter dropdown.
@@ -122,48 +123,22 @@ const ActivityLogTab = ({ taskId }) => {
           aria-hidden="true"
           style={{ color: 'var(--color-text-muted)' }}
         />
-        <select
-          value={actorFilter}
-          onChange={(e) => setActorFilter(e.target.value)}
-          aria-label="Filter by person"
-          className="font-body"
-          style={{
-            fontSize: 12,
-            padding: '4px 8px',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--color-bg-surface, #FFFFFF)',
-            color: 'var(--color-text-secondary)',
-            cursor: 'pointer',
-          }}
-        >
-          {actorOptions.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          aria-label="Filter by event type"
-          className="font-body"
-          style={{
-            fontSize: 12,
-            padding: '4px 8px',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--color-bg-surface, #FFFFFF)',
-            color: 'var(--color-text-secondary)',
-            cursor: 'pointer',
-          }}
-        >
-          {TYPE_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
+        <div style={{ width: 160 }}>
+          <Dropdown
+            size="sm"
+            options={actorOptions}
+            value={actorFilter}
+            onChange={setActorFilter}
+          />
+        </div>
+        <div style={{ width: 170 }}>
+          <Dropdown
+            size="sm"
+            options={TYPE_OPTIONS}
+            value={typeFilter}
+            onChange={setTypeFilter}
+          />
+        </div>
         <button
           type="button"
           onClick={handleRefresh}

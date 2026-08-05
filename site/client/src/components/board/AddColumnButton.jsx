@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import useBoardStore from '../../store/boardStore';
 import useToastStore from '../../store/toastStore';
+import Dropdown from '../ui/Dropdown';
 
 /**
  * AddColumnButton — opens a type picker and creates a new column via the
@@ -548,49 +549,35 @@ const AddColumnButton = ({ boardId, board }) => {
                 style={controlStyle}
               />
               <label style={labelStyle}>From connect column</label>
-              <select
-                value={sourceConnectColumnId}
-                onChange={(e) => {
-                  setSourceConnectColumnId(e.target.value);
-                  setSourceColumnId('');
-                }}
-                style={controlStyle}
-              >
-                <option value="">Select a connect column…</option>
-                {connectColumns.map((c) => (
-                  <option key={c._id} value={c._id.toString()}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <div style={{ marginBottom: 10 }}>
+                <Dropdown
+                  placeholder="Select a connect column…"
+                  options={connectColumns.map((c) => ({ value: c._id.toString(), label: c.name }))}
+                  value={sourceConnectColumnId}
+                  onChange={(v) => {
+                    setSourceConnectColumnId(v);
+                    setSourceColumnId('');
+                  }}
+                />
+              </div>
               <label style={labelStyle}>Mirror which column</label>
-              <select
-                value={sourceColumnId}
-                onChange={(e) => setSourceColumnId(e.target.value)}
-                disabled={!sourceConnectColumnId}
-                style={controlStyle}
-              >
-                <option value="">
-                  {sourceConnectColumnId ? 'Select a source column…' : 'Pick a connect column first'}
-                </option>
-                {sourceColumnOptions.map((c) => (
-                  <option key={c._id} value={c._id.toString()}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <div style={{ marginBottom: 10 }}>
+                <Dropdown
+                  placeholder={sourceConnectColumnId ? 'Select a source column…' : 'Pick a connect column first'}
+                  options={sourceColumnOptions.map((c) => ({ value: c._id.toString(), label: c.name }))}
+                  value={sourceColumnId}
+                  onChange={setSourceColumnId}
+                  disabled={!sourceConnectColumnId}
+                />
+              </div>
               <label style={labelStyle}>Aggregation</label>
-              <select
-                value={aggregation}
-                onChange={(e) => setAggregation(e.target.value)}
-                style={controlStyle}
-              >
-                {MIRROR_AGGREGATIONS.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
+              <div style={{ marginBottom: 10 }}>
+                <Dropdown
+                  options={MIRROR_AGGREGATIONS.map((a) => ({ value: a, label: a }))}
+                  value={aggregation}
+                  onChange={setAggregation}
+                />
+              </div>
               <ConfigFooter
                 onBack={resetAll}
                 onSubmit={createMirror}

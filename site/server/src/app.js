@@ -26,6 +26,10 @@ app.use(
 // Auth is applied per-route-file (there is no global auth middleware), so the
 // only unauthenticated surfaces are the ones mounted here, ahead of every
 // auth-gated router, plus `/` (health) and `/auth/*` (login/OAuth) below.
+// The `/auth/*` surface includes Google OAuth AND the email+password flow:
+//   POST /auth/register | /auth/verify | /auth/resend | /auth/login
+//   POST /auth/forgot   | /auth/reset
+// each validates its own body and is rate-limited (see routes/auth.js).
 // Each public path must validate its caller by other means (signed token,
 // provider signature, rate limit). Keep this list in sync as F10/F11 land:
 //

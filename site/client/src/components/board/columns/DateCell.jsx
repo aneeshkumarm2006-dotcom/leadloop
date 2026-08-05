@@ -1,31 +1,26 @@
-import { useEffect, useRef, useState } from 'react';
-import { focusedInputStyle, cellWrapperStyle, formatDateInput } from './cellShared';
+import { useState } from 'react';
+import { cellWrapperStyle, formatDateInput } from './cellShared';
 import CellPlaceholder from './CellPlaceholder';
+import DatePickerPopover from '../../ui/DatePickerPopover';
 
 const DateCell = ({ value, readOnly, onChange }) => {
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(formatDateInput(value));
-  const ref = useRef(null);
 
-  useEffect(() => setDraft(formatDateInput(value)), [value]);
-  useEffect(() => {
-    if (editing && ref.current) ref.current.focus();
-  }, [editing]);
-
-  const commit = () => {
-    if (draft === '') {
+  // Custom calendar (no native date input). Value is stored as an ISO datetime;
+  // the picker speaks "YYYY-MM-DD" so we convert on the way in and out.
+  const commit = (ymd) => {
+    if (!ymd) {
       if (value) onChange?.(null);
     } else {
-      const iso = new Date(draft).toISOString();
+      const iso = new Date(ymd).toISOString();
       if (iso !== (value ? new Date(value).toISOString() : null)) onChange?.(iso);
     }
-    setEditing(false);
   };
 
   if (readOnly || !editing) {
     return (
       <div
-        style={{ ...cellWrapperStyle, cursor: readOnly ? 'default' : 'text' }}
+        style={{ ...cellWrapperStyle, cursor: readOnly ? 'default' : 'pointer' }}
         onClick={() => !readOnly && setEditing(true)}
       >
         {value ? (
@@ -38,20 +33,12 @@ const DateCell = ({ value, readOnly, onChange }) => {
   }
 
   return (
-    <input
-      ref={ref}
-      type="date"
-      value={draft}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') commit();
-        if (e.key === 'Escape') {
-          setDraft(formatDateInput(value));
-          setEditing(false);
-        }
-      }}
-      style={focusedInputStyle}
+    <DatePickerPopover
+      value={formatDateInput(value)}
+      startOpen
+      onChange={commit}
+      onClose={() => setEditing(false)}
+      placeholder="Set date"
     />
   );
 };

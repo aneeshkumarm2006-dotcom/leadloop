@@ -1,5 +1,4 @@
-import { buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+import { DemoForm } from "@/components/landing/demo-form"
 
 export function DemoSection() {
   return (
@@ -19,19 +18,14 @@ export function DemoSection() {
           wire one booking link, and switch on both languages. You leave with
           the working thing.
         </p>
-        <div className="mb-6 flex flex-wrap items-center justify-center gap-5">
+        <div className="mb-6">
+          <DemoForm />
+        </div>
+        <div className="mb-6 text-[15px] text-[#cbdbc7]">
+          Prefer email?{" "}
           <a
             href="mailto:hello@leadloop.ca"
-            className={cn(
-              buttonVariants({ variant: "cream", size: "lg" }),
-              "px-[30px]"
-            )}
-          >
-            Book a demo →
-          </a>
-          <a
-            href="mailto:hello@leadloop.ca"
-            className="border-b-[1.5px] border-[#f1f5ee]/40 pb-[3px] text-base font-semibold text-[#f1f5ee] transition-colors hover:border-white hover:text-white"
+            className="border-b-[1.5px] border-[#f1f5ee]/40 pb-[2px] font-semibold text-[#f1f5ee] transition-colors hover:border-white hover:text-white"
           >
             hello@leadloop.ca
           </a>

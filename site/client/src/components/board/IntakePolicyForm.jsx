@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Save, Workflow } from 'lucide-react';
 import Button from '../ui/Button';
+import Dropdown from '../ui/Dropdown';
 import { Toggle, FieldLabel } from './automationFields';
 import TemplateVariableMenu from './TemplateVariableMenu';
 import * as intakeService from '../../services/intakeService';
@@ -229,16 +230,12 @@ const IntakePolicyForm = ({ boardId, board }) => {
         {policy.ownerStrategy === 'fixed' && (
           <div className="flex flex-col gap-1.5">
             <FieldLabel>{t('automation.fixedAgentLabel')}</FieldLabel>
-            <select
-              style={inputStyle}
+            <Dropdown
+              placeholder={t('automation.chooseAgent')}
+              options={members.map((m) => ({ value: m._id, label: m.name || m.email }))}
               value={policy.fixedOwnerId || ''}
-              onChange={(e) => patch({ fixedOwnerId: e.target.value || null })}
-            >
-              <option value="">{t('automation.chooseAgent')}</option>
-              {members.map((m) => (
-                <option key={m._id} value={m._id}>{m.name || m.email}</option>
-              ))}
-            </select>
+              onChange={(v) => patch({ fixedOwnerId: v || null })}
+            />
           </div>
         )}
 
@@ -246,16 +243,12 @@ const IntakePolicyForm = ({ boardId, board }) => {
           <div className="flex flex-col gap-2">
             <div className="flex flex-col gap-1.5">
               <FieldLabel>{t('automation.geoColumnLabel')}</FieldLabel>
-              <select
-                style={inputStyle}
+              <Dropdown
+                placeholder={t('automation.chooseColumn')}
+                options={(meta?.geoColumns || []).map((c) => ({ value: c._id, label: c.name }))}
                 value={policy.geoColumnId || ''}
-                onChange={(e) => patch({ geoColumnId: e.target.value || null })}
-              >
-                <option value="">{t('automation.chooseColumn')}</option>
-                {(meta?.geoColumns || []).map((c) => (
-                  <option key={c._id} value={c._id}>{c.name}</option>
-                ))}
-              </select>
+                onChange={(v) => patch({ geoColumnId: v || null })}
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <FieldLabel>{t('automation.cityToAgentLabel')}</FieldLabel>
@@ -268,16 +261,14 @@ const IntakePolicyForm = ({ boardId, board }) => {
                     onChange={(e) => setGeoRow(idx, 'city', e.target.value)}
                     style={{ ...inputStyle, flex: 1 }}
                   />
-                  <select
-                    value={row.userId}
-                    onChange={(e) => setGeoRow(idx, 'userId', e.target.value)}
-                    style={{ ...inputStyle, flex: 1 }}
-                  >
-                    <option value="">{t('automation.chooseAgentShort')}</option>
-                    {members.map((m) => (
-                      <option key={m._id} value={m._id}>{m.name || m.email}</option>
-                    ))}
-                  </select>
+                  <div style={{ flex: 1 }}>
+                    <Dropdown
+                      placeholder={t('automation.chooseAgentShort')}
+                      options={members.map((m) => ({ value: m._id, label: m.name || m.email }))}
+                      value={row.userId}
+                      onChange={(v) => setGeoRow(idx, 'userId', v)}
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={() => removeGeoRow(idx)}
@@ -298,16 +289,14 @@ const IntakePolicyForm = ({ boardId, board }) => {
 
         <div className="flex flex-col gap-1.5">
           <FieldLabel>{t('automation.writeOwnerToLabel')}</FieldLabel>
-          <select
-            style={inputStyle}
+          <Dropdown
+            options={[
+              { value: '', label: t('automation.autoAssigneesColumn') },
+              ...(meta?.personColumns || []).map((c) => ({ value: c._id, label: c.name })),
+            ]}
             value={policy.ownerColumnId || ''}
-            onChange={(e) => patch({ ownerColumnId: e.target.value || null })}
-          >
-            <option value="">{t('automation.autoAssigneesColumn')}</option>
-            {(meta?.personColumns || []).map((c) => (
-              <option key={c._id} value={c._id}>{c.name}</option>
-            ))}
-          </select>
+            onChange={(v) => patch({ ownerColumnId: v || null })}
+          />
         </div>
       </Section>
 
@@ -316,30 +305,24 @@ const IntakePolicyForm = ({ boardId, board }) => {
         <div className="flex gap-2 flex-wrap">
           <div className="flex flex-col gap-1.5" style={{ flex: 1, minWidth: 200 }}>
             <FieldLabel>{t('automation.statusColumnLabel')}</FieldLabel>
-            <select
-              style={inputStyle}
+            <Dropdown
+              options={[
+                { value: '', label: t('automation.none') },
+                ...(meta?.statusColumns || []).map((c) => ({ value: c._id, label: c.name })),
+              ]}
               value={policy.initialStageColumnId || ''}
-              onChange={(e) => patch({ initialStageColumnId: e.target.value || null, initialStageValue: null })}
-            >
-              <option value="">{t('automation.none')}</option>
-              {(meta?.statusColumns || []).map((c) => (
-                <option key={c._id} value={c._id}>{c.name}</option>
-              ))}
-            </select>
+              onChange={(v) => patch({ initialStageColumnId: v || null, initialStageValue: null })}
+            />
           </div>
           <div className="flex flex-col gap-1.5" style={{ flex: 1, minWidth: 200 }}>
             <FieldLabel>{t('automation.stageLabel')}</FieldLabel>
-            <select
-              style={inputStyle}
+            <Dropdown
+              placeholder={t('automation.choose')}
+              options={(stageColumn?.options || []).map((o) => ({ value: o.id, label: o.label }))}
               value={policy.initialStageValue || ''}
-              onChange={(e) => patch({ initialStageValue: e.target.value || null })}
+              onChange={(v) => patch({ initialStageValue: v || null })}
               disabled={!stageColumn}
-            >
-              <option value="">{t('automation.choose')}</option>
-              {(stageColumn?.options || []).map((o) => (
-                <option key={o.id} value={o.id}>{o.label}</option>
-              ))}
-            </select>
+            />
           </div>
         </div>
       </Section>
@@ -348,18 +331,17 @@ const IntakePolicyForm = ({ boardId, board }) => {
       <Section step={3} title={t('automation.stepWelcomeEmail')}>
         <div className="flex flex-col gap-1.5">
           <FieldLabel>{t('automation.startFromTemplate')}</FieldLabel>
-          <select
-            style={inputStyle}
+          <Dropdown
+            options={[
+              { value: '', label: t('automation.customWriteBelow') },
+              ...(meta?.templates || []).map((tpl) => ({
+                value: tpl._id,
+                label: `${tpl.name}${tpl.region ? ` · ${tpl.region}` : ''}`,
+              })),
+            ]}
             value={policy.welcomeEmailTemplateId || ''}
-            onChange={(e) => applyTemplate(e.target.value)}
-          >
-            <option value="">{t('automation.customWriteBelow')}</option>
-            {(meta?.templates || []).map((t) => (
-              <option key={t._id} value={t._id}>
-                {t.name}{t.region ? ` · ${t.region}` : ''}
-              </option>
-            ))}
-          </select>
+            onChange={(v) => applyTemplate(v)}
+          />
         </div>
         <div className="flex flex-col gap-1.5">
           <FieldLabel>{t('automation.subjectLabel')}</FieldLabel>

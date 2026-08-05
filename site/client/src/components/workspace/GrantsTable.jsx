@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Trash2, Share2, Clock, AlertCircle } from 'lucide-react';
 import Button from '../ui/Button';
+import Dropdown from '../ui/Dropdown';
+import DatePickerPopover from '../ui/DatePickerPopover';
 import useWorkspaceStore from '../../store/workspaceStore';
 import useBoardStore from '../../store/boardStore';
 import { formatShortDate } from '../../utils/dateUtils';
@@ -127,31 +129,25 @@ const AddGrantForm = ({ workspaceId, boards, onCreated }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
           <label style={labelStyle} htmlFor="grant-scope">Scope</label>
-          <select
-            id="grant-scope"
+          <Dropdown
+            options={[
+              { value: 'board', label: 'A single board' },
+              { value: 'workspace', label: 'The entire workspace' },
+            ]}
             value={resourceType}
-            onChange={(e) => setResourceType(e.target.value)}
-            style={{ ...fieldStyle, width: '100%' }}
-          >
-            <option value="board">A single board</option>
-            <option value="workspace">The entire workspace</option>
-          </select>
+            onChange={setResourceType}
+          />
         </div>
 
         {resourceType === 'board' && (
           <div>
             <label style={labelStyle} htmlFor="grant-board">Board</label>
-            <select
-              id="grant-board"
+            <Dropdown
+              placeholder={boards.length === 0 ? 'No boards available' : 'Select a board…'}
+              options={boards.map((b) => ({ value: b._id, label: b.name }))}
               value={resourceId}
-              onChange={(e) => setResourceId(e.target.value)}
-              style={{ ...fieldStyle, width: '100%' }}
-            >
-              {boards.length === 0 && <option value="">No boards available</option>}
-              {boards.map((b) => (
-                <option key={b._id} value={b._id}>{b.name}</option>
-              ))}
-            </select>
+              onChange={setResourceId}
+            />
           </div>
         )}
 
@@ -169,25 +165,22 @@ const AddGrantForm = ({ workspaceId, boards, onCreated }) => {
 
         <div>
           <label style={labelStyle} htmlFor="grant-role">Access level</label>
-          <select
-            id="grant-role"
+          <Dropdown
+            options={[
+              { value: 'viewer', label: 'Viewer (read-only)' },
+              { value: 'editor', label: 'Editor (read & write)' },
+            ]}
             value={role}
-            onChange={(e) => setRole(e.target.value)}
-            style={{ ...fieldStyle, width: '100%' }}
-          >
-            <option value="viewer">Viewer (read-only)</option>
-            <option value="editor">Editor (read &amp; write)</option>
-          </select>
+            onChange={setRole}
+          />
         </div>
 
         <div>
           <label style={labelStyle} htmlFor="grant-expiry">Expires (optional)</label>
-          <input
-            id="grant-expiry"
-            type="date"
+          <DatePickerPopover
             value={expiresAt}
-            onChange={(e) => setExpiresAt(e.target.value)}
-            style={{ ...fieldStyle, width: '100%' }}
+            onChange={setExpiresAt}
+            placeholder="Pick a date"
           />
         </div>
 

@@ -39,6 +39,7 @@ import {
 import BoardCard from '../components/board/BoardCard';
 import { useTranslation } from 'react-i18next';
 import BoardFormModal from '../components/board/BoardFormModal';
+import TemplateGallery from '../components/board/TemplateGallery';
 import DeleteBoardModal from '../components/board/DeleteBoardModal';
 import ShareBoardModal from '../components/workspace/ShareBoardModal';
 import SortableItem from '../components/dnd/SortableItem';
@@ -84,6 +85,8 @@ const MyBoardsPage = () => {
   const [view, setView] = useState('grid'); // "grid" | "list"
   const [search, setSearch] = useState('');
   const [createOpen, setCreateOpen] = useState(false);
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [creatingTpl, setCreatingTpl] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [shareTarget, setShareTarget] = useState(null);
@@ -117,6 +120,32 @@ const MyBoardsPage = () => {
       ...(values.folderId ? { workspace: values.folderId } : {}),
     });
     setCreateOpen(false);
+  };
+
+  // Template gallery pick: null → open the blank-board form; a template →
+  // create it (server seeds stages + columns + intake form) and open it.
+  const handlePickTemplate = async (template) => {
+    if (!template) {
+      setGalleryOpen(false);
+      setCreateOpen(true);
+      return;
+    }
+    setCreatingTpl(true);
+    try {
+      const board = await createBoardAction({
+        name: template.name,
+        description: template.description,
+        visibility: 'public',
+        organisation: orgId,
+        template: template.id,
+      });
+      setGalleryOpen(false);
+      if (board?._id) navigate(`/boards/${board._id}`);
+    } catch (err) {
+      console.error('Create from template failed:', err);
+    } finally {
+      setCreatingTpl(false);
+    }
   };
 
   const handleEditSubmit = async (values) => {
@@ -192,7 +221,7 @@ const MyBoardsPage = () => {
           <Button
             variant="primary"
             icon={Plus}
-            onClick={() => setCreateOpen(true)}
+            onClick={() => setGalleryOpen(true)}
           >
             Create Board
           </Button>
@@ -327,7 +356,7 @@ const MyBoardsPage = () => {
               title="No boards yet"
               description="Create your first board to get started"
               actionLabel={isAdmin ? 'Create your first board' : undefined}
-              onAction={isAdmin ? () => setCreateOpen(true) : undefined}
+              onAction={isAdmin ? () => setGalleryOpen(true) : undefined}
             />
           </div>
         ) : !hasResults && searching ? (
@@ -389,7 +418,15 @@ const MyBoardsPage = () => {
         )}
       </div>
 
-      {/* Create modal */}
+      {/* Template gallery — first step of creating a board */}
+      <TemplateGallery
+        isOpen={galleryOpen}
+        onClose={() => (creatingTpl ? null : setGalleryOpen(false))}
+        onPick={handlePickTemplate}
+        busy={creatingTpl}
+      />
+
+      {/* Create modal (blank board) */}
       <BoardFormModal
         isOpen={createOpen}
         onClose={() => setCreateOpen(false)}

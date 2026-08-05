@@ -3,6 +3,7 @@ import { Megaphone, Plus, Pencil, Trash2, RefreshCw } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Dropdown from '../ui/Dropdown';
+import DatePickerPopover from '../ui/DatePickerPopover';
 import Button from '../ui/Button';
 import BarChart from './BarChart';
 import { getBoards } from '../../services/boardService';
@@ -287,8 +288,14 @@ const CampaignForm = ({ initial, onClose, onSubmit }) => {
         <Input label="Source label" placeholder="e.g. Google Ads (must match the lead source value)" value={source} onChange={(e) => setSource(e.target.value)} />
         <Input label="Ad spend / budget" type="number" placeholder="0" value={budget} onChange={(e) => setBudget(e.target.value)} />
         <div className="grid grid-cols-2 gap-3">
-          <Input label="Start date" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-          <Input label="End date" type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          <div>
+            <label className="block mb-2 font-body font-medium text-[color:var(--color-text-secondary)] text-xs uppercase tracking-wide">Start date</label>
+            <DatePickerPopover value={startDate} onChange={setStartDate} placeholder="Start date" />
+          </div>
+          <div>
+            <label className="block mb-2 font-body font-medium text-[color:var(--color-text-secondary)] text-xs uppercase tracking-wide">End date</label>
+            <DatePickerPopover value={endDate} onChange={setEndDate} placeholder="End date" />
+          </div>
         </div>
         <label className="flex items-center gap-2 font-body" style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
           <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />

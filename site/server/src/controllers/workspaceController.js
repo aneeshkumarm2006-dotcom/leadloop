@@ -31,23 +31,31 @@ const loadOrg = async (orgId, userId) => {
  * to call on every workspace list. Returns the default workspace doc.
  */
 const ensureDefaultWorkspace = async (orgId, userId = null) => {
-  let def = await Workspace.findOne({ organisation: orgId, isDefault: true });
-  if (!def) {
-    // Adopt an existing same-named workspace if present, else create one.
-    def = await Workspace.findOne({ organisation: orgId, name: 'General' });
-    if (def) {
-      def.isDefault = true;
-      await def.save();
-    } else {
-      def = await Workspace.create({
-        organisation: orgId,
-        name: 'General',
-        order: 0,
-        isDefault: true,
-        createdBy: userId || undefined,
-      });
+  // Existing defaults, oldest first. There must be exactly one; a previous
+  // check-then-create race (two concurrent list calls) could leave duplicate
+  // "General" defaults, so this both creates the default AND self-heals dupes.
+  const defaults = await Workspace.find({ organisation: orgId, isDefault: true }).sort({ createdAt: 1, _id: 1 });
+
+  let def;
+  if (defaults.length === 0) {
+    // Adopt an existing "General" or create one via an ATOMIC upsert, so two
+    // concurrent callers converge on a single doc instead of each creating one.
+    def = await Workspace.findOneAndUpdate(
+      { organisation: orgId, name: 'General' },
+      { $set: { isDefault: true }, $setOnInsert: { organisation: orgId, order: 0, createdBy: userId || undefined } },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+  } else {
+    def = defaults[0];
+    // Self-heal: collapse any duplicate defaults into the oldest one — move
+    // their boards onto the survivor first so nothing is orphaned, then remove.
+    if (defaults.length > 1) {
+      const extraIds = defaults.slice(1).map((w) => w._id);
+      await Board.updateMany({ organisation: orgId, workspace: { $in: extraIds } }, { $set: { workspace: def._id } });
+      await Workspace.deleteMany({ _id: { $in: extraIds } });
     }
   }
+
   // Backfill: any board in this org without a workspace lands in the default.
   await Board.updateMany(
     { organisation: orgId, $or: [{ workspace: null }, { workspace: { $exists: false } }] },
