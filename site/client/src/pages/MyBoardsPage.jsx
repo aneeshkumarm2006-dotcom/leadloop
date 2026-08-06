@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Plus,
   Search,
@@ -71,6 +71,7 @@ const useIsCurrentOrgAdmin = () => {
 const MyBoardsPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const currentOrg = useOrgStore((s) => s.currentOrg);
   const boards = useBoardStore((s) => s.boards);
   const loading = useBoardStore((s) => s.loading);
@@ -121,6 +122,17 @@ const MyBoardsPage = () => {
     });
     setCreateOpen(false);
   };
+
+  // Arriving with `?new=1` (e.g. from the first-login tour's final step) opens
+  // the template gallery straight away, then clears the flag from the URL.
+  useEffect(() => {
+    if (searchParams.get('new') === '1' && isAdmin) {
+      setGalleryOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('new');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, isAdmin, setSearchParams]);
 
   // Template gallery pick: null → open the blank-board form; a template →
   // create it (server seeds stages + columns + intake form) and open it.

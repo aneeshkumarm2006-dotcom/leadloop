@@ -19,6 +19,7 @@ const {
   reorderStatuses,
   listBoardTemplates,
   getConnectableBoards,
+  getBoardPipeline,
 } = require('../controllers/boardController');
 const {
   listColumns,
@@ -44,6 +45,9 @@ router.get('/templates', listBoardTemplates);
 
 // GET /api/boards?org=:orgId — list boards for an organisation
 router.get('/', getBoards);
+
+// GET /api/boards/:id/pipeline — stage-by-stage lead counts (dashboard widget).
+router.get('/:id/pipeline', getBoardPipeline);
 
 // POST /api/boards — create a board (admin-only, enforced in controller)
 router.post('/', createBoard);

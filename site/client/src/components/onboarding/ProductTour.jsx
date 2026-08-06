@@ -87,7 +87,9 @@ const ProductTour = () => {
   const finish = useCallback((goCreate = false) => {
     if (user?._id) markTourSeen(user._id);
     setActive(false);
-    if (goCreate) navigate('/boards');
+    // `?new=1` tells MyBoardsPage to auto-open the template gallery, so the
+    // tour drops straight into "pick the Real-estate CRM template".
+    if (goCreate) navigate('/boards?new=1');
   }, [user?._id, navigate]);
 
   const go = useCallback((dir) => {

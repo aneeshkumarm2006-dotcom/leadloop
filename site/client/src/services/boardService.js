@@ -36,6 +36,12 @@ export const getBoardTemplates = async () => {
   return data.templates || [];
 };
 
+/** Stage-by-stage lead counts for a board (Workspace-Home pipeline widget). */
+export const getBoardPipeline = async (boardId) => {
+  const { data } = await api.get(`/api/boards/${boardId}/pipeline`);
+  return data; // { boardId, boardName, total, stages: [{ _id, name, order, count }] }
+};
+
 /**
  * PUT /api/boards/:id — update a board (admin only).
  */

@@ -4,7 +4,7 @@ import {
   Plus, Search, ChevronLeft,
   CircleDot, List, Type, Calendar, Users, Hash,
   Paperclip, CalendarRange, CheckSquare, Sigma, Boxes,
-  AlignLeft, Link as LinkIcon, Mail, Phone, Star, Tags, MapPin, Copy,
+  AlignLeft, Link as LinkIcon, Mail, Phone, Star, Tags, MapPin, Copy, Gauge, MousePointerClick,
 } from 'lucide-react';
 import useBoardStore from '../../store/boardStore';
 import useToastStore from '../../store/toastStore';
@@ -45,6 +45,8 @@ const TYPE_META = {
   email: { label: 'Email', icon: Mail, bg: '#00A9FF', keywords: 'mail address' },
   phone: { label: 'Phone', icon: Phone, bg: '#00A9FF', keywords: 'mobile call number' },
   rating: { label: 'Rating', icon: Star, bg: '#FDAB3D', keywords: 'stars score' },
+  progress: { label: 'Progress', icon: Gauge, bg: '#00C875', keywords: 'percent bar battery completion tracker' },
+  button: { label: 'Button', icon: MousePointerClick, bg: '#7E5EF2', keywords: 'action link cta open url' },
   tags: { label: 'Tags', icon: Tags, bg: '#7E5EF2', keywords: 'labels multi keywords' },
   location: { label: 'Location', icon: MapPin, bg: '#00C875', keywords: 'place address map' },
   mirror: { label: 'Mirror column', icon: Copy, bg: '#A25DDC', keywords: 'reflect connect lookup' },
@@ -52,8 +54,8 @@ const TYPE_META = {
 
 const GROUPS = [
   { key: 'essentials', label: 'Essentials', types: ['status', 'dropdown', 'text', 'date', 'person', 'number'] },
-  { key: 'super', label: 'Super useful', types: ['file', 'timeline', 'checkbox', 'formula', 'connect_boards'] },
-  { key: 'more', label: 'More columns', types: ['long_text', 'link', 'email', 'phone', 'rating', 'tags', 'location', 'mirror'] },
+  { key: 'super', label: 'Super useful', types: ['file', 'timeline', 'checkbox', 'progress', 'formula', 'connect_boards'] },
+  { key: 'more', label: 'More columns', types: ['long_text', 'link', 'email', 'phone', 'rating', 'button', 'tags', 'location', 'mirror'] },
 ];
 
 // Optional per-column accent colours offered when naming a new column.
@@ -228,6 +230,8 @@ const AddColumnButton = ({ boardId, board }) => {
       payload.settings = { options: [] };
     } else if (pickedType === 'rating') {
       payload.settings = { max: 5 };
+    } else if (pickedType === 'button') {
+      payload.settings = { buttonLabel: 'Open' };
     }
     await submit(payload);
   };

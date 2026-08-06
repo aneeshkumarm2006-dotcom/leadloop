@@ -22,6 +22,8 @@ import EmailCell from './EmailCell';
 import LocationCell from './LocationCell';
 import FileCell from './FileCell';
 import RatingCell from './RatingCell';
+import ProgressCell from './ProgressCell';
+import ButtonCell from './ButtonCell';
 import FormulaCell from './FormulaCell';
 import ConnectBoardsCell from './ConnectBoardsCell';
 import MirrorCell from './MirrorCell';
@@ -43,6 +45,8 @@ const CELL_BY_TYPE = {
   location: LocationCell,
   file: FileCell,
   rating: RatingCell,
+  progress: ProgressCell,
+  button: ButtonCell,
   formula: FormulaCell,
   connect_boards: ConnectBoardsCell,
   mirror: MirrorCell,

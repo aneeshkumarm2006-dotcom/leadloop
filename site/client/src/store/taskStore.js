@@ -117,6 +117,29 @@ const useTaskStore = create((set, get) => ({
     }),
 
   /**
+   * Move a top-level task to another group (Kanban drag between stages).
+   * Pulls the task out of whatever bucket it's in and appends it to the
+   * target group with its `group` updated — optimistic; the API call and any
+   * rollback are handled by the caller.
+   */
+  moveTask: (taskId, toGroupId) =>
+    set((s) => {
+      let moved = null;
+      const next = {};
+      for (const [gid, list] of Object.entries(s.tasksByGroup)) {
+        const keep = [];
+        for (const item of list || []) {
+          if (item._id === taskId) moved = item;
+          else keep.push(item);
+        }
+        next[gid] = keep;
+      }
+      if (!moved || moved.group === toGroupId) return s;
+      next[toGroupId] = [...(next[toGroupId] || []), { ...moved, group: toGroupId }];
+      return { tasksByGroup: next };
+    }),
+
+  /**
    * Set the comment count for a single task (top-level or subitem). Used by
    * the comment panel to keep the row badge live as comments are added.
    */

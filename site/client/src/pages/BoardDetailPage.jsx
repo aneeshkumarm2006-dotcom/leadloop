@@ -54,6 +54,7 @@ import BoardFilterBar from '../components/board/BoardFilterBar';
 import BoardViewControls from '../components/board/BoardViewControls';
 import { compareByColumn } from '../utils/boardSort';
 import TableView from '../components/board/TableView';
+import BoardKanbanView from '../components/board/BoardKanbanView';
 import InsightsTab from '../components/board/InsightsTab';
 import FormBoardView from '../components/board/FormBoardView';
 import BoardCalendarView from '../components/board/BoardCalendarView';
@@ -92,6 +93,7 @@ const GROUP_DOT_CYCLE = [
 const VIEW_TABS = [
   { value: 'board', labelKey: 'board.viewBoard', icon: LayoutList },
   { value: 'table', labelKey: 'board.viewTable', icon: Table2 },
+  { value: 'kanban', labelKey: 'board.viewKanban', icon: Columns3 },
   { value: 'calendar', labelKey: 'board.viewCalendar', icon: CalendarDays },
   { value: 'map', labelKey: 'board.viewMap', icon: MapPin },
   { value: 'insights', labelKey: 'board.viewInsights', icon: BarChart3 },
@@ -711,6 +713,35 @@ const BoardDetailPage = () => {
     }
   };
 
+  // --- Kanban: reorder within a stage / move across stages ---------------
+  // reorderTasksAction handles the optimistic re-bucket, API call and rollback.
+
+  const handleKanbanReorder = async (targetGroupId, orderedIds) => {
+    try {
+      await reorderTasksAction(targetGroupId, orderedIds);
+    } catch (err) {
+      console.error('Failed to reorder leads:', err);
+      toastError(err?.response?.data?.error || t('board.moveTaskError', 'Could not move the lead. Please try again.'));
+    }
+  };
+
+  const handleAddCardToGroup = async (groupId) => {
+    if (!groupId) return;
+    try {
+      const created = await taskService.createTask({
+        name: t('boardMisc.newLeadName'),
+        board: boardId,
+        group: groupId,
+      });
+      addTaskLocal(created);
+      refreshNotifications(currentOrg?._id);
+      handleOpenTask(created);
+    } catch (err) {
+      console.error('Failed to create lead:', err);
+      toastError(err?.response?.data?.error || t('board.createLeadError'));
+    }
+  };
+
   // --- Labels picker -----------------------------------------------------
 
   const handleLabelsClick = (task, event) => {
@@ -1277,6 +1308,19 @@ const BoardDetailPage = () => {
       {viewMode === 'table' ? (
         <div className="mt-5">
           <TableView board={board} tasks={allTasks} members={members} />
+        </div>
+      ) : viewMode === 'kanban' ? (
+        <div className="mt-5">
+          <BoardKanbanView
+            board={board}
+            groups={groups}
+            tasksByGroup={tasksByGroup}
+            members={members}
+            isAdmin={isAdmin}
+            onOpenTask={handleOpenTask}
+            onReorder={handleKanbanReorder}
+            onAddCard={handleAddCardToGroup}
+          />
         </div>
       ) : viewMode === 'calendar' ? (
         <BoardCalendarView board={board} tasks={allTasks} onOpenTask={handleOpenTask} />

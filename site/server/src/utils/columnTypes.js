@@ -107,6 +107,41 @@ const columnTypes = {
     indexable: true,
   }),
 
+  // Progress — a 0–100 percentage rendered as a battery/bar. Number-backed;
+  // values are clamped and rounded to whole percent on write.
+  progress: baseEntry({
+    validate: (value) => {
+      if (value == null || value === '') return;
+      const n = typeof value === 'string' ? Number(value) : value;
+      if (typeof n !== 'number' || Number.isNaN(n)) {
+        throw ValidationError('progress must be a number 0–100');
+      }
+    },
+    serialize: (value) => {
+      if (value == null || value === '') return null;
+      const n = typeof value === 'string' ? Number(value) : value;
+      if (Number.isNaN(n)) return null;
+      return Math.max(0, Math.min(100, Math.round(n)));
+    },
+    defaultValue: () => null,
+    indexable: true,
+  }),
+
+  // Button — a per-row action button that opens a link (Monday's button
+  // column). The stored value is the destination URL; the button label lives
+  // on the column settings (`settings.buttonLabel`).
+  button: baseEntry({
+    validate: (value) => {
+      if (value == null || value === '') return;
+      requireString(value, 'button link');
+    },
+    serialize: (value) => {
+      if (value == null || value === '') return null;
+      return typeof value === 'string' ? value.trim() : String(value);
+    },
+    defaultValue: () => null,
+  }),
+
   // ----- Dates -------------------------------------------------------------
   date: baseEntry({
     validate: (value) => {

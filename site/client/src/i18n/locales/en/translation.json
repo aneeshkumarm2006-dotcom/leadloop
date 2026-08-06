@@ -64,6 +64,9 @@
     "addLead": "Add lead"
   },
   "dashboard": {
+    "pipelineTitle": "Pipeline",
+    "pipelineTotal": "{{count}} leads",
+    "pipelineEmpty": "No stages on this board yet.",
     "greetingMorning": "Good morning, {{name}}",
     "greetingAfternoon": "Good afternoon, {{name}}",
     "greetingEvening": "Good evening, {{name}}",
@@ -101,6 +104,9 @@
   "board": {
     "viewBoard": "Board",
     "viewTable": "Table view",
+    "viewKanban": "Kanban",
+    "kanbanNoStages": "Add stages (groups) to use the Kanban view.",
+    "moveTaskError": "Could not move the lead. Please try again.",
     "viewInsights": "Insights",
     "createLeadError": "Failed to create lead. Please try again.",
     "updateLeadError": "Failed to update lead. Please try again.",
@@ -166,7 +172,8 @@
     "viewCalendar": "Calendar",
     "bookingLinks": "Booking links",
     "sequences": "Sequences",
-    "viewMap": "Map"
+    "viewMap": "Map",
+    "kanbanAddLead": "Add lead"
   },
   "grid": {
     "actions": "Actions",

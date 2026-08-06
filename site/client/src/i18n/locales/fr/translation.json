@@ -64,6 +64,9 @@
     "addLead": "Ajouter un prospect"
   },
   "dashboard": {
+    "pipelineTitle": "Pipeline",
+    "pipelineTotal": "{{count}} prospects",
+    "pipelineEmpty": "Aucune étape sur ce tableau pour l’instant.",
     "greetingMorning": "Bonjour, {{name}}",
     "greetingAfternoon": "Bon après-midi, {{name}}",
     "greetingEvening": "Bonsoir, {{name}}",
@@ -101,6 +104,9 @@
   "board": {
     "viewBoard": "Tableau",
     "viewTable": "Vue tableau",
+    "viewKanban": "Kanban",
+    "kanbanNoStages": "Ajoutez des étapes (groupes) pour utiliser la vue Kanban.",
+    "moveTaskError": "Impossible de déplacer le prospect. Veuillez réessayer.",
     "viewInsights": "Statistiques",
     "createLeadError": "Échec de la création du prospect. Veuillez réessayer.",
     "updateLeadError": "Échec de la mise à jour du prospect. Veuillez réessayer.",
@@ -166,7 +172,8 @@
     "viewCalendar": "Calendrier",
     "bookingLinks": "Réservations",
     "sequences": "Séquences",
-    "viewMap": "Carte"
+    "viewMap": "Carte",
+    "kanbanAddLead": "Ajouter un prospect"
   },
   "grid": {
     "actions": "Actions",

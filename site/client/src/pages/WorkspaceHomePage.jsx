@@ -10,6 +10,7 @@ import PageWrapper from '../components/layout/PageWrapper';
 import StatCard from '../components/ui/StatCard';
 import RecentBoards from '../components/dashboard/RecentBoards';
 import MyDayRow from '../components/dashboard/MyDayRow';
+import PipelineWidget from '../components/dashboard/PipelineWidget';
 import WorkspaceDashboard from '../components/analytics/WorkspaceDashboard';
 import MarketingReport from '../components/analytics/MarketingReport';
 import PermissionsTab from '../components/workspace/PermissionsTab';
@@ -259,6 +260,7 @@ const OverviewTab = ({ stats, boards }) => {
           <StatCard key={c.label} icon={c.icon} label={c.label} value={c.value} suffix={c.suffix} color={c.color} />
         ))}
       </div>
+      <PipelineWidget boards={boards} />
       <RecentBoards boards={boards} />
     </div>
   );

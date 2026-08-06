@@ -930,9 +930,42 @@ const listBoardTemplates = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/boards/:id/pipeline — stage-by-stage lead counts for a board.
+ * Powers the Workspace-Home pipeline widget. Counts top-level, non-personal
+ * tasks bucketed by group (stage), in group order.
+ */
+const getBoardPipeline = async (req, res) => {
+  try {
+    const ctx = await loadBoardContext(req.params.id, req.user.userId);
+    if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
+    const boardId = ctx.board._id;
+    const [groups, counts] = await Promise.all([
+      TaskGroup.find({ board: boardId }).sort({ order: 1, createdAt: 1 }).select('name order').lean(),
+      Task.aggregate([
+        { $match: { board: boardId, parent: null, isPersonal: { $ne: true } } },
+        { $group: { _id: '$group', count: { $sum: 1 } } },
+      ]),
+    ]);
+    const countByGroup = new Map(counts.map((c) => [String(c._id), c.count]));
+    const stages = groups.map((g) => ({
+      _id: g._id,
+      name: g.name,
+      order: g.order,
+      count: countByGroup.get(String(g._id)) || 0,
+    }));
+    const total = stages.reduce((acc, s) => acc + s.count, 0);
+    return res.json({ boardId, boardName: ctx.board.name, total, stages });
+  } catch (err) {
+    console.error('getBoardPipeline error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
 module.exports = {
   getBoards,
   getDashboardStats,
+  getBoardPipeline,
   createBoard,
   updateBoard,
   deleteBoard,
