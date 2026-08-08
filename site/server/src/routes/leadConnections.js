@@ -22,6 +22,9 @@ const crypto = require('crypto');
 const cors = require('cors');
 const authMiddleware = require('../middleware/auth');
 const rateLimit = require('../middleware/rateLimit');
+const requireFeature = require('../middleware/requireFeature');
+const { fromBoardParam } = require('../middleware/requireFeature');
+const { FEATURES } = require('../config/plans');
 const {
   ingest,
   listConnections,
@@ -90,7 +93,14 @@ const boardLeadRouter = express.Router();
 boardLeadRouter.use(authMiddleware);
 boardLeadRouter.get('/lead-connections', listOrgConnections); // ?org=:orgId (hub)
 boardLeadRouter.get('/boards/:id/lead-connections', listConnections);
-boardLeadRouter.post('/boards/:id/lead-connections', createConnection);
+// Creating a NEW lead source is the premium action (Team+). Listing, rotating
+// and deleting existing ones stay open so a downgraded workspace can still see
+// and clean up what it already built — and its live leads keep flowing.
+boardLeadRouter.post(
+  '/boards/:id/lead-connections',
+  requireFeature(FEATURES.LEAD_CONNECTORS, fromBoardParam('id')),
+  createConnection
+);
 boardLeadRouter.post('/lead-connections/:cid/rotate', rotateKey);
 boardLeadRouter.post('/lead-connections/:cid/reset-schema', resetSchema);
 boardLeadRouter.patch('/lead-connections/:cid', updateConnection);

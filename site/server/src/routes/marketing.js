@@ -1,5 +1,7 @@
 const express = require('express');
 const authMiddleware = require('../middleware/auth');
+const requireFeature = require('../middleware/requireFeature');
+const { FEATURES } = require('../config/plans');
 const {
   listCampaigns,
   createCampaign,
@@ -21,6 +23,6 @@ router.get('/marketing/roi', getRoi);
 
 // Production report — GCI/commission, source ROI with revenue, agent
 // leaderboard (admin-only, org-scoped via ?orgId=).
-router.get('/reports/production', getProduction);
+router.get('/reports/production', requireFeature(FEATURES.PRODUCTION_REPORTS), getProduction);
 
 module.exports = router;
