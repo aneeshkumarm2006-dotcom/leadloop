@@ -35,6 +35,7 @@ import BookingPremium from './pages/BookingPremium';
 import IntegrationsPage from './pages/IntegrationsPage';
 import LeadSourcesPage from './pages/LeadSourcesPage';
 import ProductionReportPage from './pages/ProductionReportPage';
+import BillingPage from './pages/BillingPage';
 import InstallPrompt from './components/pwa/InstallPrompt';
 import LeadIntakePage from './pages/LeadIntakePage';
 import MyTasksPage from './pages/MyTasksPage';
@@ -210,6 +211,8 @@ function App() {
               {/* Production report — GCI/commission, source ROI, agent
                   leaderboard (admin-only: financial data). */}
               <Route path="/production" element={<ProductionReportPage />} />
+              {/* Plans & billing — Stripe checkout + customer portal (admin). */}
+              <Route path="/billing" element={<BillingPage />} />
               {/* Booking — links manager + live preview + workflows, one page (amber) */}
               <Route path="/booking" element={<BookingPremium />} />
               {/* Retired Calendly-style standalone app → fold into /booking */}

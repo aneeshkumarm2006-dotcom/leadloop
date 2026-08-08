@@ -47,6 +47,9 @@ app.use(
 //   • POST /api/leads/in/:key                 (F14 URL-keyed ingest — same as
 //     above but the key rides in the path, for platforms that can't send an
 //     auth header: Google Ads Lead Forms, Facebook, portal webhooks)
+//   • POST /api/billing/webhook               (Stripe lifecycle — authenticated
+//     by Stripe's signature over the RAW body, so it mounts its own
+//     express.raw parser ABOVE the global express.json())
 //
 // Mounted BEFORE the global `express.json()` below: routes that need a body
 // carry their OWN parser (the F7 inbound route caps at 256KB; the F8 inbound
@@ -82,6 +85,11 @@ app.use(publicFormRouter);
 // Phase 4b — public visit booking render/slots/submit/cancel + .ics. No auth;
 // submit/cancel carry their own rate limiter + body parser.
 app.use(publicBookingRouter);
+// Stripe billing webhook. MUST stay above express.json(): signature
+// verification hashes the raw bytes, so the route carries its own
+// express.raw parser (see routes/billing.js).
+const { publicBillingRouter, billingRouter } = require('./routes/billing');
+app.use(publicBillingRouter);
 
 // Body parsing (global — applies to every route mounted AFTER this point)
 app.use(express.json());
@@ -117,6 +125,7 @@ app.use('/api', require('./routes/bookingWorkflows'));
 app.use('/api', require('./routes/savedViews'));
 app.use('/api', require('./routes/charts'));
 app.use('/api', require('./routes/marketing'));
+app.use('/api', billingRouter);
 // F7 — admin, board-scoped webhook management (authed). Mounted at /api so its
 // routes resolve as /api/boards/:id/webhooks… alongside the boards router.
 app.use('/api', boardWebhookRouter);

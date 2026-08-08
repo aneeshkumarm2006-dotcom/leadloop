@@ -13,6 +13,7 @@ import {
   Sparkles,
   Radio,
   TrendingUp,
+  CreditCard,
   CalendarClock,
 } from 'lucide-react';
 import Navbar from './Navbar';
@@ -348,6 +349,14 @@ const OrgSidebar = () => {
                   active={pathname === '/booking'}
                   onClick={() => navigate('/booking')}
                   tourId="booking"
+                />
+              )}
+              {isAdmin && (
+                <SidebarLink
+                  icon={CreditCard}
+                  label={t('billing.nav', 'Plans & billing')}
+                  active={pathname === '/billing'}
+                  onClick={() => navigate('/billing')}
                 />
               )}
             </nav>
