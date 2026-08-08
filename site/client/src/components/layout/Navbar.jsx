@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Bell,
@@ -13,6 +13,17 @@ import {
   ArrowLeft,
   Folder,
   CheckSquare,
+  Home,
+  UserCheck,
+  Calendar,
+  Users,
+  BarChart3,
+  Zap,
+  Sparkles,
+  Radio,
+  TrendingUp,
+  CalendarClock,
+  CreditCard,
 } from 'lucide-react';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
 import useAuthStore from '../../store/authStore';
@@ -52,59 +63,62 @@ const Logo = () => (
   </div>
 );
 
+/**
+ * NavLinks — the MOBILE drawer navigation (the only place this renders; on
+ * desktop the pine sidebar owns navigation).
+ *
+ * It must stay at parity with OrgSidebar's link list, or a feature becomes
+ * unreachable on a phone — which is exactly what happened to the admin pages
+ * before. Rows are vertical and 44px tall (the iOS minimum touch target)
+ * rather than a horizontal bar that overflowed the drawer.
+ */
 const NavLinks = ({ isAdmin, onNavigate }) => {
   const { t } = useTranslation();
-  // Phase 0 reframe: CRM-language labels routed to the existing pages. The full
-  // Contacts/Listings/Deals/Docs nav lands with their boards in Phase 1+.
-  // Productivity is shelved (§0.2) — removed from nav, code retained.
   const links = [
-    { to: '/dashboard', label: t('nav.dashboard') },
-    { to: '/boards', label: t('nav.boards') },
-    { to: '/my-tasks', label: t('nav.myLeads') },
-    { to: '/calendar', label: t('nav.calendar') },
-    { to: '/workspace-settings', label: t('nav.members') },
+    { to: '/workspace', label: t('workspace.home', 'Workspace home'), icon: Home },
+    { to: '/boards', label: t('nav.boards'), icon: Folder },
+    { to: '/my-tasks', label: t('nav.myLeads'), icon: UserCheck },
+    { to: '/calendar', label: t('nav.calendar'), icon: Calendar },
+    { to: '/workspace-settings', label: t('nav.members'), icon: Users },
+    // Admin-only surfaces — mirrors the desktop sidebar.
     ...(isAdmin
-      ? [{ to: '/analytics', label: t('nav.reports') }]
+      ? [
+          { to: '/analytics', label: t('nav.reports'), icon: BarChart3 },
+          { to: '/automations/hub', label: t('automationsHub.title'), icon: Zap },
+          { to: '/automations/forms', label: t('automationsForms.nav'), icon: Sparkles },
+          { to: '/lead-sources', label: t('leadSources.nav', 'Lead Sources'), icon: Radio },
+          { to: '/production', label: t('production.nav', 'Production'), icon: TrendingUp },
+          { to: '/booking', label: t('bookingPremium.nav'), icon: CalendarClock },
+          { to: '/billing', label: t('billing.nav', 'Plans & billing'), icon: CreditCard },
+        ]
       : []),
   ];
 
   return (
-    <div className="flex items-center gap-1">
-      {links.map((link) => (
-        <NavLink
-          key={link.to}
-          to={link.to}
-          onClick={onNavigate}
-          className={({ isActive }) =>
-            [
-              'relative font-body font-medium text-[14px] px-3 py-4 transition-colors duration-150',
-              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]',
-              isActive
-                ? 'text-[color:var(--color-accent)] font-semibold'
-                : 'text-[color:var(--color-text-secondary)] hover:text-[color:var(--color-text-primary)]',
-            ].join(' ')
-          }
-        >
-          {({ isActive }) => (
-            <>
-              {link.label}
-              {/* Active underline — 2px, flush with nav bottom border */}
-              <span
-                aria-hidden="true"
-                className="absolute left-3 right-3 bottom-0"
-                style={{
-                  height: 2,
-                  background: 'var(--color-accent)',
-                  transition: 'transform 200ms ease-in-out, opacity 200ms ease-in-out',
-                  transform: isActive ? 'scaleX(1)' : 'scaleX(0)',
-                  transformOrigin: 'left center',
-                  opacity: isActive ? 1 : 0,
-                }}
-              />
-            </>
-          )}
-        </NavLink>
-      ))}
+    <div className="flex flex-col" style={{ gap: 2 }}>
+      {links.map((link) => {
+        const Icon = link.icon;
+        return (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              [
+                'font-body font-medium text-[14.5px] flex items-center gap-3 rounded-lg transition-colors duration-150',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]',
+                isActive
+                  ? 'text-[color:var(--color-accent)] font-semibold bg-[color:var(--color-bg-subtle)]'
+                  : 'text-[color:var(--color-text-secondary)] hover:bg-[color:var(--color-bg-subtle)]',
+              ].join(' ')
+            }
+            style={{ minHeight: 44, padding: '0 12px' }}
+          >
+            <Icon size={17} aria-hidden="true" style={{ flexShrink: 0 }} />
+            <span className="truncate">{link.label}</span>
+          </NavLink>
+        );
+      })}
     </div>
   );
 };
@@ -994,6 +1008,15 @@ const Navbar = () => {
   const currentOrg = useOrgStore((s) => s.currentOrg);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const { pathname } = useLocation();
+
+  // Close the drawer on ANY navigation, not just a link tap — browser
+  // back/forward and programmatic redirects would otherwise leave it open
+  // over the new page.
+  useEffect(() => {
+    setMobileOpen(false);
+    setMobileSearchOpen(false);
+  }, [pathname]);
 
   // Is current user an admin of the currently-selected org?
   const adminId =
@@ -1074,23 +1097,31 @@ const Navbar = () => {
         </div>
       )}
 
-      {/* Mobile nav drawer (links only — search is accessed via the search icon) */}
+      {/* Mobile nav drawer (links only — search is accessed via the search icon).
+          Tapping the backdrop closes it, and the panel scrolls: the admin list
+          is longer than a short phone screen. */}
       {!mobileSearchOpen && mobileOpen && (
-        <div
-          className="md:hidden absolute top-full left-0 right-0 bg-surface z-40"
-          style={{
-            borderBottom: '1px solid var(--color-border)',
-            boxShadow: 'var(--shadow-md)',
-            padding: '16px',
-          }}
-        >
-          <div className="flex flex-col gap-1">
-            <NavLinks
-              isAdmin={isAdmin}
-              onNavigate={() => setMobileOpen(false)}
-            />
+        <>
+          <div
+            className="md:hidden fixed inset-0 z-30"
+            style={{ top: 56, background: 'rgba(0,0,0,.35)' }}
+            onClick={() => setMobileOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            className="md:hidden absolute top-full left-0 right-0 bg-surface z-40"
+            style={{
+              borderBottom: '1px solid var(--color-border)',
+              boxShadow: 'var(--shadow-md)',
+              padding: '10px 12px calc(10px + env(safe-area-inset-bottom))',
+              maxHeight: 'calc(100vh - 56px)',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            <NavLinks isAdmin={isAdmin} onNavigate={() => setMobileOpen(false)} />
           </div>
-        </div>
+        </>
       )}
     </nav>
   );
