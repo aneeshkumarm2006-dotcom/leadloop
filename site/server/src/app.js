@@ -44,6 +44,9 @@ app.use(
 //   • POST /api/leads/ingest                  (F14 API lead ingest — key + rate
 //     limit; mounted ABOVE the global cors() with its own permissive CORS so
 //     customers' websites can call it from the browser)
+//   • POST /api/leads/in/:key                 (F14 URL-keyed ingest — same as
+//     above but the key rides in the path, for platforms that can't send an
+//     auth header: Google Ads Lead Forms, Facebook, portal webhooks)
 //
 // Mounted BEFORE the global `express.json()` below: routes that need a body
 // carry their OWN parser (the F7 inbound route caps at 256KB; the F8 inbound

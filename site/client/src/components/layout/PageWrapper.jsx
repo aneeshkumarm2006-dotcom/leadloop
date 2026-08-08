@@ -11,6 +11,7 @@ import {
   ChevronDown,
   Zap,
   Sparkles,
+  Radio,
   CalendarClock,
 } from 'lucide-react';
 import Navbar from './Navbar';
@@ -321,6 +322,15 @@ const OrgSidebar = () => {
               )}
               {/* Integrations link hidden — page is out of the app for now.
                   Restore this block to bring it back. */}
+              {isAdmin && (
+                <SidebarLink
+                  icon={Radio}
+                  label={t('leadSources.nav', 'Lead Sources')}
+                  active={pathname === '/lead-sources'}
+                  onClick={() => navigate('/lead-sources')}
+                  tourId="lead-sources"
+                />
+              )}
               {isAdmin && (
                 <SidebarLink
                   icon={CalendarClock}

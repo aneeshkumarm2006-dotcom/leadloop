@@ -15,7 +15,23 @@ const Board = require('../models/Board');
 const Organisation = require('../models/Organisation');
 const LeadConnection = require('../models/LeadConnection');
 const LeadIngestLog = require('../models/LeadIngestLog');
+const TaskGroup = require('../models/TaskGroup');
 const { ingestLead, LeadIngestError } = require('../services/leadIngestService');
+const { isValidSourceType, DEFAULT_SOURCE } = require('../services/sourceAdapters');
+
+/**
+ * Validate a requested landing group for a board. Returns the group's ObjectId
+ * when `raw` is a real group ON THIS BOARD, or null (fall back to first group)
+ * when unset. Throws { status, error } on a malformed / foreign group so a
+ * connection can never point leads at another board's stage.
+ */
+const resolveLandingGroup = async (raw, boardId) => {
+  if (raw === undefined || raw === null || raw === '') return null;
+  if (!mongoose.Types.ObjectId.isValid(raw)) throw { status: 400, error: 'Invalid landing stage' };
+  const grp = await TaskGroup.findOne({ _id: raw, board: boardId }).select('_id');
+  if (!grp) throw { status: 400, error: 'Landing stage is not on this board' };
+  return grp._id;
+};
 
 const isOrgAdmin = (org, userId) =>
   !!org &&
@@ -67,6 +83,8 @@ const serializeConnection = (c) => ({
   keyId: c.keyId,
   tokenLast4: c.tokenLast4 || '',
   enabled: !!c.enabled,
+  sourceType: c.sourceType || DEFAULT_SOURCE,
+  landingGroupId: c.landingGroupId || null,
   attributeSource: !!c.attributeSource,
   sourceTag: c.sourceTag || '',
   schemaLocked: !!c.schemaLocked,
@@ -88,13 +106,21 @@ const serializeConnection = (c) => ({
 // PUBLIC — ingest
 // ===========================================================================
 
-/** Read the key from `X-API-Key`, falling back to `Authorization: Bearer …`. */
+/**
+ * Read the key from `X-API-Key`, then `Authorization: Bearer …`, then the URL
+ * (`/api/leads/in/:key` param or `?key=`). The URL forms exist for platforms
+ * that only let you paste a destination URL and can't set an auth header —
+ * Google Ads Lead Forms, Facebook, most portal/Zapier webhooks.
+ */
 const extractApiKey = (req) => {
   const header = req.get('x-api-key');
   if (header) return header.trim();
   const auth = req.get('authorization') || '';
   const m = /^Bearer\s+(.+)$/i.exec(auth);
-  return m ? m[1].trim() : '';
+  if (m) return m[1].trim();
+  if (req.params && req.params.key) return String(req.params.key).trim();
+  if (req.query && req.query.key) return String(req.query.key).trim();
+  return '';
 };
 
 /** A valid absolute http(s) URL, else null — the only shape `_redirect` honours. */
@@ -177,6 +203,8 @@ const createConnection = async (req, res) => {
     if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
     const body = req.body || {};
     const name = typeof body.name === 'string' && body.name.trim() ? body.name.trim() : 'Website form';
+    const sourceType = isValidSourceType(body.sourceType) ? body.sourceType : DEFAULT_SOURCE;
+    const landingGroupId = await resolveLandingGroup(body.landingGroupId, ctx.board._id);
 
     const { apiKey, keyId, tokenHash, tokenLast4 } = LeadConnection.generateApiKey();
     const connection = await LeadConnection.create({
@@ -185,12 +213,15 @@ const createConnection = async (req, res) => {
       keyId,
       tokenHash,
       tokenLast4,
+      sourceType,
+      landingGroupId,
       attributeSource: body.attributeSource === undefined ? true : !!body.attributeSource,
       sourceTag: typeof body.sourceTag === 'string' ? body.sourceTag.trim() : '',
       createdBy: req.user.userId,
     });
     return res.status(201).json({ connection: serializeConnection(connection), apiKey });
   } catch (err) {
+    if (err && err.status && err.error) return res.status(err.status).json({ error: err.error });
     console.error('createConnection error:', err);
     return res.status(500).json({ error: 'Server error' });
   }
@@ -230,10 +261,17 @@ const updateConnection = async (req, res) => {
     if (body.attributeSource !== undefined) connection.attributeSource = !!body.attributeSource;
     if (body.sourceTag !== undefined) connection.sourceTag = String(body.sourceTag || '').trim();
     if (body.evolveSchema !== undefined) connection.evolveSchema = !!body.evolveSchema;
+    if (body.sourceType !== undefined && isValidSourceType(body.sourceType)) {
+      connection.sourceType = body.sourceType;
+    }
+    if (body.landingGroupId !== undefined) {
+      connection.landingGroupId = await resolveLandingGroup(body.landingGroupId, connection.boardId);
+    }
 
     await connection.save();
     return res.json({ connection: serializeConnection(connection) });
   } catch (err) {
+    if (err && err.status && err.error) return res.status(err.status).json({ error: err.error });
     console.error('updateConnection error:', err);
     return res.status(500).json({ error: 'Server error' });
   }
@@ -295,9 +333,41 @@ const listSubmissions = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/lead-connections?org=:orgId (member) — every lead connection across
+ * the workspace's boards, for the Lead-Sources hub. The board name is joined in
+ * so the hub can show "→ Board" without an extra round-trip per row.
+ */
+const listOrgConnections = async (req, res) => {
+  try {
+    const orgId = req.query.org;
+    if (!mongoose.Types.ObjectId.isValid(orgId)) return res.status(400).json({ error: 'Invalid org id' });
+    const org = await Organisation.findById(orgId);
+    if (!org) return res.status(404).json({ error: 'Organisation not found' });
+    if (!isOrgMember(org, req.user.userId)) {
+      return res.status(403).json({ error: 'Not a member of this workspace' });
+    }
+    const boards = await Board.find({ organisation: orgId }).select('_id name');
+    const boardMap = new Map(boards.map((b) => [b._id.toString(), b.name]));
+    const connections = await LeadConnection.find({
+      boardId: { $in: boards.map((b) => b._id) },
+    }).sort({ createdAt: -1 });
+    return res.json({
+      connections: connections.map((c) => ({
+        ...serializeConnection(c),
+        boardName: boardMap.get(c.boardId.toString()) || '',
+      })),
+    });
+  } catch (err) {
+    console.error('listOrgConnections error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
 module.exports = {
   ingest,
   listConnections,
+  listOrgConnections,
   createConnection,
   rotateKey,
   updateConnection,

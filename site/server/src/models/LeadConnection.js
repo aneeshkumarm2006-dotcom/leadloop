@@ -78,6 +78,21 @@ const leadConnectionSchema = new mongoose.Schema(
     attributeSource: { type: Boolean, default: true },
     sourceTag: { type: String, default: '' },
 
+    // Which lead source this connection is wired to. Drives the setup docs shown
+    // in the Lead-Sources hub and, more importantly, which payload adapter runs
+    // on ingest (see services/sourceAdapters.js) — a Google-Ads Lead-Form post
+    // and a plain website form have different body shapes but both must land as
+    // the same flat `{ field: value }` before schema inference sees them.
+    // One of SOURCE_TYPES; 'website' is the historical default (plain form post).
+    sourceType: { type: String, default: 'website' },
+
+    // The board group (pipeline stage) leads from this source land in. When
+    // null, ingest falls back to the board's first group (legacy behaviour).
+    landingGroupId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+
     enabled: { type: Boolean, default: true, index: true },
 
     // Lightweight stats surfaced in the docs UI ("12 leads, last 2m ago").

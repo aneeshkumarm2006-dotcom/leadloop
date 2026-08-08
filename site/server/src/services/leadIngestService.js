@@ -36,6 +36,7 @@ const LeadConnection = require('../models/LeadConnection');
 const LeadIngestLog = require('../models/LeadIngestLog');
 const eventBus = require('./eventBus');
 const { createTaskWithColumnValues } = require('./taskCreation');
+const { normalizeSourcePayload } = require('./sourceAdapters');
 const {
   inferSchema,
   normalizeKey,
@@ -270,8 +271,13 @@ const ingestLocked = async (connectionId, rawBody, meta = {}) => {
   );
   if (!board) throw new LeadIngestError(422, 'This key is no longer connected to a board');
 
+  // Collapse the source's platform-specific body shape (Google Ads Lead Form,
+  // Facebook field_data, …) into flat `{ field: value }` BEFORE inference sees
+  // it. Passthrough for plain website/Zapier posts. Never throws / never null-s
+  // a valid object (see sourceAdapters.js).
+  const adapted = normalizeSourcePayload(connection.sourceType, rawBody);
   const payload =
-    rawBody && typeof rawBody === 'object' && !Array.isArray(rawBody) ? rawBody : null;
+    adapted && typeof adapted === 'object' && !Array.isArray(adapted) ? adapted : null;
   if (!payload || Object.keys(payload).length === 0) {
     await writeLog(connection, board, { status: 'rejected', payload: rawBody, error: 'empty_payload', ...meta });
     throw new LeadIngestError(400, 'Request body must be a non-empty JSON object');
@@ -350,6 +356,7 @@ const ingestLocked = async (connectionId, rawBody, meta = {}) => {
 
   const { task, warnings: colWarnings } = await createTaskWithColumnValues({
     board,
+    groupId: connection.landingGroupId || undefined, // else first group (legacy)
     columnValues,
     createdBy: connection.createdBy || board.createdBy,
   });

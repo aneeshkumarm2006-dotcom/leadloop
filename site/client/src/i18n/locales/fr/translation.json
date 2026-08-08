@@ -1611,5 +1611,89 @@
     "updateError": "Impossible de mettre à jour les réglages de la clé API.",
     "deleteError": "Impossible de supprimer la clé API.",
     "deleteConfirm": "Supprimer cette clé API ? Tout formulaire qui l’utilise encore cessera de créer des prospects."
+  },
+  "leadSources": {
+    "nav": "Sources de leads",
+    "title": "Sources de leads",
+    "subtitle": "Connectez les endroits d’où viennent vos leads. Choisissez un tableau et une étape, collez une seule URL dans la plateforme, et les nouveaux leads arrivent directement dans votre pipeline.",
+    "roadmap": "Bientôt disponible",
+    "connect": "Connecter",
+    "connectedN": "{{count}} connecté(s)",
+    "soon": "Bientôt",
+    "copy": "Copier",
+    "copied": "Copié",
+    "connectTitle": "Connecter {{name}}",
+    "connectedTitle": "{{name}} connecté",
+    "nameLabel": "Nom de la connexion",
+    "boardLabel": "Envoyer les leads vers le tableau",
+    "boardPlaceholder": "Choisir un tableau…",
+    "stageLabel": "Étape d’arrivée",
+    "stagePlaceholder": "Première étape",
+    "stageHint": "Les nouveaux leads de cette source arrivent ici.",
+    "creating": "Connexion…",
+    "createError": "Impossible de créer la connexion.",
+    "headerUrlLabel": "URL POST (avec en-tête X-API-Key)",
+    "urlKeyedLabel": "URL du webhook (clé dans le lien)",
+    "keyLabel": "Clé API",
+    "keyOnce": "Copiez la clé maintenant — pour des raisons de sécurité elle n’est affichée qu’une seule fois. Vous pourrez la régénérer plus tard depuis l’onglet Intégrations du tableau.",
+    "testHint": "Envoyez une soumission test depuis la plateforme — elle apparaît sur l’étape choisie en quelques secondes.",
+    "steps": {
+      "fb": "Connectez cette URL dans Zapier ou le webhook Lead Ads de Meta pour transférer chaque Instant Form ici. Une connexion Facebook native en un clic arrive bientôt.",
+      "google_ads": "Dans Google Ads, ouvrez votre ressource Formulaire pour prospects → Données → ajouter un webhook. Collez l’URL ci-dessous et utilisez la clé API comme « Clé ».",
+      "website": "Ajoutez ceci comme action POST de votre formulaire, ou envoyez un POST JSON depuis votre site. La première soumission crée automatiquement les colonnes.",
+      "webhook": "Collez ce point de terminaison dans la plateforme. Chaque POST crée un lead sur votre tableau.",
+      "email": "L’import par courriel des portails arrive bientôt — vous transférerez les courriels de leads du portail vers une adresse unique et nous les analyserons sur votre tableau.",
+      "poll": "La synchro Google Forms arrive bientôt — connectez Google et choisissez un formulaire ; nous récupérerons les nouvelles réponses régulièrement."
+    },
+    "catalog": {
+      "facebook_lead_ads": {
+        "name": "Facebook Lead Ads",
+        "blurb": "Les Instant Forms des publicités Facebook arrivent directement sur votre tableau."
+      },
+      "instagram_lead_ads": {
+        "name": "Instagram Lead Ads",
+        "blurb": "Les publicités à formulaire Instagram deviennent des leads automatiquement."
+      },
+      "google_ads": {
+        "name": "Google Ads",
+        "blurb": "Les formulaires pour prospects Google Ads arrivent via une seule URL webhook."
+      },
+      "website": {
+        "name": "Formulaire de site web",
+        "blurb": "Tout formulaire de votre site envoie des leads vers un tableau et une étape."
+      },
+      "zapier": {
+        "name": "Zapier",
+        "blurb": "Reliez plus de 6 000 applis à votre pipeline avec un seul webhook."
+      },
+      "generic": {
+        "name": "Webhook générique",
+        "blurb": "Pointez n’importe quel système capable d’envoyer du JSON vers ce point de terminaison."
+      },
+      "zillow": {
+        "name": "Zillow",
+        "blurb": "Importez automatiquement les leads Premier Agent via ADF par courriel."
+      },
+      "realtor_com": {
+        "name": "Realtor.com",
+        "blurb": "Récupérez les leads acheteurs et vendeurs de votre boîte Realtor.com."
+      },
+      "realtor_ca": {
+        "name": "Realtor.ca",
+        "blurb": "Les leads des annonces canadiennes importés automatiquement."
+      },
+      "redfin": {
+        "name": "Redfin",
+        "blurb": "Les leads partenaires Redfin acheminés vers votre tableau."
+      },
+      "google_forms": {
+        "name": "Google Forms",
+        "blurb": "Synchronisez les réponses Google Forms régulièrement."
+      },
+      "google_lsa": {
+        "name": "Google LSA",
+        "blurb": "Les leads Local Services Ads via l’API LSA."
+      }
+    }
   }
 }

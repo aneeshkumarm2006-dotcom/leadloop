@@ -1611,5 +1611,89 @@
     "updateError": "Could not update the API key settings.",
     "deleteError": "Could not delete the API key.",
     "deleteConfirm": "Delete this API key? Any form still using it will stop creating leads."
+  },
+  "leadSources": {
+    "nav": "Lead Sources",
+    "title": "Lead Sources",
+    "subtitle": "Connect the places your leads come from. Pick a board and stage, paste one URL into the platform, and new leads flow straight onto your pipeline.",
+    "roadmap": "Coming soon",
+    "connect": "Connect",
+    "connectedN": "{{count}} connected",
+    "soon": "Soon",
+    "copy": "Copy",
+    "copied": "Copied",
+    "connectTitle": "Connect {{name}}",
+    "connectedTitle": "{{name}} connected",
+    "nameLabel": "Connection name",
+    "boardLabel": "Send leads to board",
+    "boardPlaceholder": "Choose a board…",
+    "stageLabel": "Landing stage",
+    "stagePlaceholder": "First stage",
+    "stageHint": "New leads from this source land here.",
+    "creating": "Connecting…",
+    "createError": "Could not create the connection.",
+    "headerUrlLabel": "POST URL (with X-API-Key header)",
+    "urlKeyedLabel": "Webhook URL (key in the link)",
+    "keyLabel": "API key",
+    "keyOnce": "Copy the key now — for security it is shown only once. You can rotate it later from the board’s Integrations tab.",
+    "testHint": "Send a test submission from the platform — it appears on your chosen stage within seconds.",
+    "steps": {
+      "fb": "Connect this URL in Zapier or Meta’s Lead Ads webhook to forward each Instant Form submission here. A native one-click Facebook login is on the way.",
+      "google_ads": "In Google Ads, open your Lead Form asset → Data → add a webhook. Paste the Webhook URL below and use the API key as the “Key”.",
+      "website": "Add this as your form’s POST action, or send a JSON POST from your site. The first submission auto-creates matching columns.",
+      "webhook": "Paste this endpoint into the platform. Every POST creates a lead on your board.",
+      "email": "Portal email import is coming soon — you’ll forward the portal’s lead emails to a unique address and we’ll parse them onto your board.",
+      "poll": "Google Forms sync is coming soon — connect Google and pick a form; we’ll pull new responses on a schedule."
+    },
+    "catalog": {
+      "facebook_lead_ads": {
+        "name": "Facebook Lead Ads",
+        "blurb": "Instant Forms from Facebook lead ads drop straight onto your board."
+      },
+      "instagram_lead_ads": {
+        "name": "Instagram Lead Ads",
+        "blurb": "Lead ads from Instagram land as new leads automatically."
+      },
+      "google_ads": {
+        "name": "Google Ads",
+        "blurb": "Google Ads Lead Form submissions flow in via one webhook URL."
+      },
+      "website": {
+        "name": "Website Form",
+        "blurb": "Any form on your site posts leads to a board and stage."
+      },
+      "zapier": {
+        "name": "Zapier",
+        "blurb": "Bridge 6,000+ apps to your pipeline with a single webhook."
+      },
+      "generic": {
+        "name": "Generic Webhook",
+        "blurb": "Point any system that can POST JSON at this endpoint."
+      },
+      "zillow": {
+        "name": "Zillow",
+        "blurb": "Auto-import Premier Agent leads via emailed ADF."
+      },
+      "realtor_com": {
+        "name": "Realtor.com",
+        "blurb": "Pull buyer & seller leads from your Realtor.com inbox."
+      },
+      "realtor_ca": {
+        "name": "Realtor.ca",
+        "blurb": "Canadian listing leads imported automatically."
+      },
+      "redfin": {
+        "name": "Redfin",
+        "blurb": "Redfin partner leads routed to your board."
+      },
+      "google_forms": {
+        "name": "Google Forms",
+        "blurb": "Sync Google Forms responses on a schedule."
+      },
+      "google_lsa": {
+        "name": "Google LSA",
+        "blurb": "Local Services Ads leads via the LSA API."
+      }
+    }
   }
 }

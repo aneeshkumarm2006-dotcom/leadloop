@@ -15,6 +15,15 @@ export const listConnections = async (boardId) => {
 };
 
 /**
+ * GET /api/lead-connections?org=:orgId — every lead connection across the
+ * workspace's boards, for the Lead-Sources hub. Each row carries `boardName`.
+ */
+export const listOrgConnections = async (orgId) => {
+  const { data } = await api.get('/api/lead-connections', { params: { org: orgId } });
+  return data.connections || [];
+};
+
+/**
  * POST /api/boards/:boardId/lead-connections — create a key (admin).
  * Returns `{ connection, apiKey }`; `apiKey` (plaintext) is shown ONCE.
  */

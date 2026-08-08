@@ -33,6 +33,7 @@ import AutomationsHubPremium from './pages/AutomationsHubPremium';
 // IntegrationsPremium — hidden; route redirects to /workspace (see below).
 import BookingPremium from './pages/BookingPremium';
 import IntegrationsPage from './pages/IntegrationsPage';
+import LeadSourcesPage from './pages/LeadSourcesPage';
 import LeadIntakePage from './pages/LeadIntakePage';
 import MyTasksPage from './pages/MyTasksPage';
 import SettingsPage from './pages/SettingsPage';
@@ -201,6 +202,9 @@ function App() {
                   Restore by pointing this at <IntegrationsPremium /> again and
                   re-adding the sidebar link in PageWrapper.jsx. */}
               <Route path="/integrations" element={<Navigate to="/workspace" replace />} />
+              {/* Lead Sources — one-click connectors hub (Google/Meta ads, forms,
+                  portals) → mints a source-typed lead connection (admin-only). */}
+              <Route path="/lead-sources" element={<LeadSourcesPage />} />
               {/* Booking — links manager + live preview + workflows, one page (amber) */}
               <Route path="/booking" element={<BookingPremium />} />
               {/* Retired Calendly-style standalone app → fold into /booking */}

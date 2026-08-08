@@ -25,6 +25,7 @@ const rateLimit = require('../middleware/rateLimit');
 const {
   ingest,
   listConnections,
+  listOrgConnections,
   createConnection,
   rotateKey,
   updateConnection,
@@ -70,9 +71,24 @@ publicLeadRouter.post(
   ingest
 );
 
+// URL-keyed variant — the key rides in the path so platforms that only let you
+// paste a destination URL (Google Ads Lead Forms, Facebook, portal webhooks)
+// can post here with no auth header. Same handler; `extractApiKey` reads
+// `req.params.key`. Rate-limited on ip (the key isn't in a header for keyFn).
+publicLeadRouter.options('/api/leads/in/:key', ingestCors);
+publicLeadRouter.post(
+  '/api/leads/in/:key',
+  ingestCors,
+  rateLimit({ keyFn: ingestKeyFn }),
+  express.json({ limit: '256kb' }),
+  express.urlencoded({ extended: true, limit: '256kb' }),
+  ingest
+);
+
 // --- Admin board-scoped router (auth required) -----------------------------
 const boardLeadRouter = express.Router();
 boardLeadRouter.use(authMiddleware);
+boardLeadRouter.get('/lead-connections', listOrgConnections); // ?org=:orgId (hub)
 boardLeadRouter.get('/boards/:id/lead-connections', listConnections);
 boardLeadRouter.post('/boards/:id/lead-connections', createConnection);
 boardLeadRouter.post('/lead-connections/:cid/rotate', rotateKey);
