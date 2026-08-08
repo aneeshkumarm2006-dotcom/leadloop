@@ -12,6 +12,7 @@ import {
   Zap,
   Sparkles,
   Radio,
+  TrendingUp,
   CalendarClock,
 } from 'lucide-react';
 import Navbar from './Navbar';
@@ -329,6 +330,15 @@ const OrgSidebar = () => {
                   active={pathname === '/lead-sources'}
                   onClick={() => navigate('/lead-sources')}
                   tourId="lead-sources"
+                />
+              )}
+              {isAdmin && (
+                <SidebarLink
+                  icon={TrendingUp}
+                  label={t('production.nav', 'Production')}
+                  active={pathname === '/production'}
+                  onClick={() => navigate('/production')}
+                  tourId="production"
                 />
               )}
               {isAdmin && (

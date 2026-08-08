@@ -34,3 +34,31 @@ export const getRoi = async (orgId, { boardId, sourceColumnId, from, to } = {}) 
   });
   return data; // { rows, totals, sourceColumnName, campaignCount, ... }
 };
+
+/**
+ * GET /api/reports/production — the Production report: GCI/commission totals,
+ * per-source ROI (revenue vs ad spend), and the agent leaderboard.
+ *
+ * Column roles are optional — the server auto-detects the board's source /
+ * agent / deal-value columns when they're omitted. `commissionRate` is a
+ * percent (e.g. 2.5) applied to deals with no per-deal commission of their own.
+ */
+export const getProduction = async (
+  orgId,
+  { boardId, commissionRate, valueColumnId, agentColumnId, sourceColumnId, commissionColumnId, from, to } = {}
+) => {
+  const { data } = await api.get('/api/reports/production', {
+    params: {
+      orgId,
+      boardId,
+      commissionRate,
+      valueColumnId,
+      agentColumnId,
+      sourceColumnId,
+      commissionColumnId,
+      from,
+      to,
+    },
+  });
+  return data; // { totals, agents, sources, columns, ... }
+};

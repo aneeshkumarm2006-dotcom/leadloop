@@ -1,0 +1,27 @@
+{
+  "name": "LeadLoop — Real Estate CRM",
+  "short_name": "LeadLoop",
+  "description": "The real-estate CRM that turns every lead into a closing. Pipelines, boards, bookings and automations — on any device.",
+  "id": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#3E6B4E",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/app-icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "maskable"
+    }
+  ]
+}

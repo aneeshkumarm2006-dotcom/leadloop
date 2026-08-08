@@ -43,7 +43,8 @@
     "all": "All",
     "open": "Open",
     "close": "Close",
-    "retry": "Retry"
+    "retry": "Retry",
+    "dismiss": "Dismiss"
   },
   "entity": {
     "lead": "Lead",
@@ -1695,5 +1696,48 @@
         "blurb": "Local Services Ads leads via the LSA API."
       }
     }
+  },
+  "pwa": {
+    "installTitle": "Install LeadLoop",
+    "installBody": "Add it to your home screen for one-tap access, even offline.",
+    "install": "Install"
+  },
+  "production": {
+    "nav": "Production",
+    "title": "Production",
+    "subtitle": "Closed business, commission income, and which lead sources actually pay for themselves.",
+    "board": "Board",
+    "period": "Period",
+    "commissionRate": "Commission %",
+    "range": {
+      "ytd": "Year to date",
+      "m3": "Last 3 months",
+      "m12": "Last 12 months",
+      "all": "All time"
+    },
+    "gci": "GCI",
+    "gciSub": "{{rate}}% commission",
+    "volume": "Volume",
+    "closings": "{{count}} closings",
+    "conversion": "Conversion",
+    "ofLeads": "of {{count}} leads",
+    "roi": "Ad ROI",
+    "spendSub": "{{spend}} ad spend",
+    "noSpend": "No campaign spend logged",
+    "leaderboard": "Agent leaderboard",
+    "agent": "Agent",
+    "leads": "Leads",
+    "closingsCol": "Closings",
+    "convCol": "Conv.",
+    "volumeCol": "Volume",
+    "noAgents": "No leads in this period yet.",
+    "sourceRoi": "Lead source ROI",
+    "source": "Source",
+    "spendCol": "Ad spend",
+    "profit": "Profit",
+    "roiCol": "ROI",
+    "noSources": "No leads in this period yet.",
+    "footnote": "Ad spend comes from your Marketing campaigns, matched to each source. Deals with their own commission value override the rate above.",
+    "loadError": "Could not load the report."
   }
 }

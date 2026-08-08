@@ -43,7 +43,8 @@
     "all": "Tous",
     "open": "Ouvrir",
     "close": "Fermer",
-    "retry": "Réessayer"
+    "retry": "Réessayer",
+    "dismiss": "Fermer"
   },
   "entity": {
     "lead": "Prospect",
@@ -1695,5 +1696,48 @@
         "blurb": "Les leads Local Services Ads via l’API LSA."
       }
     }
+  },
+  "pwa": {
+    "installTitle": "Installer LeadLoop",
+    "installBody": "Ajoutez-le à votre écran d’accueil pour un accès en un geste, même hors ligne.",
+    "install": "Installer"
+  },
+  "production": {
+    "nav": "Production",
+    "title": "Production",
+    "subtitle": "Les transactions conclues, les revenus de commission, et les sources de leads qui sont vraiment rentables.",
+    "board": "Tableau",
+    "period": "Période",
+    "commissionRate": "Commission %",
+    "range": {
+      "ytd": "Depuis janvier",
+      "m3": "3 derniers mois",
+      "m12": "12 derniers mois",
+      "all": "Depuis le début"
+    },
+    "gci": "Commissions brutes",
+    "gciSub": "{{rate}} % de commission",
+    "volume": "Volume",
+    "closings": "{{count}} transactions",
+    "conversion": "Conversion",
+    "ofLeads": "sur {{count}} leads",
+    "roi": "ROI publicitaire",
+    "spendSub": "{{spend}} de dépenses pub",
+    "noSpend": "Aucune dépense de campagne enregistrée",
+    "leaderboard": "Classement des courtiers",
+    "agent": "Courtier",
+    "leads": "Leads",
+    "closingsCol": "Transactions",
+    "convCol": "Conv.",
+    "volumeCol": "Volume",
+    "noAgents": "Aucun lead pour cette période.",
+    "sourceRoi": "ROI par source de leads",
+    "source": "Source",
+    "spendCol": "Dépenses pub",
+    "profit": "Profit",
+    "roiCol": "ROI",
+    "noSources": "Aucun lead pour cette période.",
+    "footnote": "Les dépenses publicitaires proviennent de vos campagnes Marketing, associées à chaque source. Les transactions ayant leur propre commission remplacent le taux ci-dessus.",
+    "loadError": "Impossible de charger le rapport."
   }
 }

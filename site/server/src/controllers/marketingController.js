@@ -3,6 +3,7 @@ const Organisation = require('../models/Organisation');
 const Board = require('../models/Board');
 const Campaign = require('../models/Campaign');
 const { computeRoi } = require('../services/marketingRoiService');
+const { computeProduction } = require('../services/productionService');
 
 /**
  * marketingController — Phase 2.3 campaigns CRUD + the Marketing/ROI report.
@@ -180,4 +181,46 @@ const getRoi = async (req, res) => {
   }
 };
 
-module.exports = { listCampaigns, createCampaign, updateCampaign, deleteCampaign, getRoi };
+/**
+ * GET /api/reports/production?orgId=&boardId=&… (admin) — the Production
+ * report: GCI/commission, per-source ROI with revenue, and the agent
+ * leaderboard.
+ *
+ * Every column role is optional: omit them and the service auto-detects the
+ * board's source / person / price columns, so the report works out of the box
+ * on the Real-Estate template. `commissionRate` is a percent (e.g. 2.5) and is
+ * only used for deals that don't carry their own commission value.
+ */
+const getProduction = async (req, res) => {
+  try {
+    const ctx = await loadAdminOrg(req.query.orgId, req.user.userId);
+    if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
+
+    const { boardId } = req.query;
+    if (!boardId || !mongoose.Types.ObjectId.isValid(boardId)) {
+      return res.status(400).json({ error: 'A valid boardId is required' });
+    }
+    const board = await Board.findOne({ _id: boardId, organisation: ctx.org._id });
+    if (!board) return res.status(404).json({ error: 'Board not found' });
+
+    const rate = Number(req.query.commissionRate);
+    const report = await computeProduction({
+      org: ctx.org,
+      board,
+      sourceColumnId: req.query.sourceColumnId || null,
+      valueColumnId: req.query.valueColumnId || null,
+      agentColumnId: req.query.agentColumnId || null,
+      commissionColumnId: req.query.commissionColumnId || null,
+      commissionRate: Number.isFinite(rate) && rate >= 0 ? rate : 0,
+      from: parseDate(req.query.from),
+      to: parseDate(req.query.to),
+      wonStatusId: req.query.wonStatusId || null,
+    });
+    return res.json(report);
+  } catch (err) {
+    console.error('getProduction error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+module.exports = { listCampaigns, createCampaign, updateCampaign, deleteCampaign, getRoi, getProduction };

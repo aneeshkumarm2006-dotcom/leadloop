@@ -34,6 +34,8 @@ import AutomationsHubPremium from './pages/AutomationsHubPremium';
 import BookingPremium from './pages/BookingPremium';
 import IntegrationsPage from './pages/IntegrationsPage';
 import LeadSourcesPage from './pages/LeadSourcesPage';
+import ProductionReportPage from './pages/ProductionReportPage';
+import InstallPrompt from './components/pwa/InstallPrompt';
 import LeadIntakePage from './pages/LeadIntakePage';
 import MyTasksPage from './pages/MyTasksPage';
 import SettingsPage from './pages/SettingsPage';
@@ -205,6 +207,9 @@ function App() {
               {/* Lead Sources — one-click connectors hub (Google/Meta ads, forms,
                   portals) → mints a source-typed lead connection (admin-only). */}
               <Route path="/lead-sources" element={<LeadSourcesPage />} />
+              {/* Production report — GCI/commission, source ROI, agent
+                  leaderboard (admin-only: financial data). */}
+              <Route path="/production" element={<ProductionReportPage />} />
               {/* Booking — links manager + live preview + workflows, one page (amber) */}
               <Route path="/booking" element={<BookingPremium />} />
               {/* Retired Calendly-style standalone app → fold into /booking */}
@@ -233,6 +238,7 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <ToastContainer />
+      <InstallPrompt />
     </BrowserRouter>
   );
 }
