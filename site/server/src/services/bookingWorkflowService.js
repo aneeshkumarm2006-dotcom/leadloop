@@ -37,6 +37,7 @@ const executeWorkflow = async (workflow, booking) => {
   const BookingLink = require('../models/BookingLink');
   const User = require('../models/User');
   const { sendEmailForTask, resolveSenderAccount } = require('./taskEmail');
+  const { checkSend } = require('./consentGate');
 
   if (!booking || !booking.leadId) return; // need a task to attach the email to
   const link = await BookingLink.findById(booking.link).lean();
@@ -72,6 +73,20 @@ const executeWorkflow = async (workflow, booking) => {
     const subject = interpolateVars(action.subject, vars).trim() || `Reminder — ${link.title}`;
     const bodyHtml = interpolateVars(action.body, vars);
     if (!bodyHtml.trim()) continue;
+
+    // Booking confirmations and reminders are transactional — the recipient
+    // asked for this appointment. Suppression is still absolute, so someone who
+    // opted out is never emailed, and internal host/other recipients are
+    // checked too rather than assumed safe.
+    // eslint-disable-next-line no-await-in-loop
+    const gate = await checkSend({
+      organisation: booking.organisation || link.organisation,
+      channel: 'email',
+      identifier: to,
+      taskId: booking.leadId || null,
+      messageType: 'transactional',
+    });
+    if (!gate.allowed) continue;
 
     try {
       await sendEmailForTask({

@@ -286,6 +286,19 @@ const sendWelcome = async (policy, task, board, ownerId) => {
   });
   if (!account) return { status: 'skipped', reason: 'no_mailbox' };
 
+  // Compliance gate. An auto-welcome answers someone who just enquired, so it
+  // is transactional rather than marketing — but a suppressed address is still
+  // absolutely off-limits, even for a first reply.
+  const { checkSend } = require('./consentGate');
+  const gate = await checkSend({
+    organisation: board.organisation,
+    channel: 'email',
+    identifier: Array.isArray(to) ? to[0] : to,
+    taskId: task._id,
+    messageType: 'transactional',
+  });
+  if (!gate.allowed) return { status: 'skipped', reason: gate.reason };
+
   const subject = interpolate(copy.subject || '', { task, board });
   const body = interpolate(copy.body || '', { task, board });
 

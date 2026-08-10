@@ -50,6 +50,8 @@ app.use(
 //   • POST /api/billing/webhook               (Stripe lifecycle — authenticated
 //     by Stripe's signature over the RAW body, so it mounts its own
 //     express.raw parser ABOVE the global express.json())
+//   • GET/POST /u/:token                      (email unsubscribe — signed token
+//     is the authorisation; CASL/CAN-SPAM require this to work without login)
 //
 // Mounted BEFORE the global `express.json()` below: routes that need a body
 // carry their OWN parser (the F7 inbound route caps at 256KB; the F8 inbound
@@ -90,6 +92,9 @@ app.use(publicBookingRouter);
 // express.raw parser (see routes/billing.js).
 const { publicBillingRouter, billingRouter } = require('./routes/billing');
 app.use(publicBillingRouter);
+// Public unsubscribe page. No auth by necessity — the recipient is not a user;
+// the signed token is the authorisation. Carries its own body parser.
+app.use(require('./routes/unsubscribe'));
 
 // Body parsing (global — applies to every route mounted AFTER this point)
 app.use(express.json());

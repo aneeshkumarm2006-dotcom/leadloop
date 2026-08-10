@@ -239,17 +239,37 @@ const processEnrollment = async (enrollment, now = new Date()) => {
       workspaceId: sequence.organisation,
       candidateUserIds,
     });
-    message = await sendEmailForTask({
-      taskId: task._id,
-      to: [email],
-      subject,
-      body,
-      account,
-      sentBy: sequence.createdBy,
+    // Every commercial email must carry a working unsubscribe (CASL /
+    // CAN-SPAM). A sequence step is commercial by definition, so if the footer
+    // cannot be built we do NOT send — an unlawful email is worse than a
+    // missed one, and failing loudly is what gets it fixed.
+    const { buildUrl, appendFooter } = require('./unsubscribeService');
+    const unsubUrl = buildUrl(sequence.organisation, email);
+    // The step body may be authored as HTML or as plain text; footer the one it
+    // actually is, so a text email doesn't end up with a stray <div>.
+    const isHtml = /<[a-z][\s\S]*>/i.test(body);
+    const footed = appendFooter({
+      html: isHtml ? body : '',
+      text: isHtml ? '' : body,
+      url: unsubUrl,
     });
-    if (message.status === 'failed') {
-      entryStatus = 'failed';
-      entryError = message.sendError || 'Send failed';
+
+    if (!footed.hasFooter) {
+      entryStatus = 'skipped';
+      entryError = 'No unsubscribe link could be generated';
+    } else {
+      message = await sendEmailForTask({
+        taskId: task._id,
+        to: [email],
+        subject,
+        ...(isHtml ? { bodyHtml: footed.html } : { body: footed.text }),
+        account,
+        sentBy: sequence.createdBy,
+      });
+      if (message.status === 'failed') {
+        entryStatus = 'failed';
+        entryError = message.sendError || 'Send failed';
+      }
     }
   }
 
