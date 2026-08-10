@@ -363,6 +363,26 @@ const ingestLocked = async (connectionId, rawBody, meta = {}) => {
   });
   if (Array.isArray(colWarnings)) warnings.push(...colWarnings);
 
+  // Start the speed-to-lead clock. Only inbound leads get one — a row typed by
+  // hand is not an enquiry waiting on a reply. The deadline is frozen now, so a
+  // later policy change can never retroactively breach leads already in flight.
+  try {
+    // eslint-disable-next-line global-require
+    const Organisation = require('../models/Organisation');
+    // eslint-disable-next-line global-require
+    const Task = require('../models/Task');
+    // eslint-disable-next-line global-require
+    const { dueAt, resolvePolicy } = require('./slaService');
+    const org = await Organisation.findById(board.organisation).select('sla').lean();
+    const policy = resolvePolicy(org?.sla || {});
+    if (policy.enabled) {
+      await Task.updateOne({ _id: task._id }, { $set: { slaDueAt: dueAt(task.createdAt || new Date(), policy) } });
+    }
+  } catch (err) {
+    // A missing clock must never cost us the lead itself.
+    console.warn('sla clock not started:', err.message);
+  }
+
   // Flag a possible duplicate of an existing lead. This is the reason the
   // connectors need it: the same buyer enquires via Zillow, a Facebook ad and
   // the website within days. Awaited (so the caller sees the flag) but never

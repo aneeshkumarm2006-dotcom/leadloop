@@ -40,6 +40,7 @@ import InstallPrompt from './components/pwa/InstallPrompt';
 import SetupWizardPage from './pages/SetupWizardPage';
 import DuplicatesPage from './pages/DuplicatesPage';
 import CompliancePage from './pages/CompliancePage';
+import ResponseClockPage from './pages/ResponseClockPage';
 import LeadIntakePage from './pages/LeadIntakePage';
 import MyTasksPage from './pages/MyTasksPage';
 import SettingsPage from './pages/SettingsPage';
@@ -218,6 +219,8 @@ function App() {
               <Route path="/duplicates" element={<DuplicatesPage />} />
               {/* TCPA / CASL — consent records + do-not-contact list. */}
               <Route path="/compliance" element={<CompliancePage />} />
+              {/* Speed-to-lead — live response clock + breach queue. */}
+              <Route path="/response-clock" element={<ResponseClockPage />} />
               {/* Production report — GCI/commission, source ROI, agent
                   leaderboard (admin-only: financial data). */}
               <Route path="/production" element={<ProductionReportPage />} />

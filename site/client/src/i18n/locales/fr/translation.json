@@ -1924,5 +1924,21 @@
       "stop": "A répondu STOP",
       "bounce": "Rejeté"
     }
+  },
+  "sla": {
+    "nav": "Délai de réponse",
+    "title": "Délai de réponse",
+    "subtitle": "Les nouveaux leads refroidissent vite. Tout lead sans réponse à la fin du compte à rebours est confié à quelqu’un d’autre automatiquement.",
+    "median": "Temps de réponse médian",
+    "withinTarget": "Dans les délais",
+    "breached": "Hors délai",
+    "waiting": "En attente",
+    "target": "Cible · {{n}} min",
+    "unassigned": "Non assigné",
+    "reassigned": "Réassigné",
+    "late": "{{time}} de retard",
+    "dueIn": "Dans {{time}}",
+    "emptyTitle": "Tous les leads ont eu une réponse",
+    "emptyBody": "Les nouveaux leads apparaissent ici dès leur arrivée, avec un compte à rebours vers votre objectif."
   }
 }

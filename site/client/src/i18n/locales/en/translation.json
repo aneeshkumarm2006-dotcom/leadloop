@@ -1924,5 +1924,21 @@
       "stop": "Replied STOP",
       "bounce": "Bounced"
     }
+  },
+  "sla": {
+    "nav": "Response clock",
+    "title": "Response clock",
+    "subtitle": "New leads go cold fast. Anything still unanswered when the clock runs out is handed to someone else automatically.",
+    "median": "Median first response",
+    "withinTarget": "Within target",
+    "breached": "Breached",
+    "waiting": "Still waiting",
+    "target": "Target · {{n}} min",
+    "unassigned": "Unassigned",
+    "reassigned": "Reassigned",
+    "late": "{{time}} late",
+    "dueIn": "Due in {{time}}",
+    "emptyTitle": "Every lead has been answered",
+    "emptyBody": "New leads appear here the moment they arrive, with a countdown to your target response time."
   }
 }

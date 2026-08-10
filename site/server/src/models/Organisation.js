@@ -61,6 +61,18 @@ const organisationSchema = new mongoose.Schema({
   businessType: { type: String, enum: BUSINESS_TYPES, default: null },
 
   /**
+   * Speed-to-lead policy. See services/slaService.resolvePolicy — anything
+   * missing or invalid falls back to the defaults (5-minute target,
+   * escalate at 10).
+   */
+  sla: {
+    enabled: { type: Boolean, default: true },
+    targetMinutes: { type: Number, default: 5 },
+    escalateAfterMinutes: { type: Number, default: 10 },
+    reassign: { type: Boolean, default: true },
+  },
+
+  /**
    * First-run setup state. Most checklist items are DERIVED from real data
    * (does a board exist? a second member? a lead source?) rather than stored —
    * a stored flag drifts from reality, and the whole point of this checklist is

@@ -12,6 +12,7 @@ const {
 const { startEmailSyncRunner } = require('./src/services/emailSyncRunner');
 const { startSequenceRunner } = require('./src/services/sequenceRunner');
 const { startBookingWorkflowRunner } = require('./src/services/bookingWorkflowRunner');
+const { startSlaRunner } = require('./src/services/slaRunner');
 const {
   mountLeadIntakeRunner,
 } = require('./src/services/leadIntakeRunner');
@@ -49,6 +50,8 @@ const start = async () => {
   startSequenceRunner();
   // Booking workflows — on-booking alerts + before-event reminder emails.
   startBookingWorkflowRunner();
+  // Speed-to-lead: escalate + reassign leads nobody answered in time.
+  startSlaRunner();
   // F9 — Automated Lead Agent: runs the board intake policy on `lead.intake`.
   mountLeadIntakeRunner();
   // F7 — warn if the in-memory rate-limit bucket won't meter across replicas.

@@ -90,6 +90,19 @@ const taskSchema = new mongoose.Schema(
      */
     isSample: { type: Boolean, default: false, index: true },
 
+    /**
+     * Speed-to-lead clock (see services/slaService.js). Only set on leads that
+     * arrive from an external source — a row someone types by hand is not an
+     * inbound enquiry waiting on a reply.
+     *   slaDueAt        when the first reply is due (frozen at creation, so a
+     *                   later policy change cannot retroactively breach leads)
+     *   firstResponseAt stamped by the first OUTBOUND message on this lead
+     *   slaEscalatedAt  set once when the lead was handed on / reassigned
+     */
+    slaDueAt: { type: Date, default: null, index: true },
+    firstResponseAt: { type: Date, default: null },
+    slaEscalatedAt: { type: Date, default: null },
+
     createdByAutomation: {
       type: Boolean,
       default: false,

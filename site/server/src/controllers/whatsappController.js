@@ -31,6 +31,7 @@ const twilioSignature = require('../utils/twilioSignature');
 const whatsappService = require('../services/whatsappService');
 const { resolveInboundWhatsApp } = require('../services/whatsappInboundResolver');
 const { checkSend } = require('../services/consentGate');
+const { markFirstResponse } = require('../services/slaResponse');
 
 const asId = (v) => (v == null ? '' : v.toString());
 const isObjectId = (v) => v != null && mongoose.Types.ObjectId.isValid(asId(v));
@@ -443,6 +444,8 @@ const sendTaskWhatsApp = async (req, res) => {
         message: result.message ? serializeMessage(result.message) : undefined,
       });
     }
+    // First outbound message stops the speed-to-lead clock.
+    markFirstResponse(ctx.task._id).catch(() => {});
     return res.status(201).json({ message: serializeMessage(result.message), windowOpen: result.windowOpen === true });
   } catch (err) {
     console.error('sendTaskWhatsApp error:', err);

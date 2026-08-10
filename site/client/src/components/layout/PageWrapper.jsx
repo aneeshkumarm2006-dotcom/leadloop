@@ -14,6 +14,7 @@ import {
   Radio,
   CopyCheck,
   ShieldCheck,
+  Timer,
   TrendingUp,
   CreditCard,
   CalendarClock,
@@ -349,6 +350,14 @@ const OrgSidebar = () => {
                   label={t('compliance.nav', 'Compliance')}
                   active={pathname === '/compliance'}
                   onClick={() => navigate('/compliance')}
+                />
+              )}
+              {isAdmin && (
+                <SidebarLink
+                  icon={Timer}
+                  label={t('sla.nav', 'Response clock')}
+                  active={pathname === '/response-clock'}
+                  onClick={() => navigate('/response-clock')}
                 />
               )}
               {isAdmin && (

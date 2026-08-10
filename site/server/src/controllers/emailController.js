@@ -20,6 +20,7 @@ const Organisation = require('../models/Organisation');
 const EmailMessage = require('../models/EmailMessage');
 const EmailAccount = require('../models/EmailAccount');
 const { sendEmailForTask, resolveSenderAccount } = require('../services/taskEmail');
+const { markFirstResponse } = require('../services/slaResponse');
 const { checkSend } = require('../services/consentGate');
 
 // 1×1 transparent GIF (43 bytes) for the open-tracking pixel.
@@ -233,6 +234,8 @@ const sendTaskEmail = async (req, res) => {
         email: serializeMessage(message),
       });
     }
+    // First outbound message stops the speed-to-lead clock.
+    markFirstResponse(ctx.task._id).catch(() => {});
     return res.status(201).json({ email: serializeMessage(message), via: message.provider });
   } catch (err) {
     console.error('sendTaskEmail error:', err);

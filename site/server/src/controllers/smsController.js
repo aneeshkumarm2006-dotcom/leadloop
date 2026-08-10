@@ -25,6 +25,7 @@ const SmsOptOut = require('../models/SmsOptOut');
 const aesEncrypt = require('../utils/aesEncrypt');
 const twilioSignature = require('../utils/twilioSignature');
 const smsService = require('../services/smsService');
+const { markFirstResponse } = require('../services/slaResponse');
 const { checkSend, suppress, unsuppress } = require('../services/consentGate');
 const { resolveInboundSms } = require('../services/smsInboundResolver');
 
@@ -383,6 +384,7 @@ const sendTaskSms = async (req, res) => {
         message: result.message ? serializeMessage(result.message) : undefined,
       });
     }
+    markFirstResponse(ctx.task._id).catch(() => {});
     return res.status(201).json({ message: serializeMessage(result.message) });
   } catch (err) {
     console.error('sendTaskSms error:', err);
