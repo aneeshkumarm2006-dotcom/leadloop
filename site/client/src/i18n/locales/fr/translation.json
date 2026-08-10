@@ -44,7 +44,8 @@
     "open": "Ouvrir",
     "close": "Fermer",
     "retry": "Réessayer",
-    "dismiss": "Fermer"
+    "dismiss": "Fermer",
+    "back": "Retour"
   },
   "entity": {
     "lead": "Prospect",
@@ -1777,6 +1778,81 @@
       "production_reports": "Rapports de production (commissions, ROI, classement)",
       "api_access": "Accès API",
       "priority_support": "Support prioritaire"
+    }
+  },
+  "setup": {
+    "checklistTitle": "Pour commencer",
+    "progress": "{{done}} sur {{total}} terminé",
+    "welcome": "Bienvenue, {{name}}",
+    "welcomeSub": "Quelques questions rapides et votre espace est prêt à recevoir des leads.",
+    "step": {
+      "business": "Votre entreprise",
+      "type": "Votre activité",
+      "pipeline": "Votre pipeline",
+      "team": "Votre équipe",
+      "sources": "Vos leads"
+    },
+    "businessTitle": "Où travaillez-vous ?",
+    "businessBody": "Ceci définit votre devise, vos dates et le calcul des commissions.",
+    "country": "Pays",
+    "countryCA": "Canada",
+    "countryUS": "États-Unis",
+    "timezone": "Fuseau horaire",
+    "pickTimezone": "Choisir…",
+    "currency": "Devise",
+    "typeTitle": "Quel type de travail faites-vous ?",
+    "typeBody": "Nous créerons le pipeline correspondant — modifiable plus tard.",
+    "typeLeasing": "Location",
+    "typeSales": "Vente résidentielle",
+    "typeBoth": "Les deux",
+    "typePM": "Gestion immobilière",
+    "pipelineTitle": "Voici le pipeline que nous allons créer",
+    "pipelineBody": "Ces étapes deviendront les colonnes de votre tableau. Retirez celles dont vous n’avez pas besoin.",
+    "pipelineBoardName": "Leads",
+    "removeStage": "Retirer {{stage}}",
+    "boardMade": "Votre tableau est prêt.",
+    "teamTitle": "Invitez votre équipe",
+    "teamBody": "Partagez ce code : les leads seront répartis automatiquement dès que vous serez plusieurs.",
+    "sourcesTitle": "D’où viennent vos leads ?",
+    "sourcesBody": "Connectez une source et les leads arrivent seuls sur votre tableau — sans saisie.",
+    "connectNow": "Connecter une source maintenant",
+    "connectHint": "Facebook, Google Ads ou le formulaire de votre site",
+    "continue": "Continuer",
+    "skip": "Plus tard",
+    "finish": "Terminer",
+    "saving": "Enregistrement…",
+    "createPipeline": "Créer mon pipeline",
+    "saveError": "Enregistrement impossible. Réessayez.",
+    "boardError": "Impossible de créer le tableau.",
+    "steps": {
+      "workspace": {
+        "title": "Créer votre espace de travail",
+        "body": ""
+      },
+      "pipeline": {
+        "title": "Créer votre premier pipeline",
+        "body": "Les étapes que suivent vos leads, de nouveau à conclu."
+      },
+      "firstLead": {
+        "title": "Ajouter votre premier lead",
+        "body": "Ajoutez-en un à la main pour voir comment il progresse."
+      },
+      "inviteTeam": {
+        "title": "Inviter votre équipe",
+        "body": "Les leads sont répartis automatiquement dès que vous êtes plusieurs."
+      },
+      "leadSource": {
+        "title": "Connecter vos sources de leads",
+        "body": "Facebook, Google Ads ou votre formulaire web — ils arrivent directement sur une étape."
+      },
+      "businessHours": {
+        "title": "Définir vos heures d’ouverture",
+        "body": "Pour que les relances et visites ne tombent jamais à 2 h du matin."
+      },
+      "installApp": {
+        "title": "Installer LeadLoop sur votre téléphone",
+        "body": "Pour recevoir les nouveaux leads dès leur arrivée."
+      }
     }
   }
 }

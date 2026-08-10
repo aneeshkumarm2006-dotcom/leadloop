@@ -18,6 +18,13 @@ const {
   deleteGrant,
   getSharedWithMe,
 } = require('../controllers/grantController');
+const {
+  getSetup,
+  updateProfile,
+  completeWizard,
+  dismissChecklist,
+  markStep,
+} = require('../controllers/setupController');
 
 const router = express.Router();
 
@@ -41,6 +48,14 @@ router.get('/:id', getOrg);
 
 // List members
 router.get('/:id/members', listMembers);
+
+// First-run setup — wizard profile + derived checklist. The controller does its
+// own member/admin checks (writes are workspace-wide, so they need an admin).
+router.get('/:id/setup', getSetup);
+router.patch('/:id/setup/profile', updateProfile);
+router.post('/:id/setup/complete', completeWizard);
+router.post('/:id/setup/dismiss', dismissChecklist);
+router.post('/:id/setup/step', markStep);
 
 // Remove member (admin only)
 router.delete('/:id/members/:userId', requireOrgAdmin, removeMember);

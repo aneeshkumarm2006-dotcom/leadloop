@@ -37,6 +37,7 @@ import LeadSourcesPage from './pages/LeadSourcesPage';
 import ProductionReportPage from './pages/ProductionReportPage';
 import BillingPage from './pages/BillingPage';
 import InstallPrompt from './components/pwa/InstallPrompt';
+import SetupWizardPage from './pages/SetupWizardPage';
 import LeadIntakePage from './pages/LeadIntakePage';
 import MyTasksPage from './pages/MyTasksPage';
 import SettingsPage from './pages/SettingsPage';
@@ -185,6 +186,9 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route element={<RequireOrg />}>
+            {/* Guided first run — full-page, no app shell (it IS the app shell
+                until the workspace is configured). */}
+            <Route path="/setup" element={<SetupWizardPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/workspace" element={<WorkspaceHomePage />} />
             <Route path="/boards" element={<MyBoardsPage />} />

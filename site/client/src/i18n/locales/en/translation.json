@@ -44,7 +44,8 @@
     "open": "Open",
     "close": "Close",
     "retry": "Retry",
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "back": "Back"
   },
   "entity": {
     "lead": "Lead",
@@ -1777,6 +1778,81 @@
       "production_reports": "Production reports (GCI, ROI, leaderboard)",
       "api_access": "API access",
       "priority_support": "Priority support"
+    }
+  },
+  "setup": {
+    "checklistTitle": "Getting started",
+    "progress": "{{done}} of {{total}} done",
+    "welcome": "Welcome, {{name}}",
+    "welcomeSub": "A few quick questions and your workspace is ready to take leads.",
+    "step": {
+      "business": "Your business",
+      "type": "What you do",
+      "pipeline": "Your pipeline",
+      "team": "Your team",
+      "sources": "Your leads"
+    },
+    "businessTitle": "Where do you work?",
+    "businessBody": "This sets your currency and dates, and how commission is reported.",
+    "country": "Country",
+    "countryCA": "Canada",
+    "countryUS": "United States",
+    "timezone": "Timezone",
+    "pickTimezone": "Choose…",
+    "currency": "Currency",
+    "typeTitle": "What kind of work do you do?",
+    "typeBody": "We’ll build the pipeline that matches — you can change it later.",
+    "typeLeasing": "Leasing / rentals",
+    "typeSales": "Residential sales",
+    "typeBoth": "Both",
+    "typePM": "Property management",
+    "pipelineTitle": "Here’s the pipeline we’ll build",
+    "pipelineBody": "These become the stages on your board. Remove any you don’t need.",
+    "pipelineBoardName": "Leads",
+    "removeStage": "Remove {{stage}}",
+    "boardMade": "Your board is ready.",
+    "teamTitle": "Bring your team in",
+    "teamBody": "Share this code and leads get shared out automatically once there’s more than one of you.",
+    "sourcesTitle": "Where do your leads come from?",
+    "sourcesBody": "Connect a source and leads arrive on your board by themselves — no typing.",
+    "connectNow": "Connect a lead source now",
+    "connectHint": "Facebook, Google Ads, or your website form",
+    "continue": "Continue",
+    "skip": "Skip for now",
+    "finish": "Finish",
+    "saving": "Saving…",
+    "createPipeline": "Create my pipeline",
+    "saveError": "Could not save. Try again.",
+    "boardError": "Could not create the board.",
+    "steps": {
+      "workspace": {
+        "title": "Create your workspace",
+        "body": ""
+      },
+      "pipeline": {
+        "title": "Build your first pipeline",
+        "body": "Stages your leads move through, from new to closed."
+      },
+      "firstLead": {
+        "title": "Add your first lead",
+        "body": "Add one by hand to see how a lead moves along."
+      },
+      "inviteTeam": {
+        "title": "Invite your team",
+        "body": "Leads get shared out automatically once there is more than one of you."
+      },
+      "leadSource": {
+        "title": "Connect where your leads come from",
+        "body": "Facebook, Google Ads or your website form — they land straight on a stage."
+      },
+      "businessHours": {
+        "title": "Set your business hours",
+        "body": "So follow-ups and tour bookings never land at 2 AM."
+      },
+      "installApp": {
+        "title": "Put LeadLoop on your phone",
+        "body": "Install the app so new leads reach you the moment they arrive."
+      }
     }
   }
 }

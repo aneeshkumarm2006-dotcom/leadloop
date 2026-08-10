@@ -14,6 +14,12 @@ const mongoose = require('mongoose');
  */
 const REGIONS = ['Edmonton', 'Saskatoon', 'Regina', 'Montreal', 'Other'];
 
+// Business profile captured by the first-run setup wizard. `country` drives
+// currency/date defaults and, later, which compliance regime applies (US TCPA
+// vs Canada CASL); `businessType` picks the starter board template.
+const COUNTRIES = ['CA', 'US'];
+const BUSINESS_TYPES = ['sales', 'leasing', 'both', 'property_management'];
+
 const organisationSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -47,6 +53,28 @@ const organisationSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
+
+  // --- Business profile (setup wizard) -------------------------------------
+  country: { type: String, enum: COUNTRIES, default: null },
+  timezone: { type: String, default: '' }, // IANA name, e.g. America/Toronto
+  currency: { type: String, default: '' }, // ISO 4217, e.g. CAD
+  businessType: { type: String, enum: BUSINESS_TYPES, default: null },
+
+  /**
+   * First-run setup state. Most checklist items are DERIVED from real data
+   * (does a board exist? a second member? a lead source?) rather than stored —
+   * a stored flag drifts from reality, and the whole point of this checklist is
+   * that it reflects what is actually configured. Only what cannot be derived
+   * lives here: whether the wizard was finished, and whether the workspace
+   * dismissed the checklist.
+   */
+  setup: {
+    wizardCompletedAt: { type: Date, default: null },
+    checklistDismissed: { type: Boolean, default: false },
+    // Items the user explicitly ticked that have no derivable signal.
+    manualDone: { type: [String], default: [] },
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -54,6 +82,10 @@ const organisationSchema = new mongoose.Schema({
 });
 
 organisationSchema.statics.REGIONS = REGIONS;
+organisationSchema.statics.COUNTRIES = COUNTRIES;
+organisationSchema.statics.BUSINESS_TYPES = BUSINESS_TYPES;
 
 module.exports = mongoose.model('Organisation', organisationSchema);
 module.exports.REGIONS = REGIONS;
+module.exports.COUNTRIES = COUNTRIES;
+module.exports.BUSINESS_TYPES = BUSINESS_TYPES;

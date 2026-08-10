@@ -45,7 +45,10 @@ const OnboardingPage = () => {
     try {
       await createOrg(orgName.trim());
       await fetchCurrentUser();
-      navigate('/workspace', { replace: true });
+      // Whoever CREATES the workspace runs the guided setup. Someone joining
+      // with an invite code skips it — they're an agent joining a workspace
+      // that is already configured, not the person configuring it.
+      navigate('/setup', { replace: true });
     } catch (err) {
       setError(err.response?.data?.error || 'Could not create organisation');
       setSubmitting(false);
