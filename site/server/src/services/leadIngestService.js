@@ -37,6 +37,7 @@ const LeadIngestLog = require('../models/LeadIngestLog');
 const eventBus = require('./eventBus');
 const { createTaskWithColumnValues } = require('./taskCreation');
 const { normalizeSourcePayload } = require('./sourceAdapters');
+const { detectSafely } = require('./duplicateDetection');
 const {
   inferSchema,
   normalizeKey,
@@ -361,6 +362,15 @@ const ingestLocked = async (connectionId, rawBody, meta = {}) => {
     createdBy: connection.createdBy || board.createdBy,
   });
   if (Array.isArray(colWarnings)) warnings.push(...colWarnings);
+
+  // Flag a possible duplicate of an existing lead. This is the reason the
+  // connectors need it: the same buyer enquires via Zillow, a Facebook ad and
+  // the website within days. Awaited (so the caller sees the flag) but never
+  // able to fail the ingest — detectSafely swallows its own errors.
+  const duplicate = await detectSafely(task, board);
+  if (duplicate) {
+    warnings.push({ reason: 'possible_duplicate', duplicateOf: asId(duplicate.duplicateOf), score: duplicate.score });
+  }
 
   // Persist the schema (provisioned or evolved) + rolling stats.
   connection.submissionCount = (connection.submissionCount || 0) + 1;

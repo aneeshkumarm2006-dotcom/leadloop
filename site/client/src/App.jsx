@@ -38,6 +38,7 @@ import ProductionReportPage from './pages/ProductionReportPage';
 import BillingPage from './pages/BillingPage';
 import InstallPrompt from './components/pwa/InstallPrompt';
 import SetupWizardPage from './pages/SetupWizardPage';
+import DuplicatesPage from './pages/DuplicatesPage';
 import LeadIntakePage from './pages/LeadIntakePage';
 import MyTasksPage from './pages/MyTasksPage';
 import SettingsPage from './pages/SettingsPage';
@@ -212,6 +213,8 @@ function App() {
               {/* Lead Sources — one-click connectors hub (Google/Meta ads, forms,
                   portals) → mints a source-typed lead connection (admin-only). */}
               <Route path="/lead-sources" element={<LeadSourcesPage />} />
+              {/* Duplicate lead review — merge is always an explicit human action. */}
+              <Route path="/duplicates" element={<DuplicatesPage />} />
               {/* Production report — GCI/commission, source ROI, agent
                   leaderboard (admin-only: financial data). */}
               <Route path="/production" element={<ProductionReportPage />} />

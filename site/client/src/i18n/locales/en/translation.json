@@ -1874,5 +1874,30 @@
     "add": "Show me how it works",
     "remove": "Remove examples",
     "working": "Working…"
+  },
+  "duplicates": {
+    "nav": "Duplicates",
+    "title": "Possible duplicates",
+    "subtitle": "The same buyer often enquires through more than one source. Review each pair and keep one record — nothing is merged automatically.",
+    "strongTitle": "Almost certainly the same person",
+    "maybeTitle": "This might already be in your pipeline",
+    "matchedOn": "Matched on {{fields}}",
+    "and": " and ",
+    "reason": {
+      "phone": "phone",
+      "email": "email",
+      "name": "name"
+    },
+    "confidence": "{{score}}% match",
+    "field": "Field",
+    "existing": "Already in LeadLoop",
+    "incoming": "Just arrived",
+    "name": "Name",
+    "mergeNote": "The older lead is kept, with its history. The newer copy is removed.",
+    "notDuplicate": "Not a duplicate",
+    "merge": "Merge into one lead",
+    "merging": "Merging…",
+    "emptyTitle": "No duplicates to review",
+    "emptyBody": "When the same person arrives from two sources, the pair shows up here before anything is merged."
   }
 }

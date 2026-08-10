@@ -12,6 +12,7 @@ import {
   Zap,
   Sparkles,
   Radio,
+  CopyCheck,
   TrendingUp,
   CreditCard,
   CalendarClock,
@@ -331,6 +332,14 @@ const OrgSidebar = () => {
                   active={pathname === '/lead-sources'}
                   onClick={() => navigate('/lead-sources')}
                   tourId="lead-sources"
+                />
+              )}
+              {isAdmin && (
+                <SidebarLink
+                  icon={CopyCheck}
+                  label={t('duplicates.nav', 'Duplicates')}
+                  active={pathname === '/duplicates'}
+                  onClick={() => navigate('/duplicates')}
                 />
               )}
               {isAdmin && (

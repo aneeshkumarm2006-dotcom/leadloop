@@ -1874,5 +1874,30 @@
     "add": "Montrez-moi comment ça marche",
     "remove": "Retirer les exemples",
     "working": "En cours…"
+  },
+  "duplicates": {
+    "nav": "Doublons",
+    "title": "Doublons possibles",
+    "subtitle": "Le même acheteur passe souvent par plusieurs sources. Vérifiez chaque paire et gardez une seule fiche — rien n’est fusionné automatiquement.",
+    "strongTitle": "Presque certainement la même personne",
+    "maybeTitle": "Cette personne est peut-être déjà dans votre pipeline",
+    "matchedOn": "Correspondance sur {{fields}}",
+    "and": " et ",
+    "reason": {
+      "phone": "téléphone",
+      "email": "courriel",
+      "name": "nom"
+    },
+    "confidence": "{{score}} % de correspondance",
+    "field": "Champ",
+    "existing": "Déjà dans LeadLoop",
+    "incoming": "Vient d’arriver",
+    "name": "Nom",
+    "mergeNote": "La fiche la plus ancienne est conservée, avec son historique. La copie récente est supprimée.",
+    "notDuplicate": "Pas un doublon",
+    "merge": "Fusionner en une seule fiche",
+    "merging": "Fusion…",
+    "emptyTitle": "Aucun doublon à vérifier",
+    "emptyBody": "Quand la même personne arrive de deux sources, la paire apparaît ici avant toute fusion."
   }
 }
