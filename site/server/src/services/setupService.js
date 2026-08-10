@@ -34,29 +34,32 @@ const STEPS = [
     href: null,
     derive: () => true, // reaching the checklist at all means this happened
   },
+  // `?guide=<id>` hands the destination page over to GuideCoach, which
+  // spotlights the control to use and explains it. Navigating without one just
+  // drops the user on a page with no idea what to do next.
   {
     id: 'pipeline',
-    href: '/boards?new=1',
+    href: '/boards?new=1&guide=pipeline',
     derive: (s) => s.boardCount > 0,
   },
   {
     id: 'firstLead',
-    href: '/boards',
+    href: '/workspace?guide=firstLead',
     derive: (s) => s.leadCount > 0,
   },
   {
     id: 'inviteTeam',
-    href: '/workspace-settings',
+    href: '/workspace?guide=inviteTeam',
     derive: (s) => s.memberCount > 1,
   },
   {
     id: 'leadSource',
-    href: '/lead-sources',
+    href: '/lead-sources?guide=leadSource',
     derive: (s) => s.leadSourceCount > 0,
   },
   {
     id: 'businessHours',
-    href: '/booking',
+    href: '/booking?guide=businessHours',
     derive: (s) => s.hasBookingHours,
   },
   {

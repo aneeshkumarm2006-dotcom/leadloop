@@ -1966,5 +1966,44 @@
     "doneBody": "{{skipped}} existaient déjà et ont été ignorés. {{failed}} n’ont pas pu être lus.",
     "viewBoard": "Ouvrir le tableau",
     "another": "Importer un autre fichier"
+  },
+  "guide": {
+    "label": "Guide",
+    "stepOf": "Étape {{n}} sur {{total}}",
+    "next": "Suivant",
+    "done": "Compris",
+    "skip": "Fermer",
+    "firstLead1": {
+      "title": "Commencez ici",
+      "body": "Cliquez sur Nouveau lead. Cela ouvre votre tableau, où chaque lead est une ligne."
+    },
+    "firstLead2": {
+      "title": "Remplissez ce que vous savez",
+      "body": "Un nom suffit pour commencer — ajoutez le téléphone et le courriel et le lead est prêt. Déplacez-le entre les étapes au fil de son avancement."
+    },
+    "inviteTeam1": {
+      "title": "Invitez vos courtiers",
+      "body": "Cliquez sur Inviter pour ajouter des personnes par courriel, ou partagez le code de votre espace."
+    },
+    "inviteTeam2": {
+      "title": "Les leads se répartissent seuls",
+      "body": "Dès que vous êtes plusieurs, les nouveaux leads sont distribués automatiquement à tour de rôle — personne n’a à les assigner."
+    },
+    "leadSource1": {
+      "title": "Choisissez vos sources",
+      "body": "Sélectionnez une source ci-dessous — Facebook, Google Ads, ou le formulaire de votre site."
+    },
+    "leadSource2": {
+      "title": "Collez un lien, c’est tout",
+      "body": "Choisissez le tableau et l’étape d’arrivée, puis collez le lien fourni dans cette plateforme. Les leads arrivent ensuite tout seuls."
+    },
+    "businessHours1": {
+      "title": "Définissez vos disponibilités",
+      "body": "Créez un lien de réservation et choisissez vos heures. Les clients réservent selon vos disponibilités — plus de visites à 2 h du matin."
+    },
+    "pipeline1": {
+      "title": "Choisissez un modèle",
+      "body": "Prenez CRM Immobilier — il crée les étapes que suit un lead, de la demande initiale à la conclusion, avec les colonnes nécessaires."
+    }
   }
 }

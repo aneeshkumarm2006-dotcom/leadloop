@@ -1966,5 +1966,44 @@
     "doneBody": "{{skipped}} already existed and were skipped. {{failed}} could not be read.",
     "viewBoard": "Open the board",
     "another": "Import another file"
+  },
+  "guide": {
+    "label": "Guide",
+    "stepOf": "Step {{n}} of {{total}}",
+    "next": "Next",
+    "done": "Got it",
+    "skip": "Close",
+    "firstLead1": {
+      "title": "Start here",
+      "body": "Click New lead. It opens your pipeline board, where every lead lives as a row."
+    },
+    "firstLead2": {
+      "title": "Fill in what you know",
+      "body": "A name is enough to start — add the phone and email and the lead is ready to work. Drag it between stages as it progresses."
+    },
+    "inviteTeam1": {
+      "title": "Invite your agents",
+      "body": "Click Invite to add people by email, or share your workspace code."
+    },
+    "inviteTeam2": {
+      "title": "Leads share themselves",
+      "body": "Once there is more than one of you, new leads are handed out automatically in turn — nobody has to assign them."
+    },
+    "leadSource1": {
+      "title": "Pick where your leads come from",
+      "body": "Choose a source below — Facebook, Google Ads, or your own website form."
+    },
+    "leadSource2": {
+      "title": "Paste one link and you are done",
+      "body": "Choose the board and stage new leads should land on, then paste the link we give you into that platform. Leads arrive on their own from then on."
+    },
+    "businessHours1": {
+      "title": "Set when you are available",
+      "body": "Create a booking link and choose your hours. Clients pick a time from what you have open, so tour requests never land at 2 AM."
+    },
+    "pipeline1": {
+      "title": "Choose a template",
+      "body": "Pick Real Estate CRM — it builds the stages a lead moves through, from new enquiry to closed, with the columns you need."
+    }
   }
 }

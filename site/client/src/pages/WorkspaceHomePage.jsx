@@ -349,6 +349,7 @@ const WorkspaceHomePage = () => {
           </div>
           <button
             type="button"
+            data-tour="invite"
             onClick={() => navigate('/members')}
             className="inline-flex items-center gap-1.5 font-body transition-colors hover:brightness-95"
             style={{ height: 36, padding: '0 14px', fontSize: 14, fontWeight: 600, borderRadius: 'var(--radius-md)', background: 'var(--color-accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
@@ -378,6 +379,7 @@ const WorkspaceHomePage = () => {
               <button
                 key={a.key}
                 type="button"
+                data-tour={a.key === 'newLead' ? 'new-lead' : undefined}
                 onClick={a.onClick}
                 className="inline-flex items-center gap-2 font-body transition-all duration-150 hover:-translate-y-px"
                 style={{

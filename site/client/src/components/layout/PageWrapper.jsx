@@ -23,6 +23,7 @@ import {
 import Navbar from './Navbar';
 import SidebarFolders from './SidebarFolders';
 import ProductTour from '../onboarding/ProductTour';
+import GuideCoach from '../onboarding/GuideCoach';
 import useOrgStore from '../../store/orgStore';
 import useAuthStore from '../../store/authStore';
 import useBoardStore from '../../store/boardStore';
@@ -551,6 +552,8 @@ const PageWrapper = ({
         </div>
       </div>
       {showNav && <ProductTour />}
+      {/* Step-by-step coaching launched from the setup checklist (?guide=…). */}
+      {showNav && <GuideCoach />}
     </div>
   );
 };
