@@ -82,6 +82,14 @@ const taskSchema = new mongoose.Schema(
     // Loop guard for ITEM_CREATED automations: when an automation creates a
     // task via CREATE_TASK or CREATE_SUBITEM, the task is tagged so the
     // dispatcher can skip it and avoid recursive trigger loops.
+    /**
+     * True for demo rows seeded by "Show me how it works". They behave like any
+     * other lead so the board is genuinely explorable, but are labelled in the
+     * UI and can all be removed in one click. Indexed so the cleanup delete is
+     * a single indexed query.
+     */
+    isSample: { type: Boolean, default: false, index: true },
+
     createdByAutomation: {
       type: Boolean,
       default: false,

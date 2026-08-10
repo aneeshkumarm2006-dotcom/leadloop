@@ -19,6 +19,12 @@ const {
   defaultCurrencyFor,
   STEP_IDS,
 } = require('../services/setupService');
+const {
+  seedSampleLeads,
+  removeSampleLeads,
+  countSampleLeads,
+} = require('../services/sampleDataService');
+const Board = require('../models/Board');
 
 const isOrgAdmin = (org, userId) =>
   !!org &&
@@ -150,4 +156,70 @@ const markStep = async (req, res) => {
   }
 };
 
-module.exports = { getSetup, updateProfile, completeWizard, dismissChecklist, markStep };
+/**
+ * POST /api/orgs/:id/setup/sample — seed demo leads (admin).
+ * Body: { boardId } — defaults to the workspace's first board.
+ * Refuses to stack duplicates if sample data already exists.
+ */
+const addSampleData = async (req, res) => {
+  try {
+    const ctx = await loadOrg(req.params.id, req.user.userId, { admin: true });
+    if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
+
+    const existing = await countSampleLeads(ctx.org._id);
+    if (existing > 0) return res.json({ created: 0, sampleCount: existing });
+
+    let boardId = req.body?.boardId;
+    if (!boardId) {
+      const first = await Board.findOne({ organisation: ctx.org._id }).sort({ order: 1, createdAt: 1 }).select('_id');
+      if (!first) return res.status(400).json({ error: 'Create a board first' });
+      boardId = first._id;
+    } else {
+      // Never seed onto a board outside this workspace.
+      const owned = await Board.findOne({ _id: boardId, organisation: ctx.org._id }).select('_id');
+      if (!owned) return res.status(400).json({ error: 'That board is not in this workspace' });
+    }
+
+    const { created } = await seedSampleLeads(boardId, req.user.userId);
+    return res.json({ created, sampleCount: await countSampleLeads(ctx.org._id), boardId });
+  } catch (err) {
+    console.error('addSampleData error:', err);
+    return res.status(500).json({ error: err.message || 'Server error' });
+  }
+};
+
+/** DELETE /api/orgs/:id/setup/sample — remove every sample lead (admin). */
+const clearSampleData = async (req, res) => {
+  try {
+    const ctx = await loadOrg(req.params.id, req.user.userId, { admin: true });
+    if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
+    const { removed } = await removeSampleLeads(ctx.org._id);
+    return res.json({ removed, sampleCount: 0 });
+  } catch (err) {
+    console.error('clearSampleData error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/** GET /api/orgs/:id/setup/sample — how many sample leads exist (member). */
+const getSampleData = async (req, res) => {
+  try {
+    const ctx = await loadOrg(req.params.id, req.user.userId);
+    if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
+    return res.json({ sampleCount: await countSampleLeads(ctx.org._id) });
+  } catch (err) {
+    console.error('getSampleData error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+module.exports = {
+  getSetup,
+  updateProfile,
+  completeWizard,
+  dismissChecklist,
+  markStep,
+  addSampleData,
+  clearSampleData,
+  getSampleData,
+};

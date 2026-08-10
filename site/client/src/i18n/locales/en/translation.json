@@ -1696,7 +1696,12 @@
         "name": "Google LSA",
         "blurb": "Local Services Ads leads via the LSA API."
       }
-    }
+    },
+    "emptyTitle": "Connect where your leads come from",
+    "emptyBody": "Right now leads have to be typed in by hand. Connect a source and they arrive on your board by themselves, on the stage you choose.",
+    "emptyStep1": "Pick a source — Facebook, Google Ads, your website form.",
+    "emptyStep2": "Choose the board and the stage new leads should land on.",
+    "emptyStep3": "Paste one link into that platform. That’s the whole setup."
   },
   "pwa": {
     "installTitle": "Install LeadLoop",
@@ -1853,6 +1858,21 @@
         "title": "Put LeadLoop on your phone",
         "body": "Install the app so new leads reach you the moment they arrive."
       }
-    }
+    },
+    "stepN": "Step {{n}}"
+  },
+  "help": {
+    "title": "Help",
+    "replayTour": "Take the tour again",
+    "setupChecklist": "Finish setting up",
+    "leadSources": "Connect a lead source",
+    "contact": "Ask us anything"
+  },
+  "sample": {
+    "offer": "Not sure what a working pipeline looks like? Try it with example leads.",
+    "present": "{{count}} example leads are on your board — remove them any time.",
+    "add": "Show me how it works",
+    "remove": "Remove examples",
+    "working": "Working…"
   }
 }

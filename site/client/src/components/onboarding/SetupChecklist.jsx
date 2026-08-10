@@ -3,7 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Check, X, ArrowRight, Rocket } from 'lucide-react';
 import useOrgStore from '../../store/orgStore';
-import { getSetup, dismissChecklist, markStep } from '../../services/setupService';
+import {
+  getSetup,
+  dismissChecklist,
+  markStep,
+  getSampleData,
+  addSampleData,
+  clearSampleData,
+} from '../../services/setupService';
 
 /**
  * SetupChecklist — "Getting started, 3 of 7" on the Workspace Home.
@@ -32,12 +39,17 @@ const SetupChecklist = () => {
 
   const [data, setData] = useState(null);
   const [hidden, setHidden] = useState(false);
+  const [sampleCount, setSampleCount] = useState(0);
+  const [sampleBusy, setSampleBusy] = useState(false);
 
   const load = useCallback(() => {
     if (!orgId) return;
     getSetup(orgId)
       .then(setData)
       .catch(() => setData(null));
+    getSampleData(orgId)
+      .then(setSampleCount)
+      .catch(() => setSampleCount(0));
   }, [orgId]);
 
   useEffect(() => {
@@ -53,6 +65,24 @@ const SetupChecklist = () => {
       if (data?.isAdmin) await dismissChecklist(orgId, true);
     } catch {
       /* a failed dismiss just means it returns next visit */
+    }
+  };
+
+  const toggleSample = async () => {
+    setSampleBusy(true);
+    try {
+      if (sampleCount > 0) {
+        await clearSampleData(orgId);
+        setSampleCount(0);
+      } else {
+        const res = await addSampleData(orgId);
+        setSampleCount(res.sampleCount || 0);
+      }
+      load(); // sample leads change the "first lead" step
+    } catch {
+      /* leave the button as it was */
+    } finally {
+      setSampleBusy(false);
     }
   };
 
@@ -211,6 +241,44 @@ const SetupChecklist = () => {
           );
         })}
       </div>
+
+      {/* Learn by doing — an empty board teaches nothing. Admin-only, since it
+          writes real (labelled) rows to a shared board. */}
+      {data.isAdmin && (
+        <div
+          className="flex items-center justify-between gap-3 flex-wrap"
+          style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid var(--color-border)' }}
+        >
+          <p className="font-body" style={{ fontSize: 12.5, color: 'var(--color-text-muted)' }}>
+            {sampleCount > 0
+              ? t('sample.present', '{{count}} example leads are on your board — remove them any time.', { count: sampleCount })
+              : t('sample.offer', 'Not sure what a working pipeline looks like? Try it with example leads.')}
+          </p>
+          <button
+            type="button"
+            onClick={toggleSample}
+            disabled={sampleBusy}
+            className="font-body"
+            style={{
+              fontSize: 12.5,
+              fontWeight: 650,
+              padding: '7px 13px',
+              borderRadius: 'var(--radius-md)',
+              border: '1.5px solid var(--color-border-strong)',
+              background: 'transparent',
+              color: 'var(--color-text-secondary)',
+              cursor: sampleBusy ? 'default' : 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {sampleBusy
+              ? t('sample.working', 'Working…')
+              : sampleCount > 0
+                ? t('sample.remove', 'Remove examples')
+                : t('sample.add', 'Show me how it works')}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

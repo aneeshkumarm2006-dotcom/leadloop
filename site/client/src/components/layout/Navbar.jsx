@@ -26,6 +26,7 @@ import {
   CreditCard,
 } from 'lucide-react';
 import LanguageSwitcher from '../ui/LanguageSwitcher';
+import HelpMenu from '../onboarding/HelpMenu';
 import useAuthStore from '../../store/authStore';
 import useOrgStore from '../../store/orgStore';
 import useBoardStore from '../../store/boardStore';
@@ -1079,6 +1080,10 @@ const Navbar = () => {
 
           {/* Right cluster */}
           <div className="flex items-center gap-1">
+            {/* Help — tour replay + setup, reachable at any time (desktop) */}
+            <div className="hidden md:block">
+              <HelpMenu />
+            </div>
             {/* Mobile search icon — visible only on mobile, hidden on desktop */}
             <button
               type="button"

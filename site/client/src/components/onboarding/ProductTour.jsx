@@ -26,6 +26,13 @@ export const markTourSeen = (userId) => {
   try { localStorage.setItem(seenKey(userId), '1'); } catch { /* ignore */ }
 };
 
+/**
+ * Fired on `window` to replay the tour from anywhere (the Help menu). Exported
+ * with a helper so callers never hand-write the event name.
+ */
+export const START_TOUR_EVENT = 'leadloop:start-tour';
+export const startTour = () => window.dispatchEvent(new Event(START_TOUR_EVENT));
+
 const PAD = 8; // spotlight padding around the target
 const prefersReduced = () =>
   typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -68,6 +75,14 @@ const ProductTour = () => {
     const timer = setTimeout(() => { setI(0); setActive(true); }, 700);
     return () => clearTimeout(timer);
   }, [user?._id]);
+
+  // Replay on demand — the Help menu dispatches this. A tour you can only ever
+  // see once is useless the day you actually need it.
+  useEffect(() => {
+    const replay = () => { setI(0); setActive(true); };
+    window.addEventListener(START_TOUR_EVENT, replay);
+    return () => window.removeEventListener(START_TOUR_EVENT, replay);
+  }, []);
 
   // Measure the current target (and keep it in sync on scroll/resize).
   useLayoutEffect(() => {

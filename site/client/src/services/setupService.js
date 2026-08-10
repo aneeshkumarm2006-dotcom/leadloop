@@ -37,3 +37,23 @@ export const markStep = async (orgId, stepId, done = true) => {
   const { data } = await api.post(`/api/orgs/${orgId}/setup/step`, { stepId, done });
   return data.checklist;
 };
+
+// --- Sample data ("Show me how it works") ----------------------------------
+
+/** GET — how many demo leads exist in this workspace. */
+export const getSampleData = async (orgId) => {
+  const { data } = await api.get(`/api/orgs/${orgId}/setup/sample`);
+  return data.sampleCount;
+};
+
+/** POST — seed demo leads onto a board (defaults to the first board). */
+export const addSampleData = async (orgId, boardId) => {
+  const { data } = await api.post(`/api/orgs/${orgId}/setup/sample`, boardId ? { boardId } : {});
+  return data; // { created, sampleCount, boardId }
+};
+
+/** DELETE — remove every demo lead in the workspace. */
+export const clearSampleData = async (orgId) => {
+  const { data } = await api.delete(`/api/orgs/${orgId}/setup/sample`);
+  return data.removed;
+};

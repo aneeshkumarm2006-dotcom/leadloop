@@ -24,6 +24,9 @@ const {
   completeWizard,
   dismissChecklist,
   markStep,
+  addSampleData,
+  clearSampleData,
+  getSampleData,
 } = require('../controllers/setupController');
 
 const router = express.Router();
@@ -56,6 +59,10 @@ router.patch('/:id/setup/profile', updateProfile);
 router.post('/:id/setup/complete', completeWizard);
 router.post('/:id/setup/dismiss', dismissChecklist);
 router.post('/:id/setup/step', markStep);
+// "Show me how it works" — seed / inspect / remove demo leads.
+router.get('/:id/setup/sample', getSampleData);
+router.post('/:id/setup/sample', addSampleData);
+router.delete('/:id/setup/sample', clearSampleData);
 
 // Remove member (admin only)
 router.delete('/:id/members/:userId', requireOrgAdmin, removeMember);

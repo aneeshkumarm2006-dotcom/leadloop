@@ -1696,7 +1696,12 @@
         "name": "Google LSA",
         "blurb": "Les leads Local Services Ads via l’API LSA."
       }
-    }
+    },
+    "emptyTitle": "Connectez vos sources de leads",
+    "emptyBody": "Pour l’instant, les leads doivent être saisis à la main. Connectez une source et ils arrivent seuls sur votre tableau, à l’étape que vous choisissez.",
+    "emptyStep1": "Choisissez une source — Facebook, Google Ads, le formulaire de votre site.",
+    "emptyStep2": "Choisissez le tableau et l’étape d’arrivée des nouveaux leads.",
+    "emptyStep3": "Collez un seul lien dans cette plateforme. C’est toute la configuration."
   },
   "pwa": {
     "installTitle": "Installer LeadLoop",
@@ -1853,6 +1858,21 @@
         "title": "Installer LeadLoop sur votre téléphone",
         "body": "Pour recevoir les nouveaux leads dès leur arrivée."
       }
-    }
+    },
+    "stepN": "Étape {{n}}"
+  },
+  "help": {
+    "title": "Aide",
+    "replayTour": "Revoir la visite guidée",
+    "setupChecklist": "Terminer la configuration",
+    "leadSources": "Connecter une source de leads",
+    "contact": "Poser une question"
+  },
+  "sample": {
+    "offer": "Vous ne savez pas à quoi ressemble un pipeline actif ? Essayez avec des leads d’exemple.",
+    "present": "{{count}} leads d’exemple sont sur votre tableau — retirez-les quand vous voulez.",
+    "add": "Montrez-moi comment ça marche",
+    "remove": "Retirer les exemples",
+    "working": "En cours…"
   }
 }

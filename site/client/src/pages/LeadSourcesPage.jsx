@@ -22,6 +22,7 @@ import PageWrapper from '../components/layout/PageWrapper';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Dropdown from '../components/ui/Dropdown';
+import EmptyState from '../components/onboarding/EmptyState';
 import useOrgStore from '../store/orgStore';
 import { getBoards, getBoardPipeline } from '../services/boardService';
 import { listOrgConnections, createConnection } from '../services/leadConnectionService';
@@ -338,6 +339,22 @@ const LeadSourcesPage = () => {
         <p className="font-body" style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 26, maxWidth: 640 }}>
           {t('leadSources.subtitle', 'Connect the places your leads come from. Pick a board and stage, paste one URL into the platform, and new leads flow straight onto your pipeline.')}
         </p>
+
+        {/* Nothing connected yet → explain the job of this page, in place. */}
+        {!loading && connections.length === 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <EmptyState
+              icon={Radio}
+              title={t('leadSources.emptyTitle', 'Connect where your leads come from')}
+              body={t('leadSources.emptyBody', 'Right now leads have to be typed in by hand. Connect a source and they arrive on your board by themselves, on the stage you choose.')}
+              steps={[
+                { label: t('setup.stepN', 'Step {{n}}', { n: 1 }), text: t('leadSources.emptyStep1', 'Pick a source — Facebook, Google Ads, your website form.') },
+                { label: t('setup.stepN', 'Step {{n}}', { n: 2 }), text: t('leadSources.emptyStep2', 'Choose the board and the stage new leads should land on.') },
+                { label: t('setup.stepN', 'Step {{n}}', { n: 3 }), text: t('leadSources.emptyStep3', 'Paste one link into that platform. That’s the whole setup.') },
+              ]}
+            />
+          </div>
+        )}
 
         {/* Ready sources */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
