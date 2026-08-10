@@ -1899,5 +1899,30 @@
     "merging": "Merging…",
     "emptyTitle": "No duplicates to review",
     "emptyBody": "When the same person arrives from two sources, the pair shows up here before anything is merged."
+  },
+  "compliance": {
+    "nav": "Compliance",
+    "title": "Consent & do-not-contact",
+    "subtitle": "Anyone on this list is never messaged again — on any channel, by any automation. Replies of STOP and email unsubscribes are added here automatically.",
+    "kind": "Type",
+    "email": "Email address",
+    "phone": "Phone number",
+    "reason": "Reason",
+    "add": "Add",
+    "remove": "Remove",
+    "listTitle": "Do-not-contact list",
+    "export": "Export audit trail",
+    "addError": "Could not add that.",
+    "exportError": "Could not export right now.",
+    "emptyTitle": "Nobody is blocked yet",
+    "emptyBody": "When someone replies STOP or unsubscribes, they appear here automatically and are never contacted again.",
+    "disclaimer": "LeadLoop enforces these rules on every send, but this is not legal advice — confirm your consent wording and retention with counsel for your market.",
+    "reasons": {
+      "manual": "Added by us",
+      "dnc": "Do-not-call list",
+      "unsubscribe": "Unsubscribed",
+      "stop": "Replied STOP",
+      "bounce": "Bounced"
+    }
   }
 }

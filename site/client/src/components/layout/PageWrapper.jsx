@@ -13,6 +13,7 @@ import {
   Sparkles,
   Radio,
   CopyCheck,
+  ShieldCheck,
   TrendingUp,
   CreditCard,
   CalendarClock,
@@ -340,6 +341,14 @@ const OrgSidebar = () => {
                   label={t('duplicates.nav', 'Duplicates')}
                   active={pathname === '/duplicates'}
                   onClick={() => navigate('/duplicates')}
+                />
+              )}
+              {isAdmin && (
+                <SidebarLink
+                  icon={ShieldCheck}
+                  label={t('compliance.nav', 'Compliance')}
+                  active={pathname === '/compliance'}
+                  onClick={() => navigate('/compliance')}
                 />
               )}
               {isAdmin && (

@@ -1899,5 +1899,30 @@
     "merging": "Fusion…",
     "emptyTitle": "Aucun doublon à vérifier",
     "emptyBody": "Quand la même personne arrive de deux sources, la paire apparaît ici avant toute fusion."
+  },
+  "compliance": {
+    "nav": "Conformité",
+    "title": "Consentement et liste d’exclusion",
+    "subtitle": "Les personnes de cette liste ne reçoivent plus aucun message — sur aucun canal, par aucune automatisation. Les réponses STOP et les désabonnements y sont ajoutés automatiquement.",
+    "kind": "Type",
+    "email": "Adresse courriel",
+    "phone": "Numéro de téléphone",
+    "reason": "Motif",
+    "add": "Ajouter",
+    "remove": "Retirer",
+    "listTitle": "Liste d’exclusion",
+    "export": "Exporter la piste d’audit",
+    "addError": "Ajout impossible.",
+    "exportError": "Exportation impossible pour le moment.",
+    "emptyTitle": "Personne n’est bloqué",
+    "emptyBody": "Quand une personne répond STOP ou se désabonne, elle apparaît ici automatiquement et n’est plus jamais contactée.",
+    "disclaimer": "LeadLoop applique ces règles à chaque envoi, mais ceci ne constitue pas un avis juridique — validez votre formulation et vos durées de conservation avec un conseiller juridique.",
+    "reasons": {
+      "manual": "Ajouté par nous",
+      "dnc": "Liste d’exclusion téléphonique",
+      "unsubscribe": "Désabonné",
+      "stop": "A répondu STOP",
+      "bounce": "Rejeté"
+    }
   }
 }

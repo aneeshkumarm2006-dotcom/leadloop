@@ -39,6 +39,7 @@ import BillingPage from './pages/BillingPage';
 import InstallPrompt from './components/pwa/InstallPrompt';
 import SetupWizardPage from './pages/SetupWizardPage';
 import DuplicatesPage from './pages/DuplicatesPage';
+import CompliancePage from './pages/CompliancePage';
 import LeadIntakePage from './pages/LeadIntakePage';
 import MyTasksPage from './pages/MyTasksPage';
 import SettingsPage from './pages/SettingsPage';
@@ -215,6 +216,8 @@ function App() {
               <Route path="/lead-sources" element={<LeadSourcesPage />} />
               {/* Duplicate lead review — merge is always an explicit human action. */}
               <Route path="/duplicates" element={<DuplicatesPage />} />
+              {/* TCPA / CASL — consent records + do-not-contact list. */}
+              <Route path="/compliance" element={<CompliancePage />} />
               {/* Production report — GCI/commission, source ROI, agent
                   leaderboard (admin-only: financial data). */}
               <Route path="/production" element={<ProductionReportPage />} />

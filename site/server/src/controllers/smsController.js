@@ -25,6 +25,7 @@ const SmsOptOut = require('../models/SmsOptOut');
 const aesEncrypt = require('../utils/aesEncrypt');
 const twilioSignature = require('../utils/twilioSignature');
 const smsService = require('../services/smsService');
+const { checkSend } = require('../services/consentGate');
 const { resolveInboundSms } = require('../services/smsInboundResolver');
 
 const asId = (v) => (v == null ? '' : v.toString());
@@ -337,6 +338,22 @@ const sendTaskSms = async (req, res) => {
     const dest = (to && String(to).trim()) || taskPhone(ctx.task, ctx.board);
     if (!dest) return res.status(400).json({ error: 'No phone number found for this task' });
     if (!String(body || '').trim()) return res.status(400).json({ error: 'Message body is required' });
+
+    // Compliance gate (TCPA / CASL). This route is an agent typing a reply in a
+    // conversation, so it defaults to `transactional`: consent rules govern
+    // marketing, not a human answering someone who contacted them. Suppression
+    // is still absolute — a STOP or DNC blocks even this. Automated and bulk
+    // senders must pass messageType 'marketing' so consent + quiet hours apply.
+    const gate = await checkSend({
+      organisation: ctx.workspaceId,
+      channel: 'sms',
+      identifier: dest,
+      taskId: ctx.task._id,
+      messageType: req.body?.messageType === 'marketing' ? 'marketing' : 'transactional',
+    });
+    if (!gate.allowed) {
+      return res.status(403).json({ error: 'This message cannot be sent', reason: gate.reason });
+    }
 
     const result = await smsService.send({
       workspaceId: ctx.workspaceId,
