@@ -25,7 +25,7 @@ const SmsOptOut = require('../models/SmsOptOut');
 const aesEncrypt = require('../utils/aesEncrypt');
 const twilioSignature = require('../utils/twilioSignature');
 const smsService = require('../services/smsService');
-const { checkSend } = require('../services/consentGate');
+const { checkSend, suppress, unsuppress } = require('../services/consentGate');
 const { resolveInboundSms } = require('../services/smsInboundResolver');
 
 const asId = (v) => (v == null ? '' : v.toString());
@@ -174,11 +174,19 @@ const inboundSms = async (req, res) => {
     const keyword = smsService.classifyKeyword(params.Body);
 
     if (keyword === 'stop') {
+      // Written to BOTH stores: the legacy per-channel opt-out (which the SMS
+      // sender already checks) and the workspace-wide suppression list, so the
+      // Compliance page shows every opt-out and it blocks on every channel.
       await smsService.recordOptOut(workspaceId, from).catch(() => {});
+      await suppress(workspaceId, 'sms', from, {
+        reason: 'stop',
+        note: 'Replied STOP by SMS',
+      }).catch(() => {});
       return respondTwiml(res);
     }
     if (keyword === 'start') {
       await smsService.removeOptOut(workspaceId, from).catch(() => {});
+      await unsuppress(workspaceId, 'phone', from).catch(() => {});
       return respondTwiml(res);
     }
 

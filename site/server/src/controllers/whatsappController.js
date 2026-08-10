@@ -30,6 +30,7 @@ const aesEncrypt = require('../utils/aesEncrypt');
 const twilioSignature = require('../utils/twilioSignature');
 const whatsappService = require('../services/whatsappService');
 const { resolveInboundWhatsApp } = require('../services/whatsappInboundResolver');
+const { checkSend } = require('../services/consentGate');
 
 const asId = (v) => (v == null ? '' : v.toString());
 const isObjectId = (v) => v != null && mongoose.Types.ObjectId.isValid(asId(v));
@@ -399,6 +400,19 @@ const sendTaskWhatsApp = async (req, res) => {
     if (!dest) return res.status(400).json({ error: 'No phone number found for this task' });
     if (!String(body || '').trim() && !templateId && !mediaUrl) {
       return res.status(400).json({ error: 'A message, template, or media is required' });
+    }
+
+    // Compliance gate. Suppression is absolute; a manual reply is conversational
+    // (transactional), while automated sends must declare 'marketing'.
+    const gate = await checkSend({
+      organisation: ctx.workspaceId,
+      channel: 'whatsapp',
+      identifier: dest,
+      taskId: ctx.task._id,
+      messageType: req.body?.messageType === 'marketing' ? 'marketing' : 'transactional',
+    });
+    if (!gate.allowed) {
+      return res.status(403).json({ error: 'This message cannot be sent', reason: gate.reason });
     }
 
     const result = await whatsappService.send({

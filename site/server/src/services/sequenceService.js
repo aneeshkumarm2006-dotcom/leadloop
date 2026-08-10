@@ -192,6 +192,31 @@ const processEnrollment = async (enrollment, now = new Date()) => {
     return { sent: false, reason: 'no_recipient' };
   }
 
+  // Compliance gate. A drip sequence IS marketing, so the full consent check
+  // applies — unlike a human typing a one-off reply.
+  //
+  //   • opted out / no consent → STOP the enrollment. Continuing to send after
+  //     someone withdrew is precisely the violation these rules exist to
+  //     prevent, and silently skipping would leave the sequence running.
+  //   • quiet hours           → DEFER. Nothing is wrong with the lead; it is
+  //     just 2am for them, so leave the cursor and retry on the next tick.
+  const { checkSend } = require('./consentGate');
+  const gate = await checkSend({
+    organisation: sequence.organisation,
+    channel: 'email',
+    identifier: email,
+    taskId: task._id,
+    messageType: 'marketing',
+    timezone: enrollment.timezone || null,
+  });
+  if (!gate.allowed) {
+    if (gate.reason === 'quiet_hours') {
+      return { sent: false, reason: 'quiet_hours', deferred: true };
+    }
+    await stopEnrollment(enrollment, 'stopped', `Blocked: ${gate.reason}`, now);
+    return { sent: false, reason: gate.reason };
+  }
+
   const stepIndex = enrollment.currentStep;
   const { subject: subjectTpl, body: bodyTpl } = await resolveStepContent(steps[stepIndex]);
   const subject = interpolate(subjectTpl, { task, board });

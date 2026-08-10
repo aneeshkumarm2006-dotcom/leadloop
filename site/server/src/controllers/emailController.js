@@ -20,6 +20,7 @@ const Organisation = require('../models/Organisation');
 const EmailMessage = require('../models/EmailMessage');
 const EmailAccount = require('../models/EmailAccount');
 const { sendEmailForTask, resolveSenderAccount } = require('../services/taskEmail');
+const { checkSend } = require('../services/consentGate');
 
 // 1×1 transparent GIF (43 bytes) for the open-tracking pixel.
 const TRACKING_GIF = Buffer.from(
@@ -186,6 +187,26 @@ const sendTaskEmail = async (req, res) => {
     const toList = (Array.isArray(to) ? to : to ? [to] : []).map((a) => String(a).trim()).filter(Boolean);
     if (!toList.length) return res.status(400).json({ error: 'At least one recipient is required' });
     if (!String(body || '').trim()) return res.status(400).json({ error: 'Email body is required' });
+
+    // Compliance gate (CASL / CAN-SPAM). A person on the do-not-contact list is
+    // never emailed again, whatever the message. An agent typing a reply is
+    // conversational, so it defaults to `transactional`; bulk and automated
+    // senders must pass messageType 'marketing' for the full consent check.
+    if (ctx.workspaceId) {
+      for (const recipient of toList) {
+        // eslint-disable-next-line no-await-in-loop
+        const gate = await checkSend({
+          organisation: ctx.workspaceId,
+          channel: 'email',
+          identifier: recipient,
+          taskId: ctx.task._id,
+          messageType: req.body?.messageType === 'marketing' ? 'marketing' : 'transactional',
+        });
+        if (!gate.allowed) {
+          return res.status(403).json({ error: 'This message cannot be sent', reason: gate.reason, recipient });
+        }
+      }
+    }
 
     const account = await resolveSenderAccount({
       workspaceId: ctx.workspaceId,
