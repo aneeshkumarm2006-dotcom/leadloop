@@ -41,6 +41,7 @@ import SetupWizardPage from './pages/SetupWizardPage';
 import DuplicatesPage from './pages/DuplicatesPage';
 import CompliancePage from './pages/CompliancePage';
 import ResponseClockPage from './pages/ResponseClockPage';
+import ImportPage from './pages/ImportPage';
 import LeadIntakePage from './pages/LeadIntakePage';
 import MyTasksPage from './pages/MyTasksPage';
 import SettingsPage from './pages/SettingsPage';
@@ -221,6 +222,8 @@ function App() {
               <Route path="/compliance" element={<CompliancePage />} />
               {/* Speed-to-lead — live response clock + breach queue. */}
               <Route path="/response-clock" element={<ResponseClockPage />} />
+              {/* CSV import — preview the mapping, then create the leads. */}
+              <Route path="/import" element={<ImportPage />} />
               {/* Production report — GCI/commission, source ROI, agent
                   leaderboard (admin-only: financial data). */}
               <Route path="/production" element={<ProductionReportPage />} />

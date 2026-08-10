@@ -1940,5 +1940,31 @@
     "dueIn": "Due in {{time}}",
     "emptyTitle": "Every lead has been answered",
     "emptyBody": "New leads appear here the moment they arrive, with a countdown to your target response time."
+  },
+  "import": {
+    "nav": "Import",
+    "title": "Import leads",
+    "subtitle": "Bring your contacts across from another CRM or a spreadsheet. We match the columns for you — check them before anything is created.",
+    "board": "Import into board",
+    "pickBoard": "Choose a board first.",
+    "pickBoardShort": "Choose a board…",
+    "choose": "Choose a CSV file",
+    "exportHint": "Export from your current CRM as CSV — commas, semicolons and tabs all work.",
+    "readError": "Could not read that file.",
+    "failed": "Import failed.",
+    "matchTitle": "Match your columns",
+    "matchBody": "We guessed these from your file. Change anything that looks wrong.",
+    "matchedN": "{{n}} of {{total}} matched",
+    "skipColumn": "Skip this column",
+    "leadTitle": "lead title",
+    "dupTitle": "{{n}} rows already exist",
+    "skipExisting": "Skip them and import only the {{n}} new leads",
+    "landing": "Landing stage",
+    "run": "Import {{n}} leads",
+    "importing": "Importing…",
+    "doneTitle": "{{n}} leads imported",
+    "doneBody": "{{skipped}} already existed and were skipped. {{failed}} could not be read.",
+    "viewBoard": "Open the board",
+    "another": "Import another file"
   }
 }

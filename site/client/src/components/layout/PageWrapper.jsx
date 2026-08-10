@@ -15,6 +15,7 @@ import {
   CopyCheck,
   ShieldCheck,
   Timer,
+  FileSpreadsheet,
   TrendingUp,
   CreditCard,
   CalendarClock,
@@ -358,6 +359,14 @@ const OrgSidebar = () => {
                   label={t('sla.nav', 'Response clock')}
                   active={pathname === '/response-clock'}
                   onClick={() => navigate('/response-clock')}
+                />
+              )}
+              {isAdmin && (
+                <SidebarLink
+                  icon={FileSpreadsheet}
+                  label={t('import.nav', 'Import')}
+                  active={pathname === '/import'}
+                  onClick={() => navigate('/import')}
                 />
               )}
               {isAdmin && (

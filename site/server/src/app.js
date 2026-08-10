@@ -96,6 +96,10 @@ app.use(publicBillingRouter);
 // the signed token is the authorisation. Carries its own body parser.
 app.use(require('./routes/unsubscribe'));
 
+// CSV import — authed, but mounted here because it needs a 12MB body limit
+// that the global 100KB parser below would reject first.
+app.use(require('./routes/imports'));
+
 // Body parsing (global — applies to every route mounted AFTER this point)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

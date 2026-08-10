@@ -1940,5 +1940,31 @@
     "dueIn": "Dans {{time}}",
     "emptyTitle": "Tous les leads ont eu une réponse",
     "emptyBody": "Les nouveaux leads apparaissent ici dès leur arrivée, avec un compte à rebours vers votre objectif."
+  },
+  "import": {
+    "nav": "Importer",
+    "title": "Importer des leads",
+    "subtitle": "Transférez vos contacts depuis un autre CRM ou un tableur. Nous associons les colonnes pour vous — vérifiez avant toute création.",
+    "board": "Importer dans le tableau",
+    "pickBoard": "Choisissez d’abord un tableau.",
+    "pickBoardShort": "Choisir un tableau…",
+    "choose": "Choisir un fichier CSV",
+    "exportHint": "Exportez votre CRM actuel en CSV — virgules, points-virgules et tabulations acceptés.",
+    "readError": "Impossible de lire ce fichier.",
+    "failed": "Échec de l’importation.",
+    "matchTitle": "Associez vos colonnes",
+    "matchBody": "Voici nos suggestions. Modifiez ce qui ne convient pas.",
+    "matchedN": "{{n}} sur {{total}} associées",
+    "skipColumn": "Ignorer cette colonne",
+    "leadTitle": "titre du lead",
+    "dupTitle": "{{n}} lignes existent déjà",
+    "skipExisting": "Les ignorer et importer seulement les {{n}} nouveaux leads",
+    "landing": "Étape d’arrivée",
+    "run": "Importer {{n}} leads",
+    "importing": "Importation…",
+    "doneTitle": "{{n}} leads importés",
+    "doneBody": "{{skipped}} existaient déjà et ont été ignorés. {{failed}} n’ont pas pu être lus.",
+    "viewBoard": "Ouvrir le tableau",
+    "another": "Importer un autre fichier"
   }
 }
