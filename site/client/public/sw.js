@@ -15,7 +15,7 @@
  * Bump CACHE_VERSION to force old caches out on the next activate.
  */
 
-const CACHE_VERSION = 'leadloop-v1';
+const CACHE_VERSION = 'leadloop-v2';
 const APP_SHELL = ['/', '/index.html', '/favicon.svg', '/app-icon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
@@ -39,6 +39,60 @@ self.addEventListener('activate', (event) => {
 
 const isApiRequest = (url) =>
   url.pathname.startsWith('/api') || url.pathname.startsWith('/auth') || url.pathname.startsWith('/f/');
+
+/* ------------------------------ Web Push ------------------------------ *
+ * A push event wakes the service worker even when the app is closed — this is
+ * what makes the speed-to-lead clock work on a phone.
+ *
+ * `showNotification` MUST be called for every push: browsers permit a limited
+ * number of silent pushes before revoking permission entirely, so a malformed
+ * payload still shows a generic notification rather than nothing.
+ */
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = {};
+  }
+
+  const title = data.title || 'LeadLoop';
+  const options = {
+    body: data.body || '',
+    icon: '/app-icon.svg',
+    badge: '/app-icon.svg',
+    // Same tag → the new alert REPLACES the old one for that lead, instead of
+    // stacking five notifications about the same person.
+    tag: data.tag || 'leadloop',
+    renotify: true,
+    requireInteraction: !!data.requireInteraction,
+    data: { url: data.url || '/workspace' },
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+/**
+ * Tapping a notification focuses an open tab and navigates it, rather than
+ * piling up new windows — an agent tapping three lead alerts should end up
+ * with one app, not three.
+ */
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || '/workspace';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        if (client.url.includes(self.location.origin)) {
+          client.navigate(target).catch(() => {});
+          return client.focus();
+        }
+      }
+      return self.clients.openWindow(target);
+    })
+  );
+});
 
 self.addEventListener('fetch', (event) => {
   const { request } = event;

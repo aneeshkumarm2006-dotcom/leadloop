@@ -12,6 +12,7 @@ import RecentBoards from '../components/dashboard/RecentBoards';
 import MyDayRow from '../components/dashboard/MyDayRow';
 import PipelineWidget from '../components/dashboard/PipelineWidget';
 import SetupChecklist from '../components/onboarding/SetupChecklist';
+import NotificationSettings from '../components/onboarding/NotificationSettings';
 import WorkspaceDashboard from '../components/analytics/WorkspaceDashboard';
 import MarketingReport from '../components/analytics/MarketingReport';
 import PermissionsTab from '../components/workspace/PermissionsTab';
@@ -257,6 +258,8 @@ const OverviewTab = ({ stats, boards }) => {
     <div className="flex flex-col gap-6">
       {/* First-run guidance — hides itself once setup is complete or dismissed. */}
       <SetupChecklist />
+      {/* Lead alerts for this device — the other half of the response clock. */}
+      <NotificationSettings />
       <MyDayRow />
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (

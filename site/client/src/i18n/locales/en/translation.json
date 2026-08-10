@@ -2005,5 +2005,25 @@
       "title": "Choose a template",
       "body": "Pick Real Estate CRM — it builds the stages a lead moves through, from new enquiry to closed, with the columns you need."
     }
+  },
+  "push": {
+    "title": "Lead alerts on this device",
+    "onBody": "You’ll be told the moment a lead is yours — even with the app closed.",
+    "offBody": "Get told the moment a lead is yours, even with the app closed.",
+    "turnOn": "Turn on",
+    "turnOff": "Turn off",
+    "working": "Working…",
+    "test": "Send a test",
+    "testSent": "Sent — check your notifications.",
+    "denied": "Notifications are blocked in your browser settings for this site.",
+    "notConfigured": "Push is not set up on the server yet.",
+    "failed": "Could not turn on notifications.",
+    "unsupported": "Not supported by this browser",
+    "prefs": {
+      "leadAssigned": "A lead is assigned to me",
+      "slaWarning": "My response clock is running out",
+      "bookingChanged": "A tour is booked or cancelled",
+      "leadReplied": "A lead replies to me"
+    }
   }
 }

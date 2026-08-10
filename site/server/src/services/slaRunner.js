@@ -18,6 +18,7 @@ const Board = require('../models/Board');
 const Organisation = require('../models/Organisation');
 const eventBus = require('./eventBus');
 const { evaluate, resolvePolicy } = require('./slaService');
+const { notifySafely } = require('./pushService');
 
 let started = false;
 
@@ -46,7 +47,7 @@ const runOnce = async (now = new Date()) => {
     slaEscalatedAt: null,
     isSample: { $ne: true },
   })
-    .select('board assignedTo createdAt slaDueAt')
+    .select('name board assignedTo createdAt slaDueAt')
     .limit(200)
     .lean();
 
@@ -101,6 +102,26 @@ const runOnce = async (now = new Date()) => {
         reassignedTo: target,
         msLate: state.msLate,
       });
+
+      // Tell the humans. The agent who missed it learns why the lead moved, and
+      // whoever it landed on finds out immediately — a silent reassignment just
+      // moves the lead into a second inbox nobody is watching.
+      const leadName = task.name || '';
+      for (const prev of task.assignedTo || []) {
+        notifySafely(prev, board.organisation, 'sla_breached', {
+          leadName,
+          taskId: task._id,
+          boardId: task.board,
+        });
+      }
+      if (target) {
+        notifySafely(target, board.organisation, 'lead_assigned', {
+          leadName,
+          taskId: task._id,
+          boardId: task.board,
+          minutes: policy.targetMinutes,
+        });
+      }
     } catch (err) {
       console.warn('[slaRunner] lead skipped:', err.message);
     }

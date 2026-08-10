@@ -138,6 +138,7 @@ app.use('/api', billingRouter);
 app.use('/api', require('./routes/duplicates'));
 app.use('/api', require('./routes/compliance'));
 app.use('/api', require('./routes/sla'));
+app.use('/api', require('./routes/push'));
 // F7 — admin, board-scoped webhook management (authed). Mounted at /api so its
 // routes resolve as /api/boards/:id/webhooks… alongside the boards router.
 app.use('/api', boardWebhookRouter);

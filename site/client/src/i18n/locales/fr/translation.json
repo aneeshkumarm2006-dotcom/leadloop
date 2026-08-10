@@ -2005,5 +2005,25 @@
       "title": "Choisissez un modèle",
       "body": "Prenez CRM Immobilier — il crée les étapes que suit un lead, de la demande initiale à la conclusion, avec les colonnes nécessaires."
     }
+  },
+  "push": {
+    "title": "Alertes de leads sur cet appareil",
+    "onBody": "Vous serez prévenu dès qu’un lead vous est attribué — même application fermée.",
+    "offBody": "Soyez prévenu dès qu’un lead vous est attribué, même application fermée.",
+    "turnOn": "Activer",
+    "turnOff": "Désactiver",
+    "working": "En cours…",
+    "test": "Envoyer un test",
+    "testSent": "Envoyé — vérifiez vos notifications.",
+    "denied": "Les notifications sont bloquées pour ce site dans votre navigateur.",
+    "notConfigured": "Les notifications ne sont pas encore configurées sur le serveur.",
+    "failed": "Impossible d’activer les notifications.",
+    "unsupported": "Non pris en charge par ce navigateur",
+    "prefs": {
+      "leadAssigned": "Un lead m’est attribué",
+      "slaWarning": "Mon délai de réponse expire bientôt",
+      "bookingChanged": "Une visite est réservée ou annulée",
+      "leadReplied": "Un lead me répond"
+    }
   }
 }
