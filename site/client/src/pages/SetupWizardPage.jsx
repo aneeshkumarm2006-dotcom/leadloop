@@ -37,12 +37,21 @@ const TEMPLATE_FOR = {
   leasing: 'real_estate_crm',
   sales: 'real_estate_leads',
   both: 'real_estate_crm',
-  property_management: 'real_estate_crm',
+  // Property managers run maintenance and renewals, not a sales pipeline —
+  // giving them a lead board would have been the wrong first board entirely.
+  property_management: 'property_management',
 };
 
 // Stages each template creates, shown as a preview BEFORE the board exists so
 // people understand their pipeline instead of discovering it afterwards.
 const STAGES_FOR = {
+  property_management: [
+    ['New Requests', '#8C8578'],
+    ['Assigned', '#579BFC'],
+    ['In Progress', '#C4632B'],
+    ['Waiting on Tenant', '#B08A3C'],
+    ['Done', '#4E9068'],
+  ],
   real_estate_crm: [
     ['New Lead', '#8C8578'],
     ['Contacted', '#579BFC'],
@@ -61,6 +70,13 @@ const STAGES_FOR = {
     ['Closed', '#4E9068'],
   ],
 };
+
+// What the first board should be CALLED. A property manager's board of
+// maintenance requests is not a list of "Leads".
+const BOARD_NAME_KEY = {
+  property_management: ['setup.boardNameRequests', 'Requests'],
+};
+const defaultBoardName = ['setup.pipelineBoardName', 'Leads'];
 
 const TIMEZONES = {
   CA: [
@@ -176,7 +192,7 @@ const SetupWizardPage = () => {
       setBusy(true);
       try {
         await createBoard({
-          name: t('setup.pipelineBoardName', 'Leads'),
+          name: t(...(BOARD_NAME_KEY[businessType] || defaultBoardName)),
           visibility: 'public',
           organisation: orgId,
           template,

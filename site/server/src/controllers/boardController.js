@@ -920,6 +920,12 @@ const listBoardTemplates = async (req, res) => {
         id: t.id,
         name: t.name,
         description: t.description,
+        // Groups the gallery by workflow family; older templates default to
+        // real_estate since that is all that existed before.
+        category: t.category || 'real_estate',
+        // Only some templates seed a public intake form — the gallery must not
+        // promise one on every card.
+        hasForm: !!t.starterForm,
         columns: t.columns,
         groups: Array.isArray(t.groups) ? t.groups : [],
       })),

@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { LayoutGrid, Building2, Home, Users, Plus, ArrowRight, Layers, Columns3, FileText } from 'lucide-react';
+import {
+  LayoutGrid, Building2, Home, Users, Plus, ArrowRight, Layers, Columns3, FileText,
+  Tag, HeartHandshake, DoorOpen, Wrench, TrendingUp, Briefcase,
+} from 'lucide-react';
 import Modal from '../ui/Modal';
 import { getBoardTemplates } from '../../services/boardService';
 
@@ -15,14 +18,20 @@ import { getBoardTemplates } from '../../services/boardService';
  *   busy                      — disables cards while a board is being created
  */
 
-// Map template id/keywords → an icon + accent, so each card reads at a glance.
-const iconFor = (tpl, i) => {
-  const s = `${tpl.id || ''} ${tpl.name || ''}`.toLowerCase();
-  if (s.includes('listing') || s.includes('inventory')) return { Icon: Building2, tint: '#3E8FA0' };
-  if (s.includes('lead')) return { Icon: Users, tint: '#96578A' };
-  if (s.includes('crm') || i === 0) return { Icon: LayoutGrid, tint: 'var(--color-accent)' };
-  return { Icon: Home, tint: 'var(--color-accent)' };
+// Each template gets its own icon + accent so nine cards stay scannable
+// instead of turning into a wall of identical tiles.
+const ICONS = {
+  real_estate_crm:     { Icon: LayoutGrid,     tint: 'var(--color-accent)' },
+  real_estate_leads:   { Icon: Users,          tint: '#96578A' },
+  seller_listings:     { Icon: Tag,            tint: '#C4632B' },
+  listings_inventory:  { Icon: Building2,      tint: '#3E8FA0' },
+  past_clients:        { Icon: HeartHandshake, tint: '#A63D57' },
+  open_house:          { Icon: DoorOpen,       tint: '#C79A3E' },
+  property_management: { Icon: Wrench,         tint: '#3E6B8F' },
+  investor_deals:      { Icon: TrendingUp,     tint: '#4E9068' },
+  commercial_leasing:  { Icon: Briefcase,      tint: '#8A8273' },
 };
+const iconFor = (tpl) => ICONS[tpl.id] || { Icon: Home, tint: 'var(--color-accent)' };
 
 const TemplateGallery = ({ isOpen, onClose, onPick, busy = false }) => {
   const [templates, setTemplates] = useState([]);
@@ -64,9 +73,9 @@ const TemplateGallery = ({ isOpen, onClose, onPick, busy = false }) => {
   const meta = { fontSize: 11.5, color: 'var(--color-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 5 };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Start a new board" maxWidth={720}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Start a new board" maxWidth={860}>
       <p className="font-body" style={{ fontSize: 13.5, color: 'var(--color-text-secondary)', marginTop: -6, marginBottom: 16 }}>
-        Pick a ready-made real-estate template — stages, columns and a public intake form are set up for you — or start from a blank board.
+        Pick a ready-made real-estate template — the stages, columns and (where it makes sense) a public intake form are set up for you — or start from a blank board.
       </p>
 
       {loading ? (
@@ -80,7 +89,7 @@ const TemplateGallery = ({ isOpen, onClose, onPick, busy = false }) => {
           )}
 
           {templates.map((tpl, i) => {
-            const { Icon, tint } = iconFor(tpl, i);
+            const { Icon, tint } = iconFor(tpl);
             const stages = Array.isArray(tpl.groups) ? tpl.groups.length : 0;
             const cols = Array.isArray(tpl.columns) ? tpl.columns.length : 0;
             return (
@@ -108,7 +117,7 @@ const TemplateGallery = ({ isOpen, onClose, onPick, busy = false }) => {
                 <div className="flex items-center gap-3" style={{ marginTop: 8 }}>
                   {stages > 0 && <span style={meta}><Layers size={12} />{stages} stages</span>}
                   <span style={meta}><Columns3 size={12} />{cols} columns</span>
-                  <span style={meta}><FileText size={12} />form</span>
+                  {tpl.hasForm && <span style={meta}><FileText size={12} />intake form</span>}
                 </div>
               </button>
             );

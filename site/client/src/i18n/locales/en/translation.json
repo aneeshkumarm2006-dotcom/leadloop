@@ -1859,7 +1859,8 @@
         "body": "Install the app so new leads reach you the moment they arrive."
       }
     },
-    "stepN": "Step {{n}}"
+    "stepN": "Step {{n}}",
+    "boardNameRequests": "Requests"
   },
   "help": {
     "title": "Help",

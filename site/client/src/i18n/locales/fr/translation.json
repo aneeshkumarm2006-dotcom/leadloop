@@ -1859,7 +1859,8 @@
         "body": "Pour recevoir les nouveaux leads dès leur arrivée."
       }
     },
-    "stepN": "Étape {{n}}"
+    "stepN": "Étape {{n}}",
+    "boardNameRequests": "Demandes"
   },
   "help": {
     "title": "Aide",

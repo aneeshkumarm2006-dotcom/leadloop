@@ -194,7 +194,220 @@ const listingsInventory = {
   ],
 };
 
-const boardTemplates = [realEstateCrm, listingsInventory, realEstateLeads];
+
+// ===========================================================================
+// Additional real-estate templates
+//
+// Same buyer, more of their work. Each is a distinct WORKFLOW an agent or
+// brokerage already runs on paper or in a spreadsheet — a seller listing, the
+// referral book, an open house, a rental portfolio, a flip, a commercial deal.
+//
+// Deliberately NOT generic ("Sales CRM", "Project Tracker"): the whole product
+// is differentiated by being real-estate specific, and a generic template puts
+// us head-to-head with Monday on their own ground.
+// ===========================================================================
+
+const listingStatusOptions = [
+  { id: 'appraisal', label: 'Appraisal', color: COLOR.gray, order: 0, isDefault: true },
+  { id: 'prep', label: 'Prep & Photos', color: COLOR.yellow, order: 1 },
+  { id: 'live', label: 'Live', color: COLOR.cyan, order: 2 },
+  { id: 'offers', label: 'Offers In', color: COLOR.purple, order: 3 },
+  { id: 'conditional', label: 'Conditional', color: COLOR.orange, order: 4 },
+  { id: 'sold', label: 'Sold', color: COLOR.green, order: 5 },
+  { id: 'expired', label: 'Expired', color: COLOR.red, order: 6 },
+];
+
+const relationshipOptions = [
+  { id: 'past_client', label: 'Past client', color: COLOR.green, order: 0, isDefault: true },
+  { id: 'sphere', label: 'Sphere', color: COLOR.blue, order: 1 },
+  { id: 'referral_partner', label: 'Referral partner', color: COLOR.purple, order: 2 },
+  { id: 'vendor', label: 'Vendor', color: COLOR.gray, order: 3 },
+];
+
+const urgencyOptions = [
+  { id: 'hot', label: 'Hot', color: COLOR.red, order: 0 },
+  { id: 'warm', label: 'Warm', color: COLOR.orange, order: 1, isDefault: true },
+  { id: 'cold', label: 'Cold', color: COLOR.gray, order: 2 },
+];
+
+const requestTypeOptions = [
+  { id: 'repair', label: 'Repair', color: COLOR.orange, order: 0, isDefault: true },
+  { id: 'plumbing', label: 'Plumbing', color: COLOR.blue, order: 1 },
+  { id: 'heating', label: 'Heating / AC', color: COLOR.red, order: 2 },
+  { id: 'appliance', label: 'Appliance', color: COLOR.purple, order: 3 },
+  { id: 'inspection', label: 'Inspection', color: COLOR.cyan, order: 4 },
+  { id: 'renewal', label: 'Lease renewal', color: COLOR.green, order: 5 },
+];
+
+/** Seller side — the half of an agent's business a buyer pipeline misses. */
+const sellerListings = {
+  id: 'seller_listings',
+  name: 'Seller Listings',
+  category: 'real_estate',
+  description:
+    'Win and run listings: appraisal, listing agreement, photos, live, offers, sold — with the commission on each.',
+  groups: ['Appraisal Booked', 'Listing Agreement', 'Prep & Photos', 'Live on Market', 'Offers In', 'Conditional', 'Sold'],
+  // Sellers enquire through a "what is my home worth" form — the most common
+  // seller-lead capture in the business.
+  starterForm: {
+    name: 'Home valuation request',
+    welcomeMessage: "Thanks! We'll come back to you with a valuation shortly.",
+    fieldKeys: ['seller_name', 'phone', 'email', 'property', 'notes'],
+    requiredKeys: ['seller_name', 'phone'],
+  },
+  columns: [
+    { key: 'property',       name: 'Property',        type: 'text',      isPrimary: true },
+    { key: 'listing_status', name: 'Status',          type: 'status',    settings: { options: listingStatusOptions } },
+    { key: 'seller_name',    name: 'Seller',          type: 'text' },
+    { key: 'phone',          name: 'Phone',           type: 'phone' },
+    { key: 'email',          name: 'Email',           type: 'email' },
+    { key: 'asking_price',   name: 'Asking Price',    type: 'number',    settings: { min: 0 } },
+    { key: 'sold_price',     name: 'Sold Price',      type: 'number',    settings: { min: 0 } },
+    { key: 'commission_pct', name: 'Commission %',    type: 'number',    settings: { min: 0, max: 100 } },
+    { key: 'agent',          name: 'Listing Agent',   type: 'person' },
+    { key: 'list_date',      name: 'Listed On',       type: 'date' },
+    { key: 'expiry_date',    name: 'Agreement Ends',  type: 'date' },
+    { key: 'notes',          name: 'Notes',           type: 'long_text' },
+  ],
+};
+
+/** The referral book — the single biggest source of repeat business in RE. */
+const pastClients = {
+  id: 'past_clients',
+  name: 'Past Clients & Referrals',
+  category: 'real_estate',
+  description:
+    'Stay in touch with the people who already bought from you — anniversaries, check-ins, and who refers you business.',
+  groups: ['Recently Closed', 'Yearly Check-in', 'Referral Sources', 'Dormant'],
+  columns: [
+    { key: 'client_name',   name: 'Client',            type: 'text',     isPrimary: true },
+    { key: 'relationship',  name: 'Relationship',      type: 'status',   settings: { options: relationshipOptions } },
+    { key: 'phone',         name: 'Phone',             type: 'phone' },
+    { key: 'email',         name: 'Email',             type: 'email' },
+    { key: 'property',      name: 'Property Bought',   type: 'text' },
+    { key: 'closed_on',     name: 'Closed On',         type: 'date' },
+    { key: 'last_touch',    name: 'Last Contact',      type: 'date' },
+    { key: 'referrals',     name: 'Referrals Given',   type: 'number',   settings: { min: 0 } },
+    { key: 'agent',         name: 'Agent',             type: 'person' },
+    { key: 'notes',         name: 'Notes',             type: 'long_text' },
+  ],
+};
+
+/** Open house sign-ins — worthless without a fast, tracked follow-up. */
+const openHouse = {
+  id: 'open_house',
+  name: 'Open House Follow-up',
+  category: 'real_estate',
+  description:
+    'Turn a sign-in sheet into real leads: who visited, how serious they were, and whether anyone called them back.',
+  groups: ['Signed In', 'Contacted', 'Booked a Viewing', 'Not Interested'],
+  // The digital sign-in sheet: open it on a tablet at the door.
+  starterForm: {
+    name: 'Open house sign-in',
+    welcomeMessage: 'Thanks for visiting — we’ll be in touch.',
+    fieldKeys: ['visitor', 'phone', 'email', 'has_agent', 'pre_approved', 'notes'],
+    requiredKeys: ['visitor', 'phone'],
+  },
+  columns: [
+    { key: 'visitor',      name: 'Visitor',         type: 'text',     isPrimary: true },
+    { key: 'urgency',      name: 'Interest',        type: 'status',   settings: { options: urgencyOptions } },
+    { key: 'phone',        name: 'Phone',           type: 'phone' },
+    { key: 'email',        name: 'Email',           type: 'email' },
+    { key: 'property',     name: 'Property Viewed', type: 'text' },
+    { key: 'visited_on',   name: 'Visited On',      type: 'date' },
+    { key: 'has_agent',    name: 'Has an Agent',    type: 'checkbox' },
+    { key: 'pre_approved', name: 'Pre-approved',    type: 'checkbox' },
+    { key: 'budget',       name: 'Budget',          type: 'number',   settings: { min: 0 } },
+    { key: 'agent',        name: 'Followed up by',  type: 'person' },
+    { key: 'notes',        name: 'Notes',           type: 'long_text' },
+  ],
+};
+
+/** Property management — same brokerage, a different seat and a different job. */
+const propertyManagement = {
+  id: 'property_management',
+  name: 'Property Management',
+  category: 'real_estate',
+  description:
+    'Tenant requests, inspections and lease renewals across your managed units, with who is on each job.',
+  groups: ['New Requests', 'Assigned', 'In Progress', 'Waiting on Tenant', 'Done'],
+  // Tenants report problems through a public link rather than by phone.
+  starterForm: {
+    name: 'Maintenance request',
+    welcomeMessage: 'Thanks — your request has been logged and we’ll be in touch.',
+    fieldKeys: ['request', 'unit', 'tenant', 'phone', 'email', 'notes'],
+    requiredKeys: ['request', 'unit'],
+  },
+  columns: [
+    { key: 'request',      name: 'Request',        type: 'text',     isPrimary: true },
+    { key: 'request_type', name: 'Type',           type: 'status',   settings: { options: requestTypeOptions } },
+    { key: 'unit',         name: 'Unit',           type: 'text' },
+    { key: 'tenant',       name: 'Tenant',         type: 'text' },
+    { key: 'phone',        name: 'Phone',          type: 'phone' },
+    { key: 'email',        name: 'Email',          type: 'email' },
+    { key: 'reported_on',  name: 'Reported',       type: 'date' },
+    { key: 'due_date',     name: 'Due',            type: 'date' },
+    { key: 'cost',         name: 'Cost',           type: 'number',   settings: { min: 0 } },
+    { key: 'assignee',     name: 'Assigned To',    type: 'person' },
+    { key: 'notes',        name: 'Notes',          type: 'long_text' },
+  ],
+};
+
+/** Investor / flip — the numbers matter more than the conversation. */
+const investorDeals = {
+  id: 'investor_deals',
+  name: 'Investor & Flip Deals',
+  category: 'real_estate',
+  description:
+    'Track acquisitions through renovation to resale, with purchase price, budget and the margin on each deal.',
+  groups: ['Sourcing', 'Under Analysis', 'Offer Made', 'Under Contract', 'Renovating', 'Listed', 'Sold'],
+  columns: [
+    { key: 'deal',           name: 'Property',       type: 'text',      isPrimary: true },
+    { key: 'purchase_price', name: 'Purchase Price', type: 'number',    settings: { min: 0 } },
+    { key: 'reno_budget',    name: 'Reno Budget',    type: 'number',    settings: { min: 0 } },
+    { key: 'arv',            name: 'Resale Value',   type: 'number',    settings: { min: 0 } },
+    { key: 'reno_progress',  name: 'Reno Progress',  type: 'progress' },
+    { key: 'close_date',     name: 'Closing',        type: 'date' },
+    { key: 'seller',         name: 'Seller',         type: 'text' },
+    { key: 'phone',          name: 'Phone',          type: 'phone' },
+    { key: 'partner',        name: 'Partner',        type: 'person' },
+    { key: 'notes',          name: 'Notes',          type: 'long_text' },
+  ],
+};
+
+/** Commercial — a much longer cycle than residential, with different fields. */
+const commercialLeasing = {
+  id: 'commercial_leasing',
+  name: 'Commercial Leasing',
+  category: 'real_estate',
+  description:
+    'Longer-cycle commercial deals: tenant requirements, tours, proposals, negotiation and lease signing.',
+  groups: ['Enquiry', 'Requirements', 'Tour Booked', 'Proposal Sent', 'Negotiation', 'Lease Signed', 'Lost'],
+  columns: [
+    { key: 'company',      name: 'Company',        type: 'text',      isPrimary: true },
+    { key: 'contact',      name: 'Contact',        type: 'text' },
+    { key: 'phone',        name: 'Phone',          type: 'phone' },
+    { key: 'email',        name: 'Email',          type: 'email' },
+    { key: 'sqft_needed',  name: 'Sqft Needed',    type: 'number',    settings: { min: 0 } },
+    { key: 'budget_sqft',  name: 'Budget / Sqft',  type: 'number',    settings: { min: 0 } },
+    { key: 'lease_term',   name: 'Term (months)',  type: 'number',    settings: { min: 0 } },
+    { key: 'move_in',      name: 'Target Move-in', type: 'date' },
+    { key: 'broker',       name: 'Broker',         type: 'person' },
+    { key: 'notes',        name: 'Notes',          type: 'long_text' },
+  ],
+};
+
+const boardTemplates = [
+  realEstateCrm,
+  realEstateLeads,
+  sellerListings,
+  listingsInventory,
+  pastClients,
+  openHouse,
+  propertyManagement,
+  investorDeals,
+  commercialLeasing,
+];
 
 const getBoardTemplate = (id) =>
   boardTemplates.find((t) => t.id === id) || null;
