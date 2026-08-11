@@ -18,6 +18,7 @@ const LeadIngestLog = require('../models/LeadIngestLog');
 const TaskGroup = require('../models/TaskGroup');
 const { ingestLead, LeadIngestError } = require('../services/leadIngestService');
 const { isValidSourceType, DEFAULT_SOURCE } = require('../services/sourceAdapters');
+const { publicBaseUrl } = require('../utils/publicBaseUrl');
 
 /**
  * Validate a requested landing group for a board. Returns the group's ObjectId
@@ -43,8 +44,6 @@ const isOrgMember = (org, userId) =>
 
 // The ingest endpoint is a server API (not the React app), so its URL is built
 // from the server base — same source the F7 inbound webhook URL uses.
-const INGEST_BASE_URL = () =>
-  process.env.WEBHOOK_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
 
 /** Load board + org for a member (read). */
 const loadBoardForMember = async (boardId, userId) => {
@@ -75,8 +74,13 @@ const loadConnectionForAdmin = async (connectionId, userId) => {
   return { connection, board: ctx.board };
 };
 
-/** Non-secret connection shape for admin responses. Never includes the key. */
-const serializeConnection = (c) => ({
+/**
+ * Non-secret connection shape for admin responses. Never includes the key.
+ * `req` is threaded through only to resolve the public origin of `ingestUrl` —
+ * the customer pastes that URL into Facebook / Zapier, so it has to be the
+ * deployed origin and not `localhost`.
+ */
+const serializeConnection = (c, req) => ({
   _id: c._id,
   boardId: c.boardId,
   name: c.name,
@@ -97,7 +101,7 @@ const serializeConnection = (c) => ({
   })),
   submissionCount: c.submissionCount || 0,
   lastSubmissionAt: c.lastSubmissionAt || null,
-  ingestUrl: `${INGEST_BASE_URL()}/api/leads/ingest`,
+  ingestUrl: `${publicBaseUrl(req)}/api/leads/ingest`,
   createdAt: c.createdAt,
   updatedAt: c.updatedAt,
 });
@@ -186,7 +190,7 @@ const listConnections = async (req, res) => {
     const ctx = await loadBoardForMember(req.params.id, req.user.userId);
     if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
     const connections = await LeadConnection.find({ boardId: req.params.id }).sort({ createdAt: -1 });
-    return res.json({ connections: connections.map(serializeConnection) });
+    return res.json({ connections: connections.map((c) => serializeConnection(c, req)) });
   } catch (err) {
     console.error('listConnections error:', err);
     return res.status(500).json({ error: 'Server error' });
@@ -219,7 +223,7 @@ const createConnection = async (req, res) => {
       sourceTag: typeof body.sourceTag === 'string' ? body.sourceTag.trim() : '',
       createdBy: req.user.userId,
     });
-    return res.status(201).json({ connection: serializeConnection(connection), apiKey });
+    return res.status(201).json({ connection: serializeConnection(connection, req), apiKey });
   } catch (err) {
     if (err && err.status && err.error) return res.status(err.status).json({ error: err.error });
     console.error('createConnection error:', err);
@@ -237,7 +241,7 @@ const rotateKey = async (req, res) => {
     ctx.connection.tokenHash = tokenHash;
     ctx.connection.tokenLast4 = tokenLast4;
     await ctx.connection.save();
-    return res.json({ connection: serializeConnection(ctx.connection), apiKey });
+    return res.json({ connection: serializeConnection(ctx.connection, req), apiKey });
   } catch (err) {
     console.error('rotateKey error:', err);
     return res.status(500).json({ error: 'Server error' });
@@ -269,7 +273,7 @@ const updateConnection = async (req, res) => {
     }
 
     await connection.save();
-    return res.json({ connection: serializeConnection(connection) });
+    return res.json({ connection: serializeConnection(connection, req) });
   } catch (err) {
     if (err && err.status && err.error) return res.status(err.status).json({ error: err.error });
     console.error('updateConnection error:', err);
@@ -289,7 +293,7 @@ const resetSchema = async (req, res) => {
     ctx.connection.fieldMap = [];
     ctx.connection.schemaLocked = false;
     await ctx.connection.save();
-    return res.json({ connection: serializeConnection(ctx.connection) });
+    return res.json({ connection: serializeConnection(ctx.connection, req) });
   } catch (err) {
     console.error('resetSchema error:', err);
     return res.status(500).json({ error: 'Server error' });
@@ -354,7 +358,7 @@ const listOrgConnections = async (req, res) => {
     }).sort({ createdAt: -1 });
     return res.json({
       connections: connections.map((c) => ({
-        ...serializeConnection(c),
+        ...serializeConnection(c, req),
         boardName: boardMap.get(c.boardId.toString()) || '',
       })),
     });

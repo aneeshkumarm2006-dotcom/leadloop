@@ -15,6 +15,7 @@ const WebhookDelivery = require('../models/WebhookDelivery');
 const { resolveInbound, WebhookResolveError } = require('../services/webhookInboundResolver');
 const { dispatch } = require('../services/webhookDispatcher');
 const { applyMapping } = require('../services/webhookInboundResolver');
+const { publicBaseUrl } = require('../utils/publicBaseUrl');
 
 const isOrgAdmin = (org, userId) =>
   !!org &&
@@ -36,15 +37,13 @@ const loadBoardAdmin = async (boardId, userId) => {
   return { board, org };
 };
 
-const PUBLIC_BASE_URL = () =>
-  process.env.WEBHOOK_PUBLIC_BASE_URL || `http://localhost:${process.env.PORT || 5000}`;
-
 /**
  * Serialise an endpoint for an admin response. The `secret` is included (admins
  * need it to configure the receiving system / verify signatures); the public
- * `inboundUrl` is composed for inbound endpoints.
+ * `inboundUrl` is composed for inbound endpoints — `req` resolves its origin so
+ * the URL the admin copies points at this deployment, not localhost.
  */
-const serializeEndpoint = (ep) => {
+const serializeEndpoint = (ep, req) => {
   const base = {
     _id: ep._id,
     boardId: ep.boardId,
@@ -57,7 +56,7 @@ const serializeEndpoint = (ep) => {
   if (ep.direction === 'in') {
     base.token = ep.token;
     base.mapping = ep.mapping || {};
-    base.inboundUrl = `${PUBLIC_BASE_URL()}/api/webhooks/in/${ep.token}`;
+    base.inboundUrl = `${publicBaseUrl(req)}/api/webhooks/in/${ep.token}`;
   } else {
     base.url = ep.url;
     base.eventTypes = ep.eventTypes || [];
@@ -119,7 +118,7 @@ const listEndpoints = async (req, res) => {
     const ctx = await loadBoardAdmin(req.params.id, req.user.userId);
     if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
     const endpoints = await WebhookEndpoint.find({ boardId: req.params.id }).sort({ createdAt: -1 });
-    return res.json({ endpoints: endpoints.map(serializeEndpoint) });
+    return res.json({ endpoints: endpoints.map((ep) => serializeEndpoint(ep, req)) });
   } catch (err) {
     console.error('listEndpoints error:', err);
     return res.status(500).json({ error: 'Server error' });
@@ -158,7 +157,7 @@ const createEndpoint = async (req, res) => {
     }
 
     const endpoint = await WebhookEndpoint.create(doc);
-    return res.status(201).json({ endpoint: serializeEndpoint(endpoint) });
+    return res.status(201).json({ endpoint: serializeEndpoint(endpoint, req) });
   } catch (err) {
     console.error('createEndpoint error:', err);
     return res.status(500).json({ error: 'Server error' });
@@ -198,7 +197,7 @@ const updateEndpoint = async (req, res) => {
     }
 
     await endpoint.save();
-    return res.json({ endpoint: serializeEndpoint(endpoint) });
+    return res.json({ endpoint: serializeEndpoint(endpoint, req) });
   } catch (err) {
     console.error('updateEndpoint error:', err);
     return res.status(500).json({ error: 'Server error' });
