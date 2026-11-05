@@ -38,6 +38,7 @@ const eventBus = require('./eventBus');
 const { createTaskWithColumnValues } = require('./taskCreation');
 const { normalizeSourcePayload } = require('./sourceAdapters');
 const { detectSafely } = require('./duplicateDetection');
+const { extractAttribution } = require('../utils/adAttribution');
 const {
   inferSchema,
   normalizeKey,
@@ -277,14 +278,30 @@ const ingestLocked = async (connectionId, rawBody, meta = {}) => {
   // it. Passthrough for plain website/Zapier posts. Never throws / never null-s
   // a valid object (see sourceAdapters.js).
   const adapted = normalizeSourcePayload(connection.sourceType, rawBody);
-  const payload =
+  const fullPayload =
     adapted && typeof adapted === 'object' && !Array.isArray(adapted) ? adapted : null;
-  if (!payload || Object.keys(payload).length === 0) {
+  if (!fullPayload || Object.keys(fullPayload).length === 0) {
     await writeLog(connection, board, { status: 'rejected', payload: rawBody, error: 'empty_payload', ...meta });
     throw new LeadIngestError(400, 'Request body must be a non-empty JSON object');
   }
 
-  const warnings = [];
+  // Ad-click attribution (gclid, fbclid, UTMs, consent…) is lifted out BEFORE
+  // inference so it lands on `task.attribution` rather than becoming columns.
+  // Keys this connection already maps keep feeding their existing column.
+  const { attribution, remaining: payload, warnings: attributionWarnings } = extractAttribution(
+    fullPayload,
+    {
+      keepKeys: new Set((connection.fieldMap || []).map((f) => f.sourceKey)),
+      requestIp: meta.ip,
+      requestUserAgent: meta.userAgent,
+    }
+  );
+  if (Object.keys(payload).length === 0) {
+    await writeLog(connection, board, { status: 'rejected', payload: fullPayload, error: 'no_lead_fields', ...meta });
+    throw new LeadIngestError(400, 'Submission carried only tracking fields — no lead details');
+  }
+
+  const warnings = [...attributionWarnings];
   let provisioned = false;
   let newColumns = [];
 
@@ -293,7 +310,7 @@ const ingestLocked = async (connectionId, rawBody, meta = {}) => {
   if (needsSchema) {
     const inferred = inferSchema(payload);
     if (inferred.fields.length === 0) {
-      await writeLog(connection, board, { status: 'rejected', payload, error: 'no_inferable_fields', ...meta });
+      await writeLog(connection, board, { status: 'rejected', payload: fullPayload, error: 'no_inferable_fields', ...meta });
       throw new LeadIngestError(400, 'Could not infer any fields from the submission body');
     }
     const { fieldMap } = await provisionColumnsFromSchema(board, inferred, connection);
@@ -363,6 +380,18 @@ const ingestLocked = async (connectionId, rawBody, meta = {}) => {
   });
   if (Array.isArray(colWarnings)) warnings.push(...colWarnings);
 
+  if (attribution) {
+    try {
+      // eslint-disable-next-line global-require
+      const Task = require('../models/Task');
+      await Task.updateOne({ _id: task._id }, { $set: { attribution } });
+    } catch (err) {
+      // Losing attribution is bad; losing the lead is worse. Keep the lead.
+      console.error('[lead/ingest] failed to store attribution:', err?.message || err);
+      warnings.push({ reason: 'attribution_not_stored' });
+    }
+  }
+
   // Start the speed-to-lead clock. Only inbound leads get one — a row typed by
   // hand is not an enquiry waiting on a reply. The deadline is frozen now, so a
   // later policy change can never retroactively breach leads already in flight.
@@ -406,6 +435,7 @@ const ingestLocked = async (connectionId, rawBody, meta = {}) => {
     boardId: board._id,
     connectionId: connection._id,
     payload,
+    attribution: attribution || null,
   };
   eventBus.emit('item.created', {
     taskId: task._id,
@@ -424,7 +454,7 @@ const ingestLocked = async (connectionId, rawBody, meta = {}) => {
   await writeLog(connection, board, {
     status,
     taskId: task._id,
-    payload,
+    payload: fullPayload, // the audit trail keeps everything that arrived
     warnings,
     ...meta,
   });

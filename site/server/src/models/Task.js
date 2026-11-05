@@ -103,6 +103,56 @@ const taskSchema = new mongoose.Schema(
     firstResponseAt: { type: Date, default: null },
     slaEscalatedAt: { type: Date, default: null },
 
+    /**
+     * Ad-click attribution captured when the lead arrived (see
+     * utils/adAttribution.js). Set once by the ingest path and never edited by
+     * users — it is the evidence later sent back to Google Ads / Meta when the
+     * lead qualifies. Absent on leads that didn't come from a tracked click.
+     */
+    attribution: {
+      type: new mongoose.Schema(
+        {
+          channel: { type: String, default: null }, // google_ads | meta_ads | …
+          gclid: String,
+          gbraid: String,
+          wbraid: String,
+          fbclid: String,
+          fbc: String,
+          fbp: String,
+          msclkid: String,
+          ttclid: String,
+          utmSource: String,
+          utmMedium: String,
+          utmCampaign: String,
+          utmTerm: String,
+          utmContent: String,
+          utmId: String,
+          landingPage: String,
+          referrer: String,
+          pageUrl: String,
+          clickedAt: Date,
+          clientIp: String,
+          clientUserAgent: String,
+          adConsent: {
+            type: new mongoose.Schema(
+              {
+                granted: { type: Boolean, default: false },
+                wording: { type: String, default: '' },
+                capturedAt: Date,
+                ip: { type: String, default: '' },
+                userAgent: { type: String, default: '' },
+              },
+              { _id: false }
+            ),
+            default: undefined,
+          },
+          capturedAt: Date,
+        },
+        { _id: false }
+      ),
+      default: undefined,
+    },
+
     createdByAutomation: {
       type: Boolean,
       default: false,

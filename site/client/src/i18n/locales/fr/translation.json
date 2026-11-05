@@ -2026,5 +2026,24 @@
       "bookingChanged": "Une visite est réservée ou annulée",
       "leadReplied": "Un lead me répond"
     }
+  },
+  "adSource": {
+    "title": "Source publicitaire",
+    "channel": "Source",
+    "clickId": "ID de clic",
+    "clicked": "Clic le",
+    "consent": "Consentement pub",
+    "consentGranted": "Accordé",
+    "consentDeclined": "Refusé",
+    "consentNotAsked": "Non demandé",
+    "allDetails": "Tous les détails de suivi",
+    "channelGoogle": "Google Ads",
+    "channelMeta": "Meta Ads",
+    "channelMicrosoft": "Microsoft Ads",
+    "channelTiktok": "TikTok Ads",
+    "channelCampaign": "Lien de campagne",
+    "channelUnknown": "Inconnue",
+    "landingPage": "Page d’arrivée",
+    "referrer": "Référent"
   }
 }

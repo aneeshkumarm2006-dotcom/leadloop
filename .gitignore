@@ -68,3 +68,6 @@ test_out.txt
 *.njsproj
 *.sln
 *.sw?
+
+# === Client site files (may hold API keys) ===
+bopayments/

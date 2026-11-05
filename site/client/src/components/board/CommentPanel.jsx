@@ -27,6 +27,7 @@ import SmsTab from './SmsTab';
 import WhatsAppTab from './WhatsAppTab';
 import SubitemsList from './SubitemsList';
 import AssigneePicker from './AssigneePicker';
+import AdSourcePanel from './AdSourcePanel';
 
 // Mirror of TaskEditRow's toDateInputValue so the date input round-trips
 // the same ISO/YYYY-MM-DD shape used elsewhere in the app.
@@ -769,6 +770,8 @@ const CommentPanel = ({
               </p>
             </div>
           ) : null}
+
+          {board && <AdSourcePanel attribution={task.attribution} />}
         </header>
 
         {/* Two-column body: tabs on the left, checklist + subitems on the right */}

@@ -2026,5 +2026,24 @@
       "bookingChanged": "A tour is booked or cancelled",
       "leadReplied": "A lead replies to me"
     }
+  },
+  "adSource": {
+    "title": "Ad source",
+    "channel": "Source",
+    "clickId": "Click ID",
+    "clicked": "Clicked",
+    "consent": "Ad consent",
+    "consentGranted": "Granted",
+    "consentDeclined": "Declined",
+    "consentNotAsked": "Not asked",
+    "allDetails": "All tracking details",
+    "channelGoogle": "Google Ads",
+    "channelMeta": "Meta Ads",
+    "channelMicrosoft": "Microsoft Ads",
+    "channelTiktok": "TikTok Ads",
+    "channelCampaign": "Campaign link",
+    "channelUnknown": "Unknown",
+    "landingPage": "Landing page",
+    "referrer": "Referrer"
   }
 }
