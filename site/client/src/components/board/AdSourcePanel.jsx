@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatDate } from '../../utils/dateUtils';
+import { listTaskConversions } from '../../services/adConversionService';
 
 /**
  * AdSourcePanel — read-only "where did this lead come from" block in the lead
@@ -75,8 +77,30 @@ const Row = ({ label, children }) => (
 
 const truncate = (s, n = 28) => (s && s.length > n ? `${s.slice(0, n)}…` : s);
 
-const AdSourcePanel = ({ attribution }) => {
+const SEND_COLOR = {
+  sent: 'var(--color-status-done)',
+  failed: 'var(--color-status-stuck)',
+  dead: 'var(--color-status-stuck)',
+};
+
+const AdSourcePanel = ({ attribution, taskId }) => {
   const { t } = useTranslation();
+  const [sends, setSends] = useState([]);
+
+  // What has been reported back to Meta / Google for this lead.
+  useEffect(() => {
+    if (!attribution || !taskId) return undefined;
+    let cancelled = false;
+    listTaskConversions(taskId)
+      .then((rows) => {
+        if (!cancelled) setSends(rows);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [attribution, taskId]);
+
   if (!attribution) return null;
 
   const a = attribution;
@@ -115,6 +139,17 @@ const AdSourcePanel = ({ attribution }) => {
         <Row label={t('adSource.consent')}>
           <span style={{ color: consentColor, fontWeight: 500 }}>{consentText}</span>
         </Row>
+        {sends.map((ev) => (
+          <Row key={ev._id} label={ev.platform === 'meta' ? 'Meta' : 'Google Ads'}>
+            <span style={{ color: SEND_COLOR[ev.status] || 'var(--color-text-secondary)' }}>
+              {ev.stage === 'qualified' ? t('adSource.sentQualified', 'Qualified lead') : t('adSource.sentCustomer', 'Customer')}
+              {' · '}
+              {t(`adSource.send.${ev.status}`, ev.status)}
+              {ev.test ? ` (${t('adSource.test', 'test')})` : ''}
+              {ev.reason && ev.status !== 'sent' ? ` — ${t(`adConversions.reason.${ev.reason}`, ev.reason)}` : ''}
+            </span>
+          </Row>
+        ))}
         {details.length > 0 ? (
           <details>
             <summary

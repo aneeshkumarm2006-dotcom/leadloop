@@ -14,6 +14,10 @@ const { startSequenceRunner } = require('./src/services/sequenceRunner');
 const { startBookingWorkflowRunner } = require('./src/services/bookingWorkflowRunner');
 const { startSlaRunner } = require('./src/services/slaRunner');
 const {
+  mountConversionDispatcher,
+  startConversionRunner,
+} = require('./src/services/conversionService');
+const {
   mountLeadIntakeRunner,
 } = require('./src/services/leadIntakeRunner');
 const { warnIfMultiReplica } = require('./src/middleware/rateLimit');
@@ -54,6 +58,9 @@ const start = async () => {
   startSlaRunner();
   // F9 — Automated Lead Agent: runs the board intake policy on `lead.intake`.
   mountLeadIntakeRunner();
+  // Report leads reaching a mapped stage back to Meta / Google Ads.
+  mountConversionDispatcher();
+  startConversionRunner();
   // F7 — warn if the in-memory rate-limit bucket won't meter across replicas.
   warnIfMultiReplica();
   app.listen(PORT, () => {

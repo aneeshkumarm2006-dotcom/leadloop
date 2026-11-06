@@ -771,7 +771,7 @@ const CommentPanel = ({
             </div>
           ) : null}
 
-          {board && <AdSourcePanel attribution={task.attribution} />}
+          {board && <AdSourcePanel attribution={task.attribution} taskId={task._id} />}
         </header>
 
         {/* Two-column body: tabs on the left, checklist + subitems on the right */}

@@ -138,6 +138,8 @@ app.use('/api', billingRouter);
 app.use('/api', require('./routes/duplicates'));
 app.use('/api', require('./routes/compliance'));
 app.use('/api', require('./routes/sla'));
+// Ad-platform conversions (Meta CAPI / Google Ads) — settings + logs.
+app.use('/api', require('./routes/adConversions'));
 app.use('/api', require('./routes/push'));
 // F7 — admin, board-scoped webhook management (authed). Mounted at /api so its
 // routes resolve as /api/boards/:id/webhooks… alongside the boards router.

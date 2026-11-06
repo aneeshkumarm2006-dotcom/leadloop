@@ -36,3 +36,5 @@ require('./SavedTableView');
 require('./ChartWidget');
 require('./LeadConnection');
 require('./LeadIngestLog');
+require('./AdConversionConfig');
+require('./ConversionEvent');

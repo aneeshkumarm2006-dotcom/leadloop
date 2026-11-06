@@ -8,6 +8,7 @@ import EmailAccountConnect from '../components/settings/EmailAccountConnect';
 import SmsConfigForm from '../components/settings/SmsConfigForm';
 import SmsOptOutList from '../components/settings/SmsOptOutList';
 import WhatsAppConfigForm from '../components/settings/WhatsAppConfigForm';
+import AdConversionsSettings from '../components/settings/AdConversionsSettings';
 import WhatsAppTemplateManager from '../components/settings/WhatsAppTemplateManager';
 import AiKeysConfigForm from '../components/settings/AiKeysConfigForm';
 import Button from '../components/ui/Button';
@@ -945,7 +946,8 @@ const SettingsPage = () => {
       (activeTab === 'organisation' ||
         activeTab === 'templates' ||
         activeTab === 'sms' ||
-        activeTab === 'whatsapp')
+        activeTab === 'whatsapp' ||
+        activeTab === 'ads')
     ) {
       setActiveTab('profile');
     }
@@ -1022,6 +1024,9 @@ const SettingsPage = () => {
           <WhatsAppTemplateManager workspaceId={currentOrg?._id} />
         </div>
       );
+    }
+    if (activeTab === 'ads' && isAdmin) {
+      return <AdConversionsSettings workspaceId={currentOrg?._id} />;
     }
     if (activeTab === 'ai') {
       return <AiKeysConfigForm />;

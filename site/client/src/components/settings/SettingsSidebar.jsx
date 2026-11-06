@@ -1,4 +1,4 @@
-import { Building2, UserCircle2, LayoutTemplate, Mail, MessageSquare, MessageCircle, Sparkles } from 'lucide-react';
+import { Building2, UserCircle2, LayoutTemplate, Mail, MessageSquare, MessageCircle, Sparkles, Target } from 'lucide-react';
 
 /**
  * SettingsSidebar — left-rail tab nav used exclusively by the Settings page.
@@ -18,6 +18,8 @@ const TABS = [
   { key: 'sms', label: 'SMS', icon: MessageSquare, adminOnly: true },
   // WhatsApp (Twilio) is a workspace-level credential — admin only.
   { key: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, adminOnly: true },
+  // Ad conversions (Meta / Google Ads send-back) - workspace credentials, admin only.
+  { key: 'ads', label: 'Ad conversions', icon: Target, adminOnly: true },
   // AI keys are personal (any member can add their own Claude / ChatGPT key).
   { key: 'ai', label: 'AI Keys', icon: Sparkles, adminOnly: false },
   { key: 'profile', label: 'Profile', icon: UserCircle2, adminOnly: false },
