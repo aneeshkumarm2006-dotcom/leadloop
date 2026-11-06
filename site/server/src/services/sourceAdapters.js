@@ -29,6 +29,9 @@
  */
 const SOURCE_TYPES = {
   website: { delivery: 'webhook', adapter: 'passthrough', ready: true },
+  // No-code: a one-line script on the client's site posts the form (public
+  // site key + domain lock) — see controllers/captureController.js.
+  website_snippet: { delivery: 'snippet', adapter: 'passthrough', ready: true },
   zapier: { delivery: 'webhook', adapter: 'passthrough', ready: true },
   generic: { delivery: 'webhook', adapter: 'passthrough', ready: true },
   google_ads: { delivery: 'webhook', adapter: 'google_ads', ready: true },

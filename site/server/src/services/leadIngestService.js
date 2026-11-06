@@ -262,6 +262,14 @@ const ingestLead = async (apiKey, rawBody, meta = {}) => {
   return withConnectionLock(resolved._id, () => ingestLocked(resolved._id, rawBody, meta));
 };
 
+/**
+ * Ingest for a connection the caller has ALREADY authenticated another way —
+ * the website snippet (public site key + domain lock). Same lock, same
+ * pipeline (attribution, columns, duplicates, SLA, events, Meta send-back).
+ */
+const ingestForConnection = (connectionId, rawBody, meta = {}) =>
+  withConnectionLock(connectionId, () => ingestLocked(connectionId, rawBody, meta));
+
 /** The lock-protected body of `ingestLead` — see above. */
 const ingestLocked = async (connectionId, rawBody, meta = {}) => {
   const connection = await LeadConnection.findById(connectionId);
@@ -472,6 +480,7 @@ const ingestLocked = async (connectionId, rawBody, meta = {}) => {
 
 module.exports = {
   ingestLead,
+  ingestForConnection,
   provisionColumnsFromSchema,
   coerceForColumn,
   LeadIngestError,

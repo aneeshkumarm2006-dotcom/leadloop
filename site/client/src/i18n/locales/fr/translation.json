@@ -1645,7 +1645,8 @@
       "website": "Ajoutez ceci comme action POST de votre formulaire, ou envoyez un POST JSON depuis votre site. La première soumission crée automatiquement les colonnes.",
       "webhook": "Collez ce point de terminaison dans la plateforme. Chaque POST crée un lead sur votre tableau.",
       "email": "L’import par courriel des portails arrive bientôt — vous transférerez les courriels de leads du portail vers une adresse unique et nous les analyserons sur votre tableau.",
-      "poll": "La synchro Google Forms arrive bientôt — connectez Google et choisissez un formulaire ; nous récupérerons les nouvelles réponses régulièrement."
+      "poll": "La synchro Google Forms arrive bientôt — connectez Google et choisissez un formulaire ; nous récupérerons les nouvelles réponses régulièrement.",
+      "snippet": "Collez cette ligne dans votre site, juste avant </body> sur chaque page (ou dans le code personnalisé du pied de page de votre outil). C’est tout — aucun autre code."
     },
     "catalog": {
       "facebook_lead_ads": {
@@ -1695,13 +1696,30 @@
       "google_lsa": {
         "name": "Google LSA",
         "blurb": "Les leads Local Services Ads via l’API LSA."
+      },
+      "website_snippet": {
+        "name": "Site web (sans code)",
+        "blurb": "Collez une ligne sur votre site — les prospects, les clics publicitaires et le consentement arrivent seuls. Aucun développeur requis."
       }
     },
     "emptyTitle": "Connectez vos sources de leads",
     "emptyBody": "Pour l’instant, les leads doivent être saisis à la main. Connectez une source et ils arrivent seuls sur votre tableau, à l’étape que vous choisissez.",
     "emptyStep1": "Choisissez une source — Facebook, Google Ads, le formulaire de votre site.",
     "emptyStep2": "Choisissez le tableau et l’étape d’arrivée des nouveaux leads.",
-    "emptyStep3": "Collez un seul lien dans cette plateforme. C’est toute la configuration."
+    "emptyStep3": "Collez un seul lien dans cette plateforme. C’est toute la configuration.",
+    "snippetLabel": "Votre extrait pour le site",
+    "snippetWp": "WordPress : une extension comme WPCode → Pied de page.",
+    "snippetWebflow": "Webflow : Paramètres du site → Code personnalisé → Code du pied de page.",
+    "snippetWix": "Wix / Squarespace : Paramètres → Code personnalisé → Fin du body.",
+    "snippetHtml": "HTML simple : avant </body> sur chaque page.",
+    "snippetWaiting": "En attente de la première soumission… collez l’extrait puis envoyez votre formulaire une fois.",
+    "snippetReceived": "Premier prospect reçu — l’extrait fonctionne.",
+    "snippetGaveUp": "Rien pour l’instant. Vérifiez que l’extrait est sur la page et que le domaine correspond, puis faites un test.",
+    "domainsLabel": "Domaine(s) de votre site",
+    "domainsHint": "Les prospects ne sont acceptés que depuis ces sites (sous-domaines inclus). Séparez-les par des virgules.",
+    "consentLabel": "Texte de la case de consentement publicitaire",
+    "consentHint": "Ajoutée non cochée au-dessus du bouton d’envoi. Seuls les prospects qui la cochent sont signalés à Meta / Google. Laissez vide pour ne pas l’afficher.",
+    "consentDefault": "J’accepte que mes informations soient utilisées pour mesurer et améliorer la publicité."
   },
   "pwa": {
     "installTitle": "Installer LeadLoop",

@@ -1645,7 +1645,8 @@
       "website": "Add this as your form’s POST action, or send a JSON POST from your site. The first submission auto-creates matching columns.",
       "webhook": "Paste this endpoint into the platform. Every POST creates a lead on your board.",
       "email": "Portal email import is coming soon — you’ll forward the portal’s lead emails to a unique address and we’ll parse them onto your board.",
-      "poll": "Google Forms sync is coming soon — connect Google and pick a form; we’ll pull new responses on a schedule."
+      "poll": "Google Forms sync is coming soon — connect Google and pick a form; we’ll pull new responses on a schedule.",
+      "snippet": "Paste this one line into your website, just before </body> on every page (or in your site builder’s footer/custom-code setting). That’s the whole setup — no other code."
     },
     "catalog": {
       "facebook_lead_ads": {
@@ -1695,13 +1696,30 @@
       "google_lsa": {
         "name": "Google LSA",
         "blurb": "Local Services Ads leads via the LSA API."
+      },
+      "website_snippet": {
+        "name": "Website (no code)",
+        "blurb": "Paste one line on your site — form leads, ad clicks and consent flow in. No developer needed."
       }
     },
     "emptyTitle": "Connect where your leads come from",
     "emptyBody": "Right now leads have to be typed in by hand. Connect a source and they arrive on your board by themselves, on the stage you choose.",
     "emptyStep1": "Pick a source — Facebook, Google Ads, your website form.",
     "emptyStep2": "Choose the board and the stage new leads should land on.",
-    "emptyStep3": "Paste one link into that platform. That’s the whole setup."
+    "emptyStep3": "Paste one link into that platform. That’s the whole setup.",
+    "snippetLabel": "Your website snippet",
+    "snippetWp": "WordPress: a plugin like WPCode → Footer.",
+    "snippetWebflow": "Webflow: Site settings → Custom code → Footer code.",
+    "snippetWix": "Wix / Squarespace: Settings → Custom code → Body end.",
+    "snippetHtml": "Plain HTML: before </body> on each page.",
+    "snippetWaiting": "Waiting for the first submission… paste the snippet, then submit your form once.",
+    "snippetReceived": "First lead received — the snippet is working.",
+    "snippetGaveUp": "Nothing yet. Check the snippet is on the page and the domain matches, then submit a test.",
+    "domainsLabel": "Your website domain(s)",
+    "domainsHint": "Leads are only accepted from these sites (subdomains included). Separate several with commas.",
+    "consentLabel": "Ad consent checkbox wording",
+    "consentHint": "Added unticked above your form’s submit button. Only leads who tick it are reported to Meta / Google. Leave empty for no checkbox.",
+    "consentDefault": "I agree that my details may be used to measure and improve advertising."
   },
   "pwa": {
     "installTitle": "Install LeadLoop",

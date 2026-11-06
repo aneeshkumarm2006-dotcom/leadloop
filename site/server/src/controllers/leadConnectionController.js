@@ -19,6 +19,37 @@ const TaskGroup = require('../models/TaskGroup');
 const { ingestLead, LeadIngestError } = require('../services/leadIngestService');
 const { isValidSourceType, DEFAULT_SOURCE } = require('../services/sourceAdapters');
 const { publicBaseUrl } = require('../utils/publicBaseUrl');
+const { parseDomainList } = require('../utils/siteDomains');
+
+const SNIPPET_SOURCE = 'website_snippet';
+const DEFAULT_CONSENT_WORDING =
+  'I agree that my details may be used to measure and improve advertising.';
+const HEX_RE = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i;
+
+/** Validate + apply snippet settings from a request body onto a connection. */
+const applySnippetSettings = (connection, body) => {
+  if (body.allowedDomains !== undefined) {
+    const domains = parseDomainList(body.allowedDomains);
+    if (domains.length === 0) {
+      const err = new Error('Add at least one website domain, e.g. example.com');
+      err.status = 400;
+      throw err;
+    }
+    connection.allowedDomains = domains;
+  }
+  const sn = body.snippet || {};
+  if (!connection.snippet) connection.snippet = {};
+  if (sn.consentWording !== undefined) connection.snippet.consentWording = String(sn.consentWording || '').trim().slice(0, 500);
+  if (sn.formSelector !== undefined) connection.snippet.formSelector = String(sn.formSelector || '').trim().slice(0, 300);
+  if (sn.accent !== undefined) {
+    const accent = String(sn.accent || '').trim();
+    connection.snippet.accent = HEX_RE.test(accent) ? accent : '';
+  }
+};
+
+/** The exact tag the client pastes into their site. */
+const snippetTag = (c, req) =>
+  c.siteKey ? `<script src="${publicBaseUrl(req)}/capture.js" data-site="${c.siteKey}" defer></script>` : '';
 
 /**
  * Validate a requested landing group for a board. Returns the group's ObjectId
@@ -102,6 +133,15 @@ const serializeConnection = (c, req) => ({
   submissionCount: c.submissionCount || 0,
   lastSubmissionAt: c.lastSubmissionAt || null,
   ingestUrl: `${publicBaseUrl(req)}/api/leads/ingest`,
+  // Website snippet only (null/empty for API-key connections).
+  siteKey: c.siteKey || null,
+  allowedDomains: c.allowedDomains || [],
+  snippet: {
+    consentWording: c.snippet?.consentWording || '',
+    formSelector: c.snippet?.formSelector || '',
+    accent: c.snippet?.accent || '',
+  },
+  snippetTag: snippetTag(c, req),
   createdAt: c.createdAt,
   updatedAt: c.updatedAt,
 });
@@ -210,22 +250,33 @@ const createConnection = async (req, res) => {
     const sourceType = isValidSourceType(body.sourceType) ? body.sourceType : DEFAULT_SOURCE;
     const landingGroupId = await resolveLandingGroup(body.landingGroupId, ctx.board._id);
 
-    const { apiKey, keyId, tokenHash, tokenLast4 } = LeadConnection.generateApiKey();
-    const connection = await LeadConnection.create({
+    const base = {
       boardId: ctx.board._id,
       name,
-      keyId,
-      tokenHash,
-      tokenLast4,
       sourceType,
       landingGroupId,
       attributeSource: body.attributeSource === undefined ? true : !!body.attributeSource,
       sourceTag: typeof body.sourceTag === 'string' ? body.sourceTag.trim() : '',
       createdBy: req.user.userId,
-    });
+    };
+
+    // No-code website snippet: a PUBLIC site key + domain lock, no secret key.
+    if (sourceType === SNIPPET_SOURCE) {
+      const connection = new LeadConnection({ ...base, siteKey: LeadConnection.generateSiteKey() });
+      applySnippetSettings(connection, {
+        allowedDomains: body.allowedDomains === undefined ? '' : body.allowedDomains,
+        snippet: { consentWording: DEFAULT_CONSENT_WORDING, ...(body.snippet || {}) },
+      });
+      await connection.save();
+      return res.status(201).json({ connection: serializeConnection(connection, req), apiKey: null });
+    }
+
+    const { apiKey, keyId, tokenHash, tokenLast4 } = LeadConnection.generateApiKey();
+    const connection = await LeadConnection.create({ ...base, keyId, tokenHash, tokenLast4 });
     return res.status(201).json({ connection: serializeConnection(connection, req), apiKey });
   } catch (err) {
     if (err && err.status && err.error) return res.status(err.status).json({ error: err.error });
+    if (err && err.status === 400 && err.message) return res.status(400).json({ error: err.message });
     console.error('createConnection error:', err);
     return res.status(500).json({ error: 'Server error' });
   }
@@ -236,6 +287,13 @@ const rotateKey = async (req, res) => {
   try {
     const ctx = await loadConnectionForAdmin(req.params.cid, req.user.userId);
     if (ctx.error) return res.status(ctx.status).json({ error: ctx.error });
+    if (ctx.connection.sourceType === SNIPPET_SOURCE) {
+      // New public site key — the old snippet stops working (e.g. it was copied
+      // to spam the form). The site needs the new tag pasted in.
+      ctx.connection.siteKey = LeadConnection.generateSiteKey();
+      await ctx.connection.save();
+      return res.json({ connection: serializeConnection(ctx.connection, req), apiKey: null });
+    }
     const { apiKey, keyId, tokenHash, tokenLast4 } = LeadConnection.generateApiKey();
     ctx.connection.keyId = keyId;
     ctx.connection.tokenHash = tokenHash;
@@ -265,17 +323,25 @@ const updateConnection = async (req, res) => {
     if (body.attributeSource !== undefined) connection.attributeSource = !!body.attributeSource;
     if (body.sourceTag !== undefined) connection.sourceTag = String(body.sourceTag || '').trim();
     if (body.evolveSchema !== undefined) connection.evolveSchema = !!body.evolveSchema;
-    if (body.sourceType !== undefined && isValidSourceType(body.sourceType)) {
+    // A snippet connection authenticates by site key, an API connection by a
+    // secret key — never switch a live connection between the two.
+    if (
+      body.sourceType !== undefined &&
+      isValidSourceType(body.sourceType) &&
+      (body.sourceType === SNIPPET_SOURCE) === (connection.sourceType === SNIPPET_SOURCE)
+    ) {
       connection.sourceType = body.sourceType;
     }
     if (body.landingGroupId !== undefined) {
       connection.landingGroupId = await resolveLandingGroup(body.landingGroupId, connection.boardId);
     }
+    if (connection.sourceType === SNIPPET_SOURCE) applySnippetSettings(connection, body);
 
     await connection.save();
     return res.json({ connection: serializeConnection(connection, req) });
   } catch (err) {
     if (err && err.status && err.error) return res.status(err.status).json({ error: err.error });
+    if (err && err.status === 400 && err.message) return res.status(400).json({ error: err.message });
     console.error('updateConnection error:', err);
     return res.status(500).json({ error: 'Server error' });
   }

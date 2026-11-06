@@ -12,6 +12,10 @@ const app = express();
 // 256KB body caps, key auth) lives in routes/leadConnections.js.
 const { publicLeadRouter, boardLeadRouter } = require('./routes/leadConnections');
 app.use(publicLeadRouter);
+// No-code website snippet (GET /capture.js, /api/capture/:siteKey[/config]) —
+// public site key + per-request domain lock; sets its own CORS headers, so it
+// must also sit ABOVE the global cors().
+app.use(require('./routes/capture'));
 
 // CORS — allow the frontend client (every route mounted after this point)
 app.use(
@@ -50,6 +54,11 @@ app.use(
 //   • POST /api/billing/webhook               (Stripe lifecycle — authenticated
 //     by Stripe's signature over the RAW body, so it mounts its own
 //     express.raw parser ABOVE the global express.json())
+//   • GET  /capture.js                        (website snippet script — inert
+//     without a valid site key on an allowed domain)
+//   • GET  /api/capture/:siteKey/config       (snippet config — domain-locked)
+//   • POST /api/capture/:siteKey              (snippet submission — domain lock,
+//     honeypot, min fill time, per-visitor + per-site rate limits)
 //   • GET/POST /u/:token                      (email unsubscribe — signed token
 //     is the authorisation; CASL/CAN-SPAM require this to work without login)
 //

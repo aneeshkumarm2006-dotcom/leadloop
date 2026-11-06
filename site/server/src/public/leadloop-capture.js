@@ -37,7 +37,22 @@
  * For custom JS submitters that build their own payload:
  *   Object.assign(payload, window.LeadLoopCapture.fields());
  *
- * No dependencies, no network calls, nothing sent anywhere by this script.
+ * ─── No-code snippet mode ────────────────────────────────────────────────
+ * Served by LeadLoop and added with ONE tag — no server code on the site:
+ *
+ *   <script src="https://<leadloop>/capture.js" data-site="site_xxxx" defer></script>
+ *
+ * With `data-site`, the script also:
+ *   - loads its settings (form selector, consent wording) from LeadLoop — the
+ *     request is refused unless the page is on the site key's allowed domain;
+ *   - finds the lead form itself (a form with an email field and no password
+ *     field) unless a selector is configured;
+ *   - adds a hidden honeypot field, and on submit sends a COPY of the form to
+ *     LeadLoop (sendBeacon, so it survives the page navigating away). The
+ *     site's own submit carries on untouched. Password, card, bank-account and
+ *     other sensitive-looking fields are never collected.
+ *
+ * Without `data-site` nothing is sent anywhere by this script.
  */
 (function () {
   'use strict';
@@ -54,6 +69,17 @@
   var consentWording = (script && script.getAttribute('data-consent')) || '';
   var consentAccent = (script && script.getAttribute('data-accent')) || '';
   var formEndpoint = (script && script.getAttribute('data-endpoint')) || '';
+  var siteKey = (script && script.getAttribute('data-site')) || '';
+  var explicitSelector = !!(script && script.getAttribute('data-forms'));
+  var apiBase = '';
+  if (siteKey && script && script.src) {
+    try {
+      apiBase = new URL(script.src).origin;
+    } catch (e) {
+      apiBase = '';
+    }
+  }
+  var startedAt = Date.now();
 
   // A selector the browser can't parse (e.g. `:has()` on an old browser) must
   // not take the whole script down — fall back to the default selector.
@@ -240,41 +266,204 @@
     else form.appendChild(label);
   }
 
-  function fillAll() {
-    var forms = document.querySelectorAll(formSelector);
-    for (var i = 0; i < forms.length; i++) {
-      addConsentBox(forms[i]);
-      fill(forms[i]);
+  // --- 6. Which forms ---------------------------------------------------------
+  // Snippet mode without a configured selector: any form that collects an
+  // email address and is not a login/search form.
+  function isAutoLeadForm(form) {
+    if (form.querySelector('input[type="password"]')) return false;
+    if ((form.getAttribute('role') || '').toLowerCase() === 'search') return false;
+    return !!form.querySelector('input[type="email"], input[name*="email" i], input[autocomplete="email"]');
+  }
+
+  function isTarget(form) {
+    if (!form || form.nodeName !== 'FORM') return false;
+    if (siteKey && !explicitSelector) return isAutoLeadForm(form);
+    try {
+      return form.matches(formSelector);
+    } catch (e) {
+      return false;
     }
   }
 
-  // Forms rendered after load (modals, client-side routes) get the same setup.
-  if (consentWording && window.MutationObserver) {
-    var pending = false;
-    new MutationObserver(function () {
-      if (pending) return;
-      pending = true;
-      setTimeout(function () {
-        pending = false;
-        fillAll();
-      }, 50);
-    }).observe(document.documentElement, { childList: true, subtree: true });
+  function targetForms() {
+    var all = document.querySelectorAll('form');
+    var out = [];
+    for (var i = 0; i < all.length; i++) if (isTarget(all[i])) out.push(all[i]);
+    return out;
   }
 
-  // Capture phase: runs before the site's own submit handler reads the form.
-  document.addEventListener(
-    'submit',
-    function (e) {
-      if (e.target && e.target.matches && e.target.matches(formSelector)) fill(e.target);
-    },
-    true
-  );
+  // Bots fill every field; people never see this one.
+  function addHoneypot(form) {
+    if (form.querySelector('input[name="_ll_hp"]')) return;
+    var hp = document.createElement('input');
+    hp.type = 'text';
+    hp.name = '_ll_hp';
+    hp.tabIndex = -1;
+    hp.autocomplete = 'off';
+    hp.setAttribute('aria-hidden', 'true');
+    hp.style.cssText = 'position:absolute;left:-9999px;top:auto;width:1px;height:1px;opacity:0;';
+    form.appendChild(hp);
+  }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', fillAll);
+  function fillAll() {
+    var forms = targetForms();
+    for (var i = 0; i < forms.length; i++) {
+      var form = forms[i];
+      if (!form._llSeenAt) form._llSeenAt = Date.now();
+      addConsentBox(form);
+      if (siteKey) {
+        addHoneypot(form);
+      } else {
+        fill(form); // classic mode: the site's own backend forwards the hidden fields
+      }
+    }
+  }
+
+  // --- 7. Snippet mode: send a copy of the submission to LeadLoop ------------
+  var SENSITIVE = /pass|card|cvv|cvc|ssn|\bsin\b|iban|routing|account.?(num|no)|security.?code/i;
+  var SKIP_TYPES = { password: 1, file: 1, submit: 1, button: 1, reset: 1, image: 1, hidden: 1 };
+
+  function collect(form) {
+    var out = {};
+    var els = form.elements;
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      var name = el.name;
+      if (!name || el.disabled || name.indexOf('_ll_') === 0) continue;
+      var type = String(el.type || '').toLowerCase();
+      if (SKIP_TYPES[type] || SENSITIVE.test(name)) continue;
+      if (/^cc-/.test(el.getAttribute('autocomplete') || '')) continue;
+      var val;
+      if (type === 'checkbox') {
+        if (!el.checked) continue;
+        val = el.value && el.value !== 'on' ? el.value : 'yes';
+      } else if (type === 'radio') {
+        if (!el.checked) continue;
+        val = el.value;
+      } else if (el.multiple && el.options) {
+        var picked = [];
+        for (var j = 0; j < el.options.length; j++) if (el.options[j].selected) picked.push(el.options[j].value);
+        val = picked.join(', ');
+      } else {
+        val = el.value;
+      }
+      val = String(val == null ? '' : val).trim().slice(0, 5000);
+      if (!val) continue;
+      out[name] = out[name] ? out[name] + ', ' + val : val;
+    }
+    return out;
+  }
+
+  function sendCopy(form) {
+    if (!apiBase || !siteKey) return;
+    var now = Date.now();
+    if (form._llSentAt && now - form._llSentAt < 3000) return; // double submit
+    form._llSentAt = now;
+
+    var payload = collect(form);
+    var f = fields();
+    Object.keys(f).forEach(function (k) {
+      if (f[k]) payload[k] = f[k];
+    });
+    var box = form.querySelector('input[type="checkbox"][name="ad_consent"]');
+    if (box) {
+      payload.ad_consent = box.checked ? 'yes' : 'no';
+      var text = consentText(form);
+      if (text) payload.consent_text = text;
+    }
+    var hp = form.querySelector('input[name="_ll_hp"]');
+    payload._ll_hp = hp ? hp.value : '';
+    payload._ll_elapsed = String(now - (form._llSeenAt || startedAt));
+    payload._ll_v = '1';
+
+    var body = JSON.stringify(payload);
+    var url = apiBase + '/api/capture/' + encodeURIComponent(siteKey);
+    try {
+      if (navigator.sendBeacon && navigator.sendBeacon(url, new Blob([body], { type: 'text/plain;charset=UTF-8' }))) return;
+    } catch (e) {
+      /* fall through to fetch */
+    }
+    try {
+      fetch(url, {
+        method: 'POST',
+        body: body,
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        keepalive: true,
+        credentials: 'omit',
+      }).catch(function () {});
+    } catch (e) {
+      /* never break the site's own submit */
+    }
+  }
+
+  // --- 8. Start ------------------------------------------------------------
+  function start() {
+    // Forms rendered after load (modals, client-side routes) get the same setup.
+    if ((consentWording || siteKey) && window.MutationObserver) {
+      var pending = false;
+      new MutationObserver(function () {
+        if (pending) return;
+        pending = true;
+        setTimeout(function () {
+          pending = false;
+          fillAll();
+        }, 50);
+      }).observe(document.documentElement, { childList: true, subtree: true });
+    }
+
+    // Capture phase: runs before the site's own submit handler reads the form.
+    document.addEventListener(
+      'submit',
+      function (e) {
+        var form = e.target;
+        if (!isTarget(form)) return;
+        if (siteKey) sendCopy(form);
+        else fill(form);
+      },
+      true
+    );
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fillAll);
+    } else {
+      fillAll();
+    }
+  }
+
+  if (siteKey && apiBase && window.fetch) {
+    // Settings live in LeadLoop. The request is refused (403) unless this page
+    // is on the site key's allowed domain — then nothing is ever sent.
+    fetch(apiBase + '/api/capture/' + encodeURIComponent(siteKey) + '/config', { credentials: 'omit' })
+      .then(function (res) {
+        return res.ok ? res.json() : null;
+      })
+      .then(function (cfg) {
+        if (!cfg) {
+          siteKey = '';
+          apiBase = '';
+          return;
+        }
+        if (!explicitSelector && cfg.formSelector) {
+          try {
+            document.querySelector(cfg.formSelector);
+            formSelector = cfg.formSelector;
+            explicitSelector = true;
+          } catch (e) {
+            /* invalid selector in settings → keep auto-detect */
+          }
+        }
+        if (!consentWording && cfg.consentWording) consentWording = cfg.consentWording;
+        if (!consentAccent && cfg.accent) consentAccent = cfg.accent;
+      })
+      .catch(function () {
+        siteKey = '';
+        apiBase = '';
+      })
+      .then(start);
   } else {
-    fillAll();
+    siteKey = '';
+    start();
   }
 
-  window.LeadLoopCapture = { fields: fields, fill: fill };
+  window.LeadLoopCapture = { fields: fields, fill: fill, collect: collect };
 })();

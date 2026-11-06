@@ -81,7 +81,7 @@ test('non-object bodies are returned as-is', () => {
 
 test('every SOURCE_TYPES entry names a real adapter + delivery', () => {
   for (const [id, spec] of Object.entries(SOURCE_TYPES)) {
-    assert.ok(['webhook', 'email', 'poll'].includes(spec.delivery), `${id} delivery`);
+    assert.ok(['webhook', 'email', 'poll', 'snippet'].includes(spec.delivery), `${id} delivery`);
     assert.ok(['passthrough', 'google_ads', 'facebook'].includes(spec.adapter), `${id} adapter`);
     assert.equal(typeof spec.ready, 'boolean', `${id} ready`);
   }

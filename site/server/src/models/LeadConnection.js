@@ -93,6 +93,22 @@ const leadConnectionSchema = new mongoose.Schema(
       default: null,
     },
 
+    // --- Website snippet (sourceType 'website_snippet') ---------------------
+    // A PUBLIC site key embedded in the client's page (`data-site="site_…"`).
+    // Not a secret: it can only submit leads, and only from `allowedDomains`
+    // (enforced on every request — see utils/siteDomains.js). Null for API-key
+    // connections.
+    siteKey: { type: String }, // left UNSET (not null) on API-key connections
+    allowedDomains: { type: [String], default: [] },
+    snippet: {
+      // Wording of the ad-consent checkbox the snippet adds to the form.
+      consentWording: { type: String, default: '' },
+      // CSS selector for the lead form; empty = auto-detect (forms with an
+      // email field and no password field).
+      formSelector: { type: String, default: '' },
+      accent: { type: String, default: '' }, // checkbox colour, e.g. #C1A6B0
+    },
+
     enabled: { type: Boolean, default: true, index: true },
 
     // Lightweight stats surfaced in the docs UI ("12 leads, last 2m ago").
@@ -106,6 +122,18 @@ const leadConnectionSchema = new mongoose.Schema(
 
 // One indexed lookup on ingest; sparse so rows mid-creation (hash null) are exempt.
 leadConnectionSchema.index({ tokenHash: 1 }, { unique: true, sparse: true });
+// Partial (not sparse): only real string keys are indexed, so the many
+// connections without one can never collide on a missing/null value.
+leadConnectionSchema.index({ siteKey: 1 }, { unique: true, partialFilterExpression: { siteKey: { $type: 'string' } } });
+
+/** `site_` + 12 lowercase alphanumerics — short enough to read, ~62 bits. */
+const generateSiteKey = () => {
+  const alphabet = 'abcdefghijkmnpqrstuvwxyz23456789';
+  const bytes = crypto.randomBytes(12);
+  let out = '';
+  for (const b of bytes) out += alphabet[b % alphabet.length];
+  return `site_${out}`;
+};
 
 /** sha256 of a plaintext key → the value stored/looked-up as `tokenHash`. */
 const hashKey = (plaintext) =>
@@ -139,5 +167,6 @@ leadConnectionSchema.pre('validate', function ensureKeyId() {
 const LeadConnection = mongoose.model('LeadConnection', leadConnectionSchema);
 LeadConnection.hashKey = hashKey;
 LeadConnection.generateApiKey = generateApiKey;
+LeadConnection.generateSiteKey = generateSiteKey;
 
 module.exports = LeadConnection;
