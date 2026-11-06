@@ -21,6 +21,7 @@ import {
   CalendarClock,
 } from 'lucide-react';
 import Navbar from './Navbar';
+import { LeadLoopMark } from '../brand/LeadLoopLogo';
 import SidebarFolders from './SidebarFolders';
 import ProductTour from '../onboarding/ProductTour';
 import GuideCoach from '../onboarding/GuideCoach';
@@ -34,25 +35,6 @@ import { getAvatarColor } from '../../utils/avatarColors';
  * the cream paper content, echoing the login brand panel and the marketing
  * site. Everything on it uses the pine token family (globals.css).
  */
-
-/** Looping-arrows mark — the "loop" in LeadLoop (shared with AuthScreen). */
-const LoopMark = ({ size = 18 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path
-      d="M4 12a8 8 0 0 1 13.66-5.66M20 12a8 8 0 0 1-13.66 5.66"
-      stroke="#fff"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-    />
-    <path
-      d="M17 3v4h-4M7 21v-4h4"
-      stroke="#fff"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 /** A single sidebar nav row (icon + label) with the pine active pill. */
 const SidebarLink = ({ icon: Icon, label, active, onClick, tourId }) => (
@@ -214,18 +196,7 @@ const OrgSidebar = () => {
           cursor: 'pointer',
         }}
       >
-        <span
-          className="flex items-center justify-center shrink-0"
-          style={{
-            width: 28,
-            height: 28,
-            borderRadius: 8,
-            background: 'var(--color-accent)',
-          }}
-          aria-hidden="true"
-        >
-          <LoopMark size={16} />
-        </span>
+        <LeadLoopMark size={28} onDark />
         <span
           className="font-display font-bold tracking-tight"
           style={{ fontSize: 17, color: 'var(--color-pine-text)' }}

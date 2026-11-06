@@ -1,3 +1,5 @@
+import { LeadLoopMark } from "@/components/brand/leadloop-mark"
+
 const productLinks = [
   { href: "#board", label: "The board" },
   { href: "#visits", label: "Visit booking" },
@@ -20,8 +22,11 @@ export function SiteFooter() {
     <footer className="border-t border-line bg-cream">
       <div className="mx-auto flex max-w-[1180px] flex-wrap items-start justify-between gap-8 px-[clamp(24px,4vw,56px)] pt-10 pb-6">
         <div>
-          <span className="font-display text-[22px] font-extrabold tracking-[-0.02em]">
-            LeadLoop
+          <span className="flex items-center gap-2.5">
+            <LeadLoopMark size={30} />
+            <span className="font-display text-[22px] font-extrabold tracking-[-0.02em]">
+              LeadLoop
+            </span>
           </span>
           <p className="mt-2 font-mono text-[10px] uppercase leading-[2] tracking-[0.1em] text-taupe">
             Montréal, QC · EN + FR

@@ -38,6 +38,7 @@ import useNotificationStore from '../../store/notificationStore';
 import { timeAgo } from '../../utils/dateUtils';
 import api from '../../services/api';
 import Chip from '../ui/Chip';
+import LeadLoopLogo from '../brand/LeadLoopLogo';
 
 /**
  * Top navigation bar. Sticky, 56px tall, white, with:
@@ -47,26 +48,7 @@ import Chip from '../ui/Chip';
 
 import { getAvatarColor, getInitial } from '../../utils/avatarColors';
 
-const Logo = () => (
-  <div className="flex items-center gap-2.5 shrink-0">
-    <div
-      className="flex items-center justify-center bg-accent"
-      style={{
-        width: 32,
-        height: 32,
-        borderRadius: 'var(--radius-sm)',
-      }}
-      aria-hidden="true"
-    >
-      <span className="font-display font-bold text-white text-[16px] leading-none">
-        L
-      </span>
-    </div>
-    <span className="font-display font-bold text-[18px] text-[color:var(--color-text-primary)] tracking-tight">
-      LeadLoop
-    </span>
-  </div>
-);
+const Logo = () => <LeadLoopLogo size={32} textSize={18} className="shrink-0" />;
 
 /**
  * NavLinks — the MOBILE drawer navigation (the only place this renders; on

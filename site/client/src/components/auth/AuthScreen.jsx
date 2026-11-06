@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import useAuthStore from '../../store/authStore';
+import LeadLoopLogo from '../brand/LeadLoopLogo';
 import * as authService from '../../services/authService';
 
 /** Google "G" mark for the OAuth button. */
@@ -34,34 +35,7 @@ const GoogleIcon = () => (
 );
 
 /** LeadLoop wordmark + logo tile — reused on the card and the brand panel. */
-const Wordmark = ({ light = false }) => (
-  <div className="flex items-center gap-2.5">
-    <div
-      className="flex h-9 w-9 items-center justify-center"
-      style={{
-        borderRadius: 'var(--radius-md)',
-        background: light ? 'rgba(255,255,255,0.16)' : 'var(--color-accent)',
-      }}
-    >
-      {/* Looping arrows — the "loop" in LeadLoop */}
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M4 12a8 8 0 0 1 13.66-5.66M20 12a8 8 0 0 1-13.66 5.66"
-          stroke="#fff"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-        />
-        <path d="M17 3v4h-4M7 21v-4h4" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    </div>
-    <span
-      className="font-display text-[19px] font-extrabold tracking-tight"
-      style={{ color: light ? '#fff' : 'var(--color-text-primary)' }}
-    >
-      LeadLoop
-    </span>
-  </div>
-);
+const Wordmark = ({ light = false }) => <LeadLoopLogo size={36} textSize={19} light={light} />;
 
 /** Labelled text input matching the card's border/radius tokens. */
 const Field = ({ id, label, ...rest }) => (

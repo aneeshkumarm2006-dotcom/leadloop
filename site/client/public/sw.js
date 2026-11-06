@@ -15,8 +15,8 @@
  * Bump CACHE_VERSION to force old caches out on the next activate.
  */
 
-const CACHE_VERSION = 'leadloop-v2';
-const APP_SHELL = ['/', '/index.html', '/favicon.svg', '/app-icon.svg', '/manifest.webmanifest'];
+const CACHE_VERSION = 'leadloop-v3';
+const APP_SHELL = ['/', '/index.html', '/favicon.svg', '/app-icon.svg', '/icon-192.png', '/badge-96.png', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -59,8 +59,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'LeadLoop';
   const options = {
     body: data.body || '',
-    icon: '/app-icon.svg',
-    badge: '/app-icon.svg',
+    icon: '/icon-192.png',
+    badge: '/badge-96.png',
     // Same tag → the new alert REPLACES the old one for that lead, instead of
     // stacking five notifications about the same person.
     tag: data.tag || 'leadloop',
