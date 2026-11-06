@@ -162,6 +162,10 @@ body {
   line-height: var(--leading-normal);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* No elastic "rubber-band" bounce past the top/bottom of the page (macOS
+     trackpads, iOS). The bounce dragged the whole app shell — sticky sidebar
+     and top bar included — away from the edge, so the app felt unanchored. */
+  overscroll-behavior: none;
 }
 
 #root {

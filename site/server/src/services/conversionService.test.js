@@ -198,6 +198,15 @@ test('test-event code marks events as tests', async () => {
   assert.equal(f.calls[0].body.test_event_code, 'TEST999');
 });
 
+test('accepted-with-warning is sent but keeps Meta’s warning visible', async () => {
+  wire({ config: makeConfig({ meta: { testEventCode: 'TEST1' } }), task: taskDoc({ adConsent: { granted: true } }) });
+  const msg = 'test_event_code "TEST1" does not match an active Test Events session';
+  const f = fakeFetch(() => ({ json: { events_received: 1, messages: [msg] } }));
+  const [row] = await svc.handleMovedToGroup({ taskId: TASK, boardId: BOARD, toGroupId: QUALIFIED }, { fetchImpl: f, now: NOW });
+  assert.equal(row.status, 'sent');
+  assert.match(row.reason, /^warning: .*does not match an active Test Events session/);
+});
+
 test('sendMetaTestEvent requires a test code and sends a fictitious lead', async () => {
   const config = makeConfig();
   assert.equal((await svc.sendMetaTestEvent(config, '')).ok, false);

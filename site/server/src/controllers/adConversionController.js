@@ -182,7 +182,14 @@ const testMeta = async (req, res) => {
     }
     const result = await sendMetaTestEvent(config, req.body && req.body.testEventCode);
     if (result.ok) {
-      return res.json({ ok: true, eventsReceived: result.response?.events_received ?? null, fbtraceId: result.response?.fbtrace_id || null });
+      // Meta can accept an event and still warn about it (e.g. the test code
+      // doesn't match an open Test Events session) — pass warnings through.
+      return res.json({
+        ok: true,
+        eventsReceived: result.response?.events_received ?? null,
+        fbtraceId: result.response?.fbtrace_id || null,
+        warnings: Array.isArray(result.response?.messages) ? result.response.messages : [],
+      });
     }
     return res.status(502).json({ ok: false, error: result.error || 'Meta rejected the event' });
   } catch (err) {

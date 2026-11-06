@@ -2111,6 +2111,7 @@
       "no_conversion_action": "Aucune action de conversion Google pour cette étape",
       "lead_deleted": "Le prospect a été supprimé",
       "not_configured": "Non configuré"
-    }
+    },
+    "testWarn": "Meta l’a reçu mais a signalé :"
   }
 }

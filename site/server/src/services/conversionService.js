@@ -119,7 +119,10 @@ const attempt = async (row, { fetchImpl, now = new Date() } = {}) => {
     if (result.ok) {
       row.status = 'sent';
       row.sentAt = now;
-      row.reason = '';
+      // Accepted but warned (Meta `messages`, e.g. a test code that matches no
+      // open Test Events session) — keep the warning visible in the log.
+      const warnings = result.response && Array.isArray(result.response.messages) ? result.response.messages : [];
+      row.reason = warnings.length ? trim(`warning: ${warnings.join(' ')}`) : '';
       row.nextAttemptAt = null;
     } else if (result.retryable && row.attempts < MAX_ATTEMPTS) {
       row.status = 'failed';

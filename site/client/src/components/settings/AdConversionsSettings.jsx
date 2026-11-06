@@ -164,8 +164,14 @@ const AdConversionsSettings = ({ workspaceId }) => {
     setTesting(true);
     setTestResult(null);
     try {
-      await adService.sendMetaTestEvent(workspaceId, meta.testEventCode.trim());
-      setTestResult({ ok: true, text: t('adConversions.testOk', 'Meta received the test event. Check Events Manager → Test events.') });
+      const r = await adService.sendMetaTestEvent(workspaceId, meta.testEventCode.trim());
+      if (Array.isArray(r.warnings) && r.warnings.length > 0) {
+        // Accepted, but Meta flagged something — usually a test code from the
+        // wrong channel in the Test events dropdown. Show Meta's own words.
+        setTestResult({ ok: false, warn: true, text: `${t('adConversions.testWarn', 'Meta received it but warned:')} ${r.warnings.join(' ')}` });
+      } else {
+        setTestResult({ ok: true, text: t('adConversions.testOk', 'Meta received the test event. Check Events Manager → Test events.') });
+      }
     } catch (err) {
       setTestResult({ ok: false, text: err?.response?.data?.error || t('adConversions.testFail', 'Meta rejected the test event.') });
     } finally {
@@ -302,7 +308,18 @@ const AdConversionsSettings = ({ workspaceId }) => {
             )}
           </div>
           {testResult && (
-            <p className="font-body" role="status" style={{ fontSize: 13, color: testResult.ok ? 'var(--color-status-done)' : 'var(--color-status-stuck)' }}>
+            <p
+              className="font-body"
+              role="status"
+              style={{
+                fontSize: 13,
+                color: testResult.ok
+                  ? 'var(--color-status-done)'
+                  : testResult.warn
+                    ? 'var(--color-status-working, #B26A00)'
+                    : 'var(--color-status-stuck)',
+              }}
+            >
               {testResult.text}
             </p>
           )}

@@ -2111,6 +2111,7 @@
       "no_conversion_action": "No Google conversion action for this stage",
       "lead_deleted": "Lead was deleted",
       "not_configured": "Not configured"
-    }
+    },
+    "testWarn": "Meta received it but warned:"
   }
 }
