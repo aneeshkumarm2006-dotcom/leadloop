@@ -111,6 +111,12 @@ const leadConnectionSchema = new mongoose.Schema(
 
     enabled: { type: Boolean, default: true, index: true },
 
+    // Health alerts: when admins were last told this source went quiet. Re-arms
+    // automatically once a new lead arrives (see utils/adTrackingHealth.js).
+    health: {
+      silentAlertedAt: { type: Date, default: null },
+    },
+
     // Lightweight stats surfaced in the docs UI ("12 leads, last 2m ago").
     submissionCount: { type: Number, default: 0 },
     lastSubmissionAt: { type: Date, default: null },

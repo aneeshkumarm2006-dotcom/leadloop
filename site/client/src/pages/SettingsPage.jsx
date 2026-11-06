@@ -97,6 +97,9 @@ const Chip = ({ children, variant = 'grey' }) => {
   );
 };
 
+// `?tab=<key>` deep-links a Settings tab (notifications link to /settings?tab=ads).
+const URL_TABS = ['organisation', 'templates', 'email', 'sms', 'whatsapp', 'ads', 'ai', 'profile'];
+
 /* ------------------------- Organisation tab ------------------------- */
 
 const OrganisationTab = ({ org, isMainAdmin, onRegenerate, onDeleteOrg }) => {
@@ -907,9 +910,11 @@ const SettingsPage = () => {
   const isAdmin = isMainAdmin || isExtraAdmin;
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState(
-    searchParams.get('tab') === 'email' ? 'email' : 'organisation'
-  );
+  const urlTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(URL_TABS.includes(urlTab) ? urlTab : 'organisation');
+  useEffect(() => {
+    if (URL_TABS.includes(urlTab)) setActiveTab(urlTab);
+  }, [urlTab]);
   const [orgState, setOrgState] = useState(currentOrg || null);
   const toast = useToastStore.getState();
 

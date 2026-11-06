@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check } from 'lucide-react';
+import { Check, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import * as adService from '../../services/adConversionService';
@@ -57,6 +58,60 @@ const SectionTitle = ({ children, sub }) => (
   </div>
 );
 
+/**
+ * Setup progress for ad tracking. Every step is derived from real data on the
+ * server, so it ticks itself — and un-ticks if something breaks.
+ */
+const TrackingChecklist = ({ checklist }) => {
+  const { t } = useTranslation();
+  if (!checklist) return null;
+  return (
+    <section style={card} aria-label={t('adTracking.title', 'Ad tracking setup')}>
+      <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+        <h3 className="font-display font-bold" style={{ fontSize: 16, color: 'var(--color-text-primary)' }}>
+          {checklist.allDone
+            ? t('adTracking.allDone', 'Ad tracking is fully set up')
+            : t('adTracking.title', 'Ad tracking setup')}
+        </h3>
+        <span className="font-body" style={{ fontSize: 12.5, color: 'var(--color-text-secondary)' }}>
+          {t('adTracking.progress', '{{done}} of {{total}} done', { done: checklist.completed, total: checklist.total })}
+        </span>
+      </div>
+      <div style={{ height: 6, borderRadius: 3, background: 'var(--color-bg-subtle)', overflow: 'hidden', marginBottom: 12 }}>
+        <div style={{ width: `${checklist.percent}%`, height: '100%', background: 'var(--color-status-done-solid, var(--color-accent))' }} />
+      </div>
+      <ul className="flex flex-col gap-2">
+        {checklist.steps.map((step) => {
+          const isNext = step.id === checklist.nextStepId;
+          return (
+            <li key={step.id} className="flex items-start gap-2 font-body" style={{ fontSize: 13 }}>
+              {step.done ? (
+                <CheckCircle2 size={16} style={{ color: 'var(--color-status-done)', marginTop: 1, flexShrink: 0 }} aria-hidden="true" />
+              ) : (
+                <Circle size={16} style={{ color: isNext ? 'var(--color-accent)' : 'var(--color-text-muted)', marginTop: 1, flexShrink: 0 }} aria-hidden="true" />
+              )}
+              <span style={{ flex: 1, color: step.done ? 'var(--color-text-secondary)' : 'var(--color-text-primary)', fontWeight: isNext ? 600 : 400 }}>
+                {t(`adTracking.step.${step.id}.title`, step.id)}
+                {step.optional ? <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}> · {t('adTracking.optional', 'optional')}</span> : null}
+                {isNext && (
+                  <span className="block" style={{ fontWeight: 400, fontSize: 12.5, color: 'var(--color-text-secondary)', marginTop: 2 }}>
+                    {t(`adTracking.step.${step.id}.help`, '')}
+                    {step.href && !step.href.startsWith('/settings') ? (
+                      <Link to={step.href} className="inline-flex items-center gap-1 ml-1" style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
+                        {t('adTracking.go', 'Go')} <ArrowRight size={12} />
+                      </Link>
+                    ) : null}
+                  </span>
+                )}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+};
+
 const STATUS_COLOR = {
   sent: 'var(--color-status-done)',
   skipped: 'var(--color-text-muted)',
@@ -89,6 +144,12 @@ const AdConversionsSettings = ({ workspaceId }) => {
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [events, setEvents] = useState([]);
+  const [checklist, setChecklist] = useState(null);
+
+  const loadChecklist = useCallback(() => {
+    if (!workspaceId) return;
+    adService.getAdTrackingChecklist(workspaceId).then(setChecklist).catch(() => {});
+  }, [workspaceId]);
 
   const apply = (c) => {
     setConfig(c);
@@ -117,7 +178,8 @@ const AdConversionsSettings = ({ workspaceId }) => {
       .catch((err) => setError(err?.response?.data?.error || t('adConversions.loadError', 'Could not load ad conversion settings.')))
       .finally(() => setLoading(false));
     loadEvents();
-  }, [workspaceId, t, loadEvents]);
+    loadChecklist();
+  }, [workspaceId, t, loadEvents, loadChecklist]);
 
   useEffect(() => {
     if (!boardId) {
@@ -150,6 +212,7 @@ const AdConversionsSettings = ({ workspaceId }) => {
       };
       if (metaToken.trim()) payload.meta.accessToken = metaToken.trim();
       apply(await adService.saveAdConversions(workspaceId, payload));
+      loadChecklist();
       setSaved(true);
       window.setTimeout(() => setSaved(false), 2000);
       toast.success?.(t('adConversions.saved', 'Ad conversion settings saved'));
@@ -171,6 +234,7 @@ const AdConversionsSettings = ({ workspaceId }) => {
         setTestResult({ ok: false, warn: true, text: `${t('adConversions.testWarn', 'Meta received it but warned:')} ${r.warnings.join(' ')}` });
       } else {
         setTestResult({ ok: true, text: t('adConversions.testOk', 'Meta received the test event. Check Events Manager → Test events.') });
+        loadChecklist();
       }
     } catch (err) {
       setTestResult({ ok: false, text: err?.response?.data?.error || t('adConversions.testFail', 'Meta rejected the test event.') });
@@ -210,6 +274,8 @@ const AdConversionsSettings = ({ workspaceId }) => {
           {t('adConversions.description', 'When a lead reaches a stage you choose, LeadLoop reports it to Meta and Google Ads so your campaigns optimise for real customers, not just form fills. Only leads who gave ad consent are sent.')}
         </p>
       </header>
+
+      <TrackingChecklist checklist={checklist} />
 
       {config && !config.encryptionConfigured && (
         <p className="font-body" role="alert" style={{ fontSize: 13, color: 'var(--color-status-stuck)' }}>

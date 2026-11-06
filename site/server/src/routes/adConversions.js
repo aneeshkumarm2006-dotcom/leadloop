@@ -16,6 +16,7 @@ router.get('/workspaces/:id/ad-conversions', requireOrgAdmin, c.getConfig);
 router.put('/workspaces/:id/ad-conversions', requireOrgAdmin, c.updateConfig);
 router.post('/workspaces/:id/ad-conversions/meta/test', requireOrgAdmin, c.testMeta);
 router.get('/workspaces/:id/ad-conversions/events', requireOrgAdmin, c.listEvents);
+router.get('/workspaces/:id/ad-conversions/checklist', requireOrgAdmin, c.checklist);
 router.get('/tasks/:id/conversions', c.listTaskConversions);
 
 module.exports = router;

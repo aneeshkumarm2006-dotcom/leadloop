@@ -514,6 +514,7 @@ const NOTIF_TYPE_COLOR = {
   commented: 'var(--color-status-working)',
   statusChanged: 'var(--color-status-done)',
   dueSoon: 'var(--color-status-stuck)',
+  health: 'var(--color-status-stuck)', // setup alerts: source went quiet, sends failing
 };
 
 const NotificationItem = ({ notif, onClick, onDelete }) => {
@@ -613,6 +614,12 @@ const NotificationBell = () => {
     // Navigate to the board and highlight the task
     const taskId = notif.task?._id || notif.task;
     const boardId = notif.task?.board;
+    // System alerts carry an in-app link to where the problem is fixed.
+    if (notif.link && String(notif.link).startsWith('/')) {
+      setOpen(false);
+      navigate(notif.link);
+      return;
+    }
     if (boardId && taskId) {
       setOpen(false);
       navigate(`/boards/${boardId}?highlightTask=${taskId}`);

@@ -2131,5 +2131,50 @@
       "not_configured": "Not configured"
     },
     "testWarn": "Meta received it but warned:"
+  },
+  "adTracking": {
+    "title": "Ad tracking setup",
+    "allDone": "Ad tracking is fully set up",
+    "progress": "{{done}} of {{total}} done",
+    "optional": "optional",
+    "go": "Go",
+    "step": {
+      "websiteSource": {
+        "title": "Connect your website",
+        "help": "Lead Sources → “Website (no code)”: paste one line on your site."
+      },
+      "firstSubmission": {
+        "title": "Receive a first form lead",
+        "help": "Submit your website form once to check leads arrive."
+      },
+      "adClicks": {
+        "title": "Capture an ad click",
+        "help": "Open your site from an ad (or add ?gclid=TEST to the URL), then submit the form. The lead shows its ad source."
+      },
+      "consent": {
+        "title": "Capture ad consent",
+        "help": "A visitor ticks the consent box on your form. Only consented leads are reported to ad platforms."
+      },
+      "stages": {
+        "title": "Choose which stages count",
+        "help": "Below: pick the stages that mean “Qualified lead” and “Customer”."
+      },
+      "metaConnect": {
+        "title": "Connect Meta",
+        "help": "Below: add your dataset ID and access token, turn Meta on and save."
+      },
+      "metaVerified": {
+        "title": "Verify with Meta",
+        "help": "Below: add a test event code and click “Send test event”."
+      },
+      "metaLive": {
+        "title": "Go live",
+        "help": "Below: clear the test event code and save — qualified leads now count in your Meta results."
+      },
+      "google": {
+        "title": "Connect Google Ads",
+        "help": "Below: add your Google Ads customer ID and conversion action."
+      }
+    }
   }
 }

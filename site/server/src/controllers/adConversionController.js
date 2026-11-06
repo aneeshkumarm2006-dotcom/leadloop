@@ -19,6 +19,7 @@ const Organisation = require('../models/Organisation');
 const aesEncrypt = require('../utils/aesEncrypt');
 const googleAds = require('../services/googleAdsConversions');
 const { sendMetaTestEvent } = require('../services/conversionService');
+const { getChecklist } = require('../services/adTrackingService');
 
 const asId = (v) => (v == null ? '' : v.toString());
 const isObjectId = (v) => mongoose.Types.ObjectId.isValid(v);
@@ -184,6 +185,11 @@ const testMeta = async (req, res) => {
     if (result.ok) {
       // Meta can accept an event and still warn about it (e.g. the test code
       // doesn't match an open Test Events session) — pass warnings through.
+      const warned = Array.isArray(result.response?.messages) && result.response.messages.length > 0;
+      if (!warned) {
+        config.meta.lastTestOkAt = new Date(); // ticks "Meta verified" on the checklist
+        await config.save();
+      }
       return res.json({
         ok: true,
         eventsReceived: result.response?.events_received ?? null,
@@ -231,4 +237,14 @@ const listTaskConversions = async (req, res) => {
   }
 };
 
-module.exports = { getConfig, updateConfig, testMeta, listEvents, listTaskConversions, serialize };
+/** GET /api/workspaces/:id/ad-conversions/checklist — derived setup progress (admin). */
+const checklist = async (req, res) => {
+  try {
+    return res.json({ checklist: await getChecklist(req.params.id) });
+  } catch (err) {
+    console.error('adTrackingChecklist error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+module.exports = { getConfig, updateConfig, testMeta, listEvents, listTaskConversions, checklist, serialize };

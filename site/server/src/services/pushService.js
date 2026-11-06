@@ -114,6 +114,16 @@ const buildNotification = (kind, data = {}) => {
         url,
         requireInteraction: false,
       };
+    case 'health':
+      // Setup health alerts (lead source went quiet, conversion sends failing).
+      return {
+        kind,
+        title: String(data.title || 'LeadLoop needs attention').slice(0, 80),
+        body: String(data.body || '').slice(0, 160),
+        tag: `health-${data.key || 'general'}`,
+        url: data.link || url,
+        requireInteraction: false,
+      };
     case 'lead_replied':
       return {
         kind,

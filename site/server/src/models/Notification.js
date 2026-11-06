@@ -18,7 +18,13 @@ const notificationSchema = new mongoose.Schema({
     // 'automation' is emitted by the F5 NOTIFY_PERSON action (in-app notice from
     // an automation rather than a direct user action).
     type: String,
-    enum: ['assigned', 'commented', 'mentioned', 'statusChanged', 'dueSoon', 'automation'],
+    // 'health' — system alerts about the workspace's setup (a lead source went
+    // quiet, ad-conversion sends failing). They carry a `link`, not a task.
+    enum: ['assigned', 'commented', 'mentioned', 'statusChanged', 'dueSoon', 'automation', 'health'],
+  },
+  // In-app path to open when the notification is clicked (e.g. /lead-sources).
+  link: {
+    type: String,
   },
   message: {
     type: String,

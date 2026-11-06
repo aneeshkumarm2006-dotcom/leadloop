@@ -42,6 +42,8 @@ const adConversionConfigSchema = new mongoose.Schema(
       // When set, every event is sent as a TEST event (Events Manager → Test
       // events) and never counts towards real ad results.
       testEventCode: { type: String, default: '' },
+      // Last time "Send test event" came back clean (no Meta warnings).
+      lastTestOkAt: { type: Date, default: null },
       eventNames: {
         qualified: { type: String, default: 'QualifiedLead' },
         customer: { type: String, default: 'ConvertedLead' },
@@ -58,6 +60,11 @@ const adConversionConfigSchema = new mongoose.Schema(
     },
 
     rules: { type: [ruleSchema], default: [] },
+
+    // Health-alert bookkeeping (see services/adTrackingService.js).
+    health: {
+      lastFailureAlertAt: { type: Date, default: null },
+    },
 
     // Country code assumed for 10-digit phone numbers when hashing.
     defaultPhoneCountryCode: { type: String, default: '1' },

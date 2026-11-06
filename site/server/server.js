@@ -17,6 +17,7 @@ const {
   mountConversionDispatcher,
   startConversionRunner,
 } = require('./src/services/conversionService');
+const { startHealthRunner } = require('./src/services/adTrackingService');
 const {
   mountLeadIntakeRunner,
 } = require('./src/services/leadIntakeRunner');
@@ -61,6 +62,8 @@ const start = async () => {
   // Report leads reaching a mapped stage back to Meta / Google Ads.
   mountConversionDispatcher();
   startConversionRunner();
+  // Hourly: alert admins when a lead source goes quiet or conversion sends fail.
+  startHealthRunner();
   // F7 — warn if the in-memory rate-limit bucket won't meter across replicas.
   warnIfMultiReplica();
   app.listen(PORT, () => {

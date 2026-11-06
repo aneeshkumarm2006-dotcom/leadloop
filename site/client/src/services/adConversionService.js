@@ -23,6 +23,12 @@ export const sendMetaTestEvent = async (workspaceId, testEventCode) => {
   return data;
 };
 
+/** GET — the ad-tracking setup checklist, derived from real data. */
+export const getAdTrackingChecklist = async (workspaceId) => {
+  const { data } = await api.get(`/api/workspaces/${workspaceId}/ad-conversions/checklist`);
+  return data.checklist;
+};
+
 /** GET — latest sends across the workspace. */
 export const listConversionEvents = async (workspaceId, limit = 30) => {
   const { data } = await api.get(`/api/workspaces/${workspaceId}/ad-conversions/events`, { params: { limit } });

@@ -2131,5 +2131,50 @@
       "not_configured": "Non configuré"
     },
     "testWarn": "Meta l’a reçu mais a signalé :"
+  },
+  "adTracking": {
+    "title": "Configuration du suivi publicitaire",
+    "allDone": "Le suivi publicitaire est entièrement configuré",
+    "progress": "{{done}} sur {{total}} terminées",
+    "optional": "facultatif",
+    "go": "Aller",
+    "step": {
+      "websiteSource": {
+        "title": "Connecter votre site",
+        "help": "Sources de prospects → « Site web (sans code) » : collez une ligne sur votre site."
+      },
+      "firstSubmission": {
+        "title": "Recevoir un premier prospect",
+        "help": "Envoyez votre formulaire une fois pour vérifier que les prospects arrivent."
+      },
+      "adClicks": {
+        "title": "Capturer un clic publicitaire",
+        "help": "Ouvrez votre site depuis une annonce (ou ajoutez ?gclid=TEST à l’adresse), puis envoyez le formulaire."
+      },
+      "consent": {
+        "title": "Capturer le consentement publicitaire",
+        "help": "Un visiteur coche la case de consentement. Seuls ces prospects sont signalés aux plateformes publicitaires."
+      },
+      "stages": {
+        "title": "Choisir les étapes à signaler",
+        "help": "Ci-dessous : choisissez les étapes « Prospect qualifié » et « Client »."
+      },
+      "metaConnect": {
+        "title": "Connecter Meta",
+        "help": "Ci-dessous : ajoutez l’ID du jeu de données et le jeton, activez Meta et enregistrez."
+      },
+      "metaVerified": {
+        "title": "Vérifier avec Meta",
+        "help": "Ci-dessous : ajoutez un code d’événement test et cliquez sur « Envoyer un événement test »."
+      },
+      "metaLive": {
+        "title": "Passer en direct",
+        "help": "Ci-dessous : videz le code d’événement test et enregistrez."
+      },
+      "google": {
+        "title": "Connecter Google Ads",
+        "help": "Ci-dessous : ajoutez l’ID client Google Ads et l’action de conversion."
+      }
+    }
   }
 }
