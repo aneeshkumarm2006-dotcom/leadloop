@@ -96,3 +96,11 @@ test('humanDuration', () => {
   assert.equal(H.humanDuration(36 * HOUR), '36 hours');
   assert.equal(H.humanDuration(3 * DAY), '3 days');
 });
+
+test('checklist: tiktok + website tag steps are optional (do not change the total)', () => {
+  const c = H.buildAdTrackingChecklist({ tiktokConnected: true, websiteTagSeen: true });
+  assert.equal(c.total, 8);
+  assert.equal(c.steps.find((s) => s.id === 'tiktok').done, true);
+  assert.equal(c.steps.find((s) => s.id === 'websiteTag').done, true);
+  assert.equal(c.steps.find((s) => s.id === 'tiktok').optional, true);
+});

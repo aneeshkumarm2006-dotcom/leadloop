@@ -14,7 +14,7 @@ const conversionEventSchema = new mongoose.Schema(
     workspaceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Organisation', required: true, index: true },
     taskId: { type: mongoose.Schema.Types.ObjectId, ref: 'Task', required: true, index: true },
     boardId: { type: mongoose.Schema.Types.ObjectId, ref: 'Board', required: true },
-    platform: { type: String, enum: ['meta', 'google'], required: true },
+    platform: { type: String, enum: ['meta', 'google', 'tiktok'], required: true },
     stage: { type: String, enum: ['qualified', 'customer'], required: true },
     eventId: { type: String, required: true }, // sent to the platform for de-duplication
     eventTime: { type: Date, required: true }, // when the lead reached the stage

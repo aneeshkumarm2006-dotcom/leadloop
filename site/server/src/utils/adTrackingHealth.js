@@ -32,6 +32,9 @@ const buildAdTrackingChecklist = (s = {}) => {
     { id: 'metaVerified', done: !!s.metaVerified, href: '/settings?tab=ads' },
     { id: 'metaLive', done: !!s.metaLive, href: '/settings?tab=ads' },
     { id: 'google', done: !!s.googleConnected, href: '/settings?tab=ads', optional: true },
+    { id: 'tiktok', done: !!s.tiktokConnected, href: '/settings?tab=ads', optional: true },
+    // The website tag has been seen on a live page (beacon) or found by a site check.
+    { id: 'websiteTag', done: !!s.websiteTagSeen, href: '/settings?tab=ads', optional: true },
   ];
   const required = steps.filter((x) => !x.optional);
   const completed = required.filter((x) => x.done).length;

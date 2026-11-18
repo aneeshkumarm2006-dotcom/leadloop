@@ -34,7 +34,9 @@ const getChecklist = async (workspaceId) => {
   const boardIds = boards.map((b) => b._id);
   const [sources, attributedLeads, consentedLeads, config, metaSent] = await Promise.all([
     boardIds.length
-      ? LeadConnection.find({ boardId: { $in: boardIds }, sourceType: { $in: WEBSITE_SOURCES } }).select('submissionCount').lean()
+      ? LeadConnection.find({ boardId: { $in: boardIds }, sourceType: { $in: WEBSITE_SOURCES } })
+        .select('submissionCount snippet.lastSeenAt snippet.lastCheck')
+        .lean()
       : [],
     boardIds.length ? Task.countDocuments({ board: { $in: boardIds }, 'attribution.channel': { $in: AD_CHANNELS } }) : 0,
     boardIds.length ? Task.countDocuments({ board: { $in: boardIds }, 'attribution.adConsent.granted': true }) : 0,
@@ -43,6 +45,13 @@ const getChecklist = async (workspaceId) => {
   ]);
   const meta = (config && config.meta) || {};
   const google = (config && config.google) || {};
+  const tiktok = (config && config.tiktok) || {};
+  const tagSeen = (s) => {
+    const sn = (s && s.snippet) || {};
+    if (sn.lastSeenAt) return true;
+    const checks = sn.lastCheck && Array.isArray(sn.lastCheck.checks) ? sn.lastCheck.checks : [];
+    return checks.some((c) => c && c.id === 'tag' && c.status === 'ok');
+  };
   return H.buildAdTrackingChecklist({
     websiteSources: sources.length,
     websiteSubmissions: sources.reduce((n, s) => n + (s.submissionCount || 0), 0),
@@ -53,6 +62,8 @@ const getChecklist = async (workspaceId) => {
     metaVerified: !!meta.lastTestOkAt || metaSent > 0,
     metaLive: !!(meta.enabled && meta.datasetId && meta.accessToken && !meta.testEventCode),
     googleConnected: !!(google.enabled && google.customerId),
+    tiktokConnected: !!(tiktok.enabled && tiktok.pixelCode && tiktok.accessToken),
+    websiteTagSeen: sources.some(tagSeen),
   });
 };
 
@@ -128,7 +139,7 @@ const runHealthCheck = async ({ now = new Date() } = {}) => {
     await alertAdmins(org, {
       key: `conversions-${config.workspaceId}`,
       title: 'Ad conversion sends are failing',
-      body: `${failedCount} qualified lead${failedCount === 1 ? '' : 's'} could not be reported to Meta / Google. Open Ad conversions → Recent sends for the reason.`,
+      body: `${failedCount} qualified lead${failedCount === 1 ? '' : 's'} could not be reported to Meta / Google / TikTok. Open Ad conversions → Recent sends for the reason.`,
       link: '/settings?tab=ads',
     });
     config.health = { ...(config.health || {}), lastFailureAlertAt: now };

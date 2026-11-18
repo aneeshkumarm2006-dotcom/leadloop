@@ -38,6 +38,9 @@ const SOURCE_TYPES = {
   facebook_lead_ads: { delivery: 'webhook', adapter: 'facebook', ready: true },
   instagram_lead_ads: { delivery: 'webhook', adapter: 'facebook', ready: true },
   meta_ads: { delivery: 'webhook', adapter: 'facebook', ready: true },
+  // TikTok Instant Forms — pulled via the TikTok lead subscription webhook
+  // (services/adConnectService.js), never a pasted URL.
+  tiktok_lead_ads: { delivery: 'webhook', adapter: 'tiktok', ready: true },
   google_forms: { delivery: 'poll', adapter: 'passthrough', ready: false },
   zillow: { delivery: 'email', adapter: 'passthrough', ready: false },
   realtor_com: { delivery: 'email', adapter: 'passthrough', ready: false },
@@ -99,7 +102,59 @@ const adaptFacebook = (body) => {
   return Object.keys(out).length ? out : body;
 };
 
+/**
+ * TikTok Instant Forms (lead generation). The exact webhook/lead body shape is
+ * not pinned down yet (see adConnectService → "verify once the developer app is
+ * approved"), so this adapter is deliberately tolerant: it looks for the first
+ * array of answer objects under any of the common keys and accepts
+ * `{ name|field_name|question|label|key|field_id, value|field_value|answer|values[] }`
+ * items. Envelope ids (lead / form / ad / campaign) are kept as flat fields.
+ * Secrets that could ride along (access tokens, signatures) are never copied.
+ */
+const TIKTOK_FIELD_ARRAYS = ['field_data', 'fields', 'lead_data', 'answers', 'data', 'user_info', 'questions'];
+const TIKTOK_NAME_KEYS = ['name', 'field_name', 'question', 'label', 'key', 'field_id', 'question_name'];
+const TIKTOK_VALUE_KEYS = ['value', 'field_value', 'answer', 'values', 'field_values', 'answers'];
+const TIKTOK_ENVELOPE = ['lead_id', 'form_id', 'form_name', 'ad_id', 'ad_name', 'adgroup_id', 'campaign_id', 'campaign_name', 'create_time', 'created_time'];
+
+const firstValue = (v) => {
+  if (Array.isArray(v)) return v.length ? firstValue(v[0]) : '';
+  if (v == null) return '';
+  if (typeof v === 'object') return v.value != null ? String(v.value) : JSON.stringify(v);
+  return v;
+};
+
+const adaptTikTok = (body) => {
+  if (!isPlainObject(body)) return body;
+  const src = isPlainObject(body.lead) ? body.lead : body;
+  let items = null;
+  for (const k of TIKTOK_FIELD_ARRAYS) {
+    if (Array.isArray(src[k]) && src[k].some(isPlainObject)) {
+      items = src[k];
+      break;
+    }
+  }
+  const out = {};
+  if (items) {
+    for (const item of items) {
+      if (!isPlainObject(item)) continue;
+      const nameKey = TIKTOK_NAME_KEYS.find((k) => item[k] != null && item[k] !== '');
+      if (!nameKey) continue;
+      const valueKey = TIKTOK_VALUE_KEYS.find((k) => item[k] !== undefined);
+      out[String(item[nameKey])] = valueKey ? firstValue(item[valueKey]) : '';
+    }
+  } else if (isPlainObject(src.data)) {
+    // `{ data: { email: "...", phone_number: "..." } }`
+    for (const [k, v] of Object.entries(src.data)) out[k] = firstValue(v);
+  }
+  for (const k of TIKTOK_ENVELOPE) {
+    const v = src[k] != null ? src[k] : body[k];
+    if (v != null && v !== '' && typeof v !== 'object') out[k] = v;
+  }
+  return Object.keys(out).length ? out : body;
+};
+
 const ADAPTERS = {
+  tiktok: adaptTikTok,
   passthrough: (body) => body,
   google_ads: adaptGoogleAds,
   facebook: adaptFacebook,

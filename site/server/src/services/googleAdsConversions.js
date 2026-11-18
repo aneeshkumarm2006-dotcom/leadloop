@@ -9,6 +9,10 @@
  *   GOOGLE_ADS_REFRESH_TOKEN, GOOGLE_ADS_LOGIN_CUSTOMER_ID,
  *   GOOGLE_ADS_API_VERSION (optional; defaults below — bump when Google sunsets it).
  *
+ * Workspaces that connected with "Sign in with Google" pass their own
+ * (decrypted) refresh token + login customer id instead; the OAuth client is
+ * GOOGLE_ADS_OAUTH_CLIENT_ID/SECRET (falls back to GOOGLE_ADS_CLIENT_ID/SECRET).
+ *
  * Result shape matches metaCapi.sendEvents: { ok, retryable, error, response }.
  */
 
@@ -22,17 +26,47 @@ const missingConfig = () =>
 
 const isConfigured = () => missingConfig().length === 0;
 
-// Access tokens live ~1h; cache one per process.
-let cached = { token: null, expiresAt: 0 };
+/**
+ * OAuth client used for per-workspace ("Sign in with Google") connections:
+ * GOOGLE_ADS_OAUTH_CLIENT_ID/SECRET, falling back to the agency client.
+ */
+const oauthClient = () => ({
+  clientId: String(process.env.GOOGLE_ADS_OAUTH_CLIENT_ID || process.env.GOOGLE_ADS_CLIENT_ID || '').trim(),
+  clientSecret: String(process.env.GOOGLE_ADS_OAUTH_CLIENT_SECRET || process.env.GOOGLE_ADS_CLIENT_SECRET || '').trim(),
+});
 
-const accessToken = async (fetchImpl) => {
-  if (cached.token && Date.now() < cached.expiresAt - 60000) return cached.token;
+/** Can workspaces connect their own Google Ads account with OAuth? */
+const isOAuthConfigured = () => {
+  const c = oauthClient();
+  return !!(c.clientId && c.clientSecret && String(process.env.GOOGLE_ADS_DEVELOPER_TOKEN || '').trim());
+};
+
+// Access tokens live ~1h; cache one per refresh token (keyed by its hash so a
+// plaintext refresh token never sits in a Map key / heap dump index).
+const tokenCache = new Map();
+const cacheKey = (refreshToken) => require('crypto').createHash('sha256').update(String(refreshToken)).digest('hex');
+
+/**
+ * Exchange a refresh token for an access token (cached). Without arguments,
+ * uses the agency's env credentials.
+ */
+const accessToken = async (fetchImpl = fetch, creds = null) => {
+  const c = creds && creds.refreshToken
+    ? { ...oauthClient(), refreshToken: creds.refreshToken }
+    : {
+      clientId: process.env.GOOGLE_ADS_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_ADS_CLIENT_SECRET,
+      refreshToken: process.env.GOOGLE_ADS_REFRESH_TOKEN,
+    };
+  const key = cacheKey(c.refreshToken);
+  const hit = tokenCache.get(key);
+  if (hit && Date.now() < hit.expiresAt - 60000) return hit.token;
   const res = await fetchImpl('https://oauth2.googleapis.com/token', {
     method: 'POST',
     body: new URLSearchParams({
-      client_id: process.env.GOOGLE_ADS_CLIENT_ID,
-      client_secret: process.env.GOOGLE_ADS_CLIENT_SECRET,
-      refresh_token: process.env.GOOGLE_ADS_REFRESH_TOKEN,
+      client_id: c.clientId,
+      client_secret: c.clientSecret,
+      refresh_token: c.refreshToken,
       grant_type: 'refresh_token',
     }),
     signal: AbortSignal.timeout(15000),
@@ -40,25 +74,50 @@ const accessToken = async (fetchImpl) => {
   const json = await res.json().catch(() => ({}));
   if (!res.ok || !json.access_token) {
     const err = new Error(`oauth: ${json.error || res.status} ${json.error_description || ''}`.trim());
+    // invalid_grant = revoked / expired consent — retrying won't help.
     err.retryable = res.status >= 500;
+    err.oauthError = json.error || '';
     throw err;
   }
-  cached = { token: json.access_token, expiresAt: Date.now() + (json.expires_in || 3600) * 1000 };
-  return cached.token;
+  if (tokenCache.size > 1000) tokenCache.clear();
+  tokenCache.set(key, { token: json.access_token, expiresAt: Date.now() + (json.expires_in || 3600) * 1000 });
+  return json.access_token;
 };
+
+const forgetAccessToken = (refreshToken) => tokenCache.delete(cacheKey(refreshToken));
 
 /** Google reports per-conversion problems as a partial failure, not an HTTP error. */
 const RETRYABLE_PARTIAL = /TOO_RECENT|CLICK_NOT_FOUND|too recent|INTERNAL_ERROR|DEADLINE/i;
 
-const uploadClickConversions = async ({ customerId, conversions, validateOnly = false, fetchImpl = fetch }) => {
-  const missing = missingConfig();
-  if (missing.length) return { ok: false, retryable: false, error: `google_not_configured: missing ${missing.join(', ')}` };
+/**
+ * @param {Object} args
+ * @param {string} args.customerId
+ * @param {Object[]} args.conversions
+ * @param {string} [args.refreshToken]     per-workspace OAuth refresh token (decrypted);
+ *                                         omit to use the agency env credentials
+ * @param {string} [args.loginCustomerId]  manager id for OAuth connections reached via an MCC
+ */
+const uploadClickConversions = async ({
+  customerId,
+  conversions,
+  refreshToken = null,
+  loginCustomerId = '',
+  validateOnly = false,
+  fetchImpl = fetch,
+}) => {
+  const workspaceCreds = !!refreshToken;
+  if (workspaceCreds) {
+    if (!isOAuthConfigured()) return { ok: false, retryable: false, error: 'google_not_configured: missing OAuth client / developer token' };
+  } else {
+    const missing = missingConfig();
+    if (missing.length) return { ok: false, retryable: false, error: `google_not_configured: missing ${missing.join(', ')}` };
+  }
   const cid = digits(customerId);
   if (cid.length !== 10) return { ok: false, retryable: false, error: 'google_customer_id_invalid' };
 
   let token;
   try {
-    token = await accessToken(fetchImpl);
+    token = await accessToken(fetchImpl, workspaceCreds ? { refreshToken } : null);
   } catch (err) {
     return { ok: false, retryable: err.retryable !== false, error: err.message };
   }
@@ -68,7 +127,7 @@ const uploadClickConversions = async ({ customerId, conversions, validateOnly = 
     Authorization: `Bearer ${token}`,
     'developer-token': process.env.GOOGLE_ADS_DEVELOPER_TOKEN,
   };
-  const login = digits(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID);
+  const login = workspaceCreds ? digits(loginCustomerId) : digits(process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID);
   if (login) headers['login-customer-id'] = login;
 
   let res;
@@ -87,7 +146,7 @@ const uploadClickConversions = async ({ customerId, conversions, validateOnly = 
 
   if (!res.ok) {
     const e = (json && (json.error || (Array.isArray(json) && json[0] && json[0].error))) || {};
-    if (res.status === 401) cached = { token: null, expiresAt: 0 };
+    if (res.status === 401) forgetAccessToken(workspaceCreds ? refreshToken : process.env.GOOGLE_ADS_REFRESH_TOKEN);
     return {
       ok: false,
       retryable: res.status >= 500 || res.status === 429 || res.status === 401,
@@ -102,4 +161,13 @@ const uploadClickConversions = async ({ customerId, conversions, validateOnly = 
   return { ok: true, response: { results: (json && json.results) || [] } };
 };
 
-module.exports = { uploadClickConversions, isConfigured, missingConfig, API_VERSION };
+module.exports = {
+  uploadClickConversions,
+  isConfigured,
+  missingConfig,
+  isOAuthConfigured,
+  oauthClient,
+  accessToken,
+  forgetAccessToken,
+  API_VERSION,
+};

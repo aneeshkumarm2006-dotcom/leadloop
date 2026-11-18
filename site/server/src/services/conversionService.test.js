@@ -216,3 +216,107 @@ test('sendMetaTestEvent requires a test code and sends a fictitious lead', async
   assert.equal(f.calls[0].body.test_event_code, 'TEST42');
   assert.equal(f.calls[0].body.access_token, 'EAAtesttoken'); // decrypted at send time
 });
+
+// --- TikTok + per-workspace Google ----------------------------------------------------
+
+const tiktokEvents = require('./tiktokEvents');
+
+test('tiktokEvents: success, test code, and error classification (code in body)', async () => {
+  const ok = fakeFetch(() => ({ json: { code: 0, message: 'OK', request_id: 'r1' } }));
+  const r = await tiktokEvents.sendEvents({ pixelCode: 'CABC123DEF', accessToken: 'tt', events: [{ event: 'X' }], testEventCode: 'TEST9', fetchImpl: ok });
+  assert.equal(r.ok, true);
+  assert.match(ok.calls[0].url, /business-api\.tiktok\.com\/open_api\/v1\.3\/event\/track\/$/);
+  assert.equal(ok.calls[0].init.headers['Access-Token'], 'tt');
+  assert.deepEqual(
+    [ok.calls[0].body.event_source, ok.calls[0].body.event_source_id, ok.calls[0].body.test_event_code],
+    ['web', 'CABC123DEF', 'TEST9']
+  );
+
+  const bad = fakeFetch(() => ({ json: { code: 40002, message: 'Invalid param' } }));
+  const r2 = await tiktokEvents.sendEvents({ pixelCode: 'C', accessToken: 't', events: [], fetchImpl: bad });
+  assert.deepEqual([r2.ok, r2.retryable], [false, false]);
+  assert.match(r2.error, /Invalid param \(code 40002\)/);
+
+  const limited = fakeFetch(() => ({ json: { code: 40100, message: 'QPS' } }));
+  assert.equal((await tiktokEvents.sendEvents({ pixelCode: 'C', accessToken: 't', events: [], fetchImpl: limited })).retryable, true);
+  assert.equal((await tiktokEvents.sendEvents({ pixelCode: '', accessToken: 't', events: [] })).error, 'tiktok_not_configured');
+});
+
+test('enabledPlatforms includes tiktok only with pixel + token', () => {
+  const c = makeConfig();
+  assert.deepEqual(svc.enabledPlatforms(c), ['meta']);
+  c.tiktok.enabled = true;
+  c.tiktok.pixelCode = 'CABC123DEF';
+  assert.deepEqual(svc.enabledPlatforms(c), ['meta']);
+  c.setTikTokToken('tt-token');
+  assert.deepEqual(svc.enabledPlatforms(c), ['meta', 'tiktok']);
+  assert.notEqual(c.tiktok.accessToken, 'tt-token'); // stored encrypted
+  assert.equal(c.getTikTokToken(), 'tt-token');
+});
+
+test('lead moved into a mapped stage → sent to TikTok too', async () => {
+  const config = makeConfig();
+  config.tiktok.enabled = true;
+  config.tiktok.pixelCode = 'CABC123DEF';
+  config.setTikTokToken('tt-token');
+  wire({ config, task: taskDoc({ adConsent: { granted: true }, ttclid: 'tt-click' }) });
+  const f = fakeFetch((url) => (url.includes('tiktok') ? { json: { code: 0 } } : { json: { events_received: 1 } }));
+  const rows = await svc.handleMovedToGroup({ taskId: TASK, boardId: BOARD, toGroupId: QUALIFIED }, { fetchImpl: f, now: NOW });
+  assert.deepEqual(rows.map((r) => [r.platform, r.status]), [['meta', 'sent'], ['tiktok', 'sent']]);
+  const tt = f.calls.find((c) => c.url.includes('tiktok')).body;
+  assert.equal(tt.data[0].event, 'QualifiedLead');
+  assert.equal(tt.data[0].user.ttclid, 'tt-click');
+  assert.equal(tt.data[0].event_id, `${TASK}:qualified`);
+});
+
+test('googleCreds: agency by default, workspace refresh token on oauth, null when undecryptable', () => {
+  const c = makeConfig();
+  assert.deepEqual(svc.googleCreds(c), {});
+  c.google.connection.method = 'oauth';
+  assert.equal(svc.googleCreds(c), null); // fail closed — never fall back to agency creds
+  c.setGoogleRefreshToken('1//ws-refresh');
+  c.google.connection.loginCustomerId = '1112223333';
+  assert.deepEqual(svc.googleCreds(c), { refreshToken: '1//ws-refresh', loginCustomerId: '1112223333' });
+});
+
+test('googleAds: per-workspace refresh token uses the OAuth client + its own login id', async () => {
+  Object.assign(process.env, {
+    GOOGLE_ADS_DEVELOPER_TOKEN: 'dev',
+    GOOGLE_ADS_OAUTH_CLIENT_ID: 'oauth-cid',
+    GOOGLE_ADS_OAUTH_CLIENT_SECRET: 'oauth-sec',
+    GOOGLE_ADS_LOGIN_CUSTOMER_ID: '296-111-2222',
+  });
+  const f = fakeFetch((url) => (url.includes('oauth2') ? { json: { access_token: 'ws-at', expires_in: 3600 } } : { json: { results: [{}] } }));
+  const r = await googleAds.uploadClickConversions({
+    customerId: '1234567890',
+    conversions: [{ gclid: 'x' }],
+    refreshToken: '1//ws-refresh-2',
+    loginCustomerId: '999-888-7777',
+    fetchImpl: f,
+  });
+  assert.equal(r.ok, true);
+  const tokenCall = f.calls.find((c) => c.url.includes('oauth2'));
+  assert.equal(tokenCall.init.body.get('client_id'), 'oauth-cid');
+  assert.equal(tokenCall.init.body.get('refresh_token'), '1//ws-refresh-2');
+  const upload = f.calls.find((c) => c.url.includes('googleads'));
+  assert.equal(upload.init.headers.Authorization, 'Bearer ws-at');
+  assert.equal(upload.init.headers['login-customer-id'], '9998887777'); // NOT the agency MCC
+
+  // Cached per refresh token: second upload does not hit the token endpoint again.
+  await googleAds.uploadClickConversions({ customerId: '1234567890', conversions: [], refreshToken: '1//ws-refresh-2', fetchImpl: f });
+  assert.equal(f.calls.filter((c) => c.url.includes('oauth2')).length, 1);
+  delete process.env.GOOGLE_ADS_OAUTH_CLIENT_ID;
+  delete process.env.GOOGLE_ADS_OAUTH_CLIENT_SECRET;
+});
+
+test('sendTikTokTestEvent requires a test code and sends a fictitious lead', async () => {
+  const config = makeConfig();
+  config.tiktok.pixelCode = 'CABC123DEF';
+  config.setTikTokToken('tt');
+  assert.equal((await svc.sendTikTokTestEvent(config, '')).ok, false);
+  const f = fakeFetch(() => ({ json: { code: 0 } }));
+  const r = await svc.sendTikTokTestEvent(config, 'TEST42', { fetchImpl: f });
+  assert.equal(r.ok, true);
+  assert.equal(f.calls[0].body.test_event_code, 'TEST42');
+  assert.equal(f.calls[0].body.data[0].user.email, require('../utils/conversionPayloads').sha256('test@example.com'));
+});

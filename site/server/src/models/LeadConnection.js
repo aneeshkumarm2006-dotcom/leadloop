@@ -55,8 +55,10 @@ const leadConnectionSchema = new mongoose.Schema(
     // display ("Key kf3a…"); auth resolves by `tokenHash`, never this.
     keyId: { type: String, index: true },
     // sha256(plaintext key). Unique + sparse so ingest resolves in one indexed
-    // lookup and a not-yet-generated row can't collide on null.
-    tokenHash: { type: String, default: null },
+    // lookup. NO default: key-less connections (website snippet, pulled Lead
+    // Ads) must leave the field ABSENT — a sparse index still indexes explicit
+    // nulls, so `default: null` made the second key-less row fail with E11000.
+    tokenHash: { type: String },
     // Last 4 chars of the plaintext key, for a "•••• a1b2" display hint.
     tokenLast4: { type: String, default: '' },
 
@@ -107,6 +109,16 @@ const leadConnectionSchema = new mongoose.Schema(
       // email field and no password field).
       formSelector: { type: String, default: '' },
       accent: { type: String, default: '' }, // checkbox colour, e.g. #C1A6B0
+      // When true (default) the snippet also loads the workspace's connected
+      // ad pixels (Meta Pixel / Google tag / TikTok Pixel) — see
+      // captureController.getConfig. Off = form capture only.
+      loadPixels: { type: Boolean, default: true },
+      // Install health, from the snippet's once-per-page `seen` beacon.
+      lastSeenAt: { type: Date, default: null },
+      // Unique page paths the tag has been seen on (capped at 50).
+      pagesSeen: { type: [String], default: [] },
+      // Result of the last "Check my website" run (services/siteCheck.js).
+      lastCheck: { type: mongoose.Schema.Types.Mixed, default: null },
     },
 
     enabled: { type: Boolean, default: true, index: true },
@@ -126,7 +138,8 @@ const leadConnectionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// One indexed lookup on ingest; sparse so rows mid-creation (hash null) are exempt.
+// One indexed lookup on ingest; sparse so rows WITHOUT the field are exempt
+// (absent only — an explicit null would still be indexed).
 leadConnectionSchema.index({ tokenHash: 1 }, { unique: true, sparse: true });
 // Partial (not sparse): only real string keys are indexed, so the many
 // connections without one can never collide on a missing/null value.

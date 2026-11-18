@@ -7,13 +7,16 @@
  * text/JSON body parser and rate limits:
  *   - per visitor per site: 10 submissions / minute
  *   - per site overall:     300 submissions / hour
+ * and for the once-per-page install beacon (POST /api/capture/:siteKey/seen):
+ *   - per visitor per site: 30 / minute
+ *   - per site overall:     2000 / hour (beyond that beacons are just dropped)
  * Rate keys use the visitor's real IP (first X-Forwarded-For hop) because the
  * app doesn't enable `trust proxy`, so `req.ip` is the host's proxy.
  */
 
 const express = require('express');
 const rateLimit = require('../middleware/rateLimit');
-const { serveScript, getConfig, submit, clientIp } = require('../controllers/captureController');
+const { serveScript, getConfig, submit, seen, clientIp } = require('../controllers/captureController');
 
 const router = express.Router();
 
@@ -29,6 +32,17 @@ router.post(
   rateLimit({ capacity: 300, windowMs: 60 * 60 * 1000, keyFn: (req) => `capture-site:${req.params.siteKey}` }),
   ...body,
   submit
+);
+
+// Install beacon. Declared after submit; Express matches the exact path, so
+// `/seen` never reaches the submit handler (and vice versa).
+router.post(
+  '/api/capture/:siteKey/seen',
+  rateLimit({ capacity: 30, windowMs: 60 * 1000, keyFn: (req) => `capture-seen:${req.params.siteKey}:${clientIp(req)}` }),
+  rateLimit({ capacity: 2000, windowMs: 60 * 60 * 1000, keyFn: (req) => `capture-seen-site:${req.params.siteKey}` }),
+  express.text({ type: 'text/plain', limit: '2kb' }),
+  express.json({ limit: '2kb' }),
+  seen
 );
 
 module.exports = router;
