@@ -1,15 +1,23 @@
+import Link from "next/link"
+
 import { LeadLoopMark } from "@/components/brand/leadloop-mark"
 
 const productLinks = [
-  { href: "#board", label: "The board" },
-  { href: "#visits", label: "Visit booking" },
-  { href: "#automations", label: "Automations" },
-  { href: "#attribution", label: "Attribution" },
+  { href: "/#board", label: "The board" },
+  { href: "/#visits", label: "Visit booking" },
+  { href: "/#automations", label: "Automations" },
+  { href: "/#attribution", label: "Attribution" },
 ]
 
 const contactLinks = [
   { href: "mailto:hello@leadloop.ca", label: "hello@leadloop.ca" },
-  { href: "#demo", label: "Book a demo" },
+  { href: "/#demo", label: "Book a demo" },
+]
+
+const legalLinks = [
+  { href: "/privacy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms of Service" },
+  { href: "/data-deletion", label: "Data deletion" },
 ]
 
 const footLink =
@@ -39,9 +47,9 @@ export function SiteFooter() {
           <div className="flex flex-col gap-2.5">
             <span className={colTitle}>Product</span>
             {productLinks.map((link) => (
-              <a key={link.href} href={link.href} className={footLink}>
+              <Link key={link.href} href={link.href} className={footLink}>
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
           <div className="flex flex-col gap-2.5">
@@ -50,6 +58,14 @@ export function SiteFooter() {
               <a key={link.label} href={link.href} className={footLink}>
                 {link.label}
               </a>
+            ))}
+          </div>
+          <div className="flex flex-col gap-2.5">
+            <span className={colTitle}>Legal</span>
+            {legalLinks.map((link) => (
+              <Link key={link.href} href={link.href} className={footLink}>
+                {link.label}
+              </Link>
             ))}
           </div>
         </div>

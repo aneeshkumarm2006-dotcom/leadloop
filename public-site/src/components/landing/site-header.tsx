@@ -1,20 +1,22 @@
+import Link from "next/link"
+
 import { buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { loginUrl } from "@/lib/site"
 import { LeadLoopMark } from "@/components/brand/leadloop-mark"
 
 const navLinks = [
-  { href: "#board", label: "The board" },
-  { href: "#visits", label: "Visits" },
-  { href: "#automations", label: "Automations" },
-  { href: "#attribution", label: "Attribution" },
+  { href: "/#board", label: "The board" },
+  { href: "/#visits", label: "Visits" },
+  { href: "/#automations", label: "Automations" },
+  { href: "/#attribution", label: "Attribution" },
 ]
 
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-[100] border-b border-line bg-cream/[0.86] backdrop-blur-[10px]">
       <div className="mx-auto flex max-w-[1180px] items-center justify-between gap-6 px-[clamp(24px,4vw,56px)] py-4">
-        <a href="#top" className="flex items-center gap-3">
+        <Link href="/" className="flex items-center gap-3">
           <span className="flex items-center gap-2.5">
             <LeadLoopMark size={30} />
             <span className="font-display text-[22px] font-extrabold tracking-[-0.02em]">
@@ -24,18 +26,18 @@ export function SiteHeader() {
           <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-taupe max-[420px]:hidden">
             Leasing OS · MTL
           </span>
-        </a>
+        </Link>
 
         <nav className="flex flex-wrap items-center gap-[26px] text-sm text-clay">
           <div className="hidden flex-wrap items-center gap-[26px] md:flex">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 className="text-clay transition-colors hover:text-ink"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
           <a
@@ -44,12 +46,12 @@ export function SiteHeader() {
           >
             Sign in
           </a>
-          <a
-            href="#demo"
+          <Link
+            href="/#demo"
             className={cn(buttonVariants({ variant: "primary", size: "sm" }))}
           >
             Book a demo
-          </a>
+          </Link>
         </nav>
       </div>
     </header>
