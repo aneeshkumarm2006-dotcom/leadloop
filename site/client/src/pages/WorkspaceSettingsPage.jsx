@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Users, Share2 } from 'lucide-react';
 import PageWrapper from '../components/layout/PageWrapper';
+import { PageHeader, PageBody } from '../components/layout/PageHeader';
 import MembersPage from './MembersPage';
 import GrantsTable from '../components/workspace/GrantsTable';
 import useAuthStore from '../store/authStore';
@@ -65,24 +66,13 @@ const WorkspaceSettingsPage = () => {
   const activeTab = tab === 'sharing' && !isAdmin ? 'members' : tab;
 
   return (
-    <PageWrapper>
-      <div className="mx-auto" style={{ maxWidth: 900 }}>
-        <header className="mb-5">
-          <h1
-            className="font-display font-bold text-[color:var(--color-text-primary)]"
-            style={{ fontSize: 28, letterSpacing: '-0.01em' }}
-          >
-            Workspace
-          </h1>
-          <p className="mt-1 font-body text-sm text-[color:var(--color-text-secondary)]">
-            {currentOrg?.displayName || currentOrg?.name || 'Your workspace'}
-          </p>
-        </header>
-
-        <div
-          className="flex items-center gap-1 mb-6"
-          style={{ borderBottom: '1px solid var(--color-border)', paddingBottom: 8 }}
-        >
+    <PageWrapper flush>
+      <PageHeader
+        eyebrow="Settings › Workspace"
+        title="Workspace"
+        subtitle={currentOrg?.displayName || currentOrg?.name || 'Your workspace'}
+      >
+        <nav aria-label="Workspace settings" className="flex flex-wrap items-center gap-1">
           <TabButton
             active={activeTab === 'members'}
             onClick={() => setTab('members')}
@@ -99,14 +89,16 @@ const WorkspaceSettingsPage = () => {
               Sharing
             </TabButton>
           )}
-        </div>
+        </nav>
+      </PageHeader>
 
+      <PageBody>
         {activeTab === 'members' ? (
           <MembersPage embedded />
         ) : (
           <GrantsTable workspaceId={currentOrg?._id} />
         )}
-      </div>
+      </PageBody>
     </PageWrapper>
   );
 };

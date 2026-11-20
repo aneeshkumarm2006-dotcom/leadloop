@@ -4,6 +4,7 @@ import Button from '../ui/Button';
 import * as whatsappService from '../../services/whatsappService';
 import useToastStore from '../../store/toastStore';
 import { formatDate } from '../../utils/dateUtils';
+import { SettingsCard, CardTitle, CardText } from './SettingsLayout';
 
 /**
  * WhatsAppTemplateManager — list the workspace's WhatsApp templates with their
@@ -59,15 +60,15 @@ const WhatsAppTemplateManager = ({ workspaceId }) => {
   };
 
   return (
-    <section className="mt-10 pt-8" style={{ borderTop: '1px solid var(--color-border)' }}>
+    <SettingsCard aria-labelledby="wa-templates-title" style={{ gap: 12 }}>
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div>
-          <h3 className="font-display font-semibold text-[color:var(--color-text-primary)]" style={{ fontSize: 15 }}>
+        <div className="flex-1 min-w-[220px]">
+          <CardTitle id="wa-templates-title" size={17}>
             Message templates
-          </h3>
-          <p className="mt-1 font-body text-xs text-[color:var(--color-text-muted)]">
+          </CardTitle>
+          <CardText style={{ marginTop: 4 }}>
             Pre-approved WhatsApp templates. Only approved templates can be sent outside the 24-hour window.
-          </p>
+          </CardText>
         </div>
         <Button variant="secondary" size="sm" icon={RefreshCw} onClick={handleSync} disabled={syncing}>
           {syncing ? 'Syncing…' : 'Sync from Twilio'}
@@ -75,24 +76,24 @@ const WhatsAppTemplateManager = ({ workspaceId }) => {
       </div>
 
       {error && (
-        <p className="font-body text-[12px] mt-3" style={{ color: 'var(--color-status-stuck)' }} role="alert">
+        <p className="font-body text-[12px]" style={{ margin: 0, color: 'var(--color-status-stuck)' }} role="alert">
           {error}
         </p>
       )}
 
       {loading ? (
-        <p className="font-body mt-3" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+        <p className="font-body" role="status" style={{ margin: 0, fontSize: 13, color: 'var(--color-text-secondary)' }}>
           Loading…
         </p>
       ) : templates.length === 0 ? (
-        <div className="flex items-center gap-2 mt-4" style={{ color: 'var(--color-text-muted)' }}>
+        <div className="flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
           <FileText size={16} aria-hidden="true" />
           <span className="font-body" style={{ fontSize: 13 }}>
             No templates yet. Click “Sync from Twilio” to pull your approved templates.
           </span>
         </div>
       ) : (
-        <ul className="mt-4 flex flex-col gap-2" style={{ listStyle: 'none', margin: 0, padding: 0, maxWidth: 560 }}>
+        <ul className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))', listStyle: 'none', margin: 0, padding: 0 }}>
           {templates.map((t) => {
             const meta = STATUS_META[t.status] || STATUS_META.pending;
             const StatusIcon = meta.icon;
@@ -103,7 +104,7 @@ const WhatsAppTemplateManager = ({ workspaceId }) => {
                   padding: '12px 14px',
                   border: '1px solid var(--color-border)',
                   borderRadius: 'var(--radius-md)',
-                  background: 'var(--color-bg-surface, #FFFFFF)',
+                  background: 'var(--color-bg-input)',
                 }}
               >
                 <div className="flex items-center justify-between gap-3">
@@ -139,7 +140,7 @@ const WhatsAppTemplateManager = ({ workspaceId }) => {
           })}
         </ul>
       )}
-    </section>
+    </SettingsCard>
   );
 };
 

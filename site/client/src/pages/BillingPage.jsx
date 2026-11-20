@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { CreditCard, Check, Users, AlertTriangle, ExternalLink, Sparkles } from 'lucide-react';
+import { Check, Minus, Users, AlertTriangle, ExternalLink, Sparkles } from 'lucide-react';
 import PageWrapper from '../components/layout/PageWrapper';
+import { PageHeader, PageBody } from '../components/layout/PageHeader';
 import Button from '../components/ui/Button';
 import useOrgStore from '../store/orgStore';
 import { getBilling, createCheckout, createPortal } from '../services/billingService';
@@ -29,10 +30,19 @@ const FEATURE_ORDER = [
 
 const card = {
   background: 'var(--color-bg-surface, #fff)',
-  border: '1px solid var(--color-border)',
   borderRadius: 'var(--radius-lg)',
   boxShadow: 'var(--shadow-card)',
   padding: 20,
+};
+
+const notice = { ...card, padding: '12px 16px' };
+
+const pillStyle = {
+  fontSize: 12,
+  fontWeight: 700,
+  padding: '3px 9px',
+  borderRadius: 999,
+  whiteSpace: 'nowrap',
 };
 
 const BillingPage = () => {
@@ -89,35 +99,28 @@ const BillingPage = () => {
   const seats = data?.seats;
   const plans = (data?.plans || []).filter((p) => p.id !== 'free' || sub?.planId === 'free');
 
-  return (
-    <PageWrapper>
-      <div style={{ maxWidth: 1040, margin: '0 auto', padding: '4px 2px 40px' }}>
-        <div className="flex items-center gap-3" style={{ marginBottom: 6 }}>
-          <span
-            className="inline-flex items-center justify-center"
-            style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--color-accent-subtle, rgba(62,107,78,.14))', color: 'var(--color-accent)' }}
-          >
-            <CreditCard size={18} />
-          </span>
-          <h1 className="font-heading" style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-primary)' }}>
-            {t('billing.title', 'Plans & billing')}
-          </h1>
-        </div>
-        <p className="font-body" style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 22, maxWidth: 620 }}>
-          {t('billing.subtitle', 'Per-agent pricing. Upgrade, downgrade or cancel any time — no contract.')}
-        </p>
+  const seatPct =
+    seats && seats.limit != null && seats.limit > 0 ? Math.min(100, Math.round(((seats.used || 0) / seats.limit) * 100)) : null;
 
+  return (
+    <PageWrapper flush>
+      <PageHeader
+        title={t('billing.title', 'Plans & billing')}
+        subtitle={t('billing.subtitle', 'Per-agent pricing. Upgrade, downgrade or cancel any time — no contract.')}
+      />
+      <PageBody className="flex flex-col gap-5">
         {checkoutResult === 'success' && (
           <div
+            role="status"
             className="flex items-start gap-2"
-            style={{ ...card, padding: '12px 14px', marginBottom: 16, borderColor: 'var(--color-status-done)' }}
+            style={{ ...notice, boxShadow: '0 1px 3px rgba(33,30,24,.06), 0 0 0 1px var(--color-status-done)' }}
           >
-            <Check size={16} style={{ color: 'var(--color-status-done)', marginTop: 2, flexShrink: 0 }} />
+            <Check size={16} aria-hidden="true" style={{ color: 'var(--color-status-done)', marginTop: 2, flexShrink: 0 }} />
             <div>
-              <div className="font-heading" style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text-primary)' }}>
+              <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-text-primary)' }}>
                 {t('billing.successTitle', 'Payment received — thank you!')}
               </div>
-              <p className="font-body" style={{ fontSize: 12.5, color: 'var(--color-text-muted)', marginTop: 2 }}>
+              <p className="font-body" style={{ fontSize: 13, color: 'var(--color-text-secondary)', marginTop: 2 }}>
                 {t('billing.successBody', 'Your plan activates as soon as Stripe confirms it — usually a few seconds. Refresh if it still shows the old plan.')}
               </p>
               <button
@@ -128,7 +131,7 @@ const BillingPage = () => {
                   load();
                 }}
                 className="font-body"
-                style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-accent)', background: 'none', border: 'none', padding: 0, marginTop: 6, cursor: 'pointer' }}
+                style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-accent)', background: 'none', border: 'none', padding: 0, marginTop: 6, cursor: 'pointer' }}
               >
                 {t('billing.refresh', 'Refresh now')}
               </button>
@@ -137,49 +140,48 @@ const BillingPage = () => {
         )}
 
         {error && (
-          <p className="font-body" style={{ fontSize: 13, color: 'var(--color-status-stuck)', marginBottom: 14 }}>
+          <p role="alert" className="font-body" style={{ margin: 0, fontSize: 13.5, color: 'var(--color-status-stuck)' }}>
             {error}
           </p>
         )}
 
         {data && !data.configured && (
-          <div className="flex items-start gap-2" style={{ ...card, padding: '12px 14px', marginBottom: 18 }}>
-            <AlertTriangle size={16} style={{ color: 'var(--color-status-working)', marginTop: 2, flexShrink: 0 }} />
-            <p className="font-body" style={{ fontSize: 12.5, color: 'var(--color-text-muted)' }}>
+          <div className="flex items-start gap-2" style={notice}>
+            <AlertTriangle size={16} aria-hidden="true" style={{ color: 'var(--color-status-working)', marginTop: 2, flexShrink: 0 }} />
+            <p className="font-body" style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
               {t('billing.notConfigured', 'Billing is not connected yet. Add your Stripe keys on the server to enable checkout.')}
             </p>
           </div>
         )}
 
-        {/* Current plan + seats */}
+        {/* Current plan + seats — dark pine banner */}
         {!loading && sub && (
-          <div style={{ ...card, marginBottom: 22 }}>
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div>
-                <div className="font-body" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
+          <section
+            aria-label={t('billing.currentPlan', 'Current plan')}
+            style={{ background: 'var(--color-pine)', color: 'var(--color-pine-text)', borderRadius: 18, padding: '22px 26px' }}
+          >
+            <div className="flex items-center flex-wrap" style={{ gap: 28 }}>
+              <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+                <div className="font-mono" style={{ fontSize: 10.5, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--color-pine-text-2)' }}>
                   {t('billing.currentPlan', 'Current plan')}
                 </div>
-                <div className="font-heading" style={{ fontSize: 22, fontWeight: 800, color: 'var(--color-text-primary)', marginTop: 4 }}>
-                  {sub.planName}
+                <div className="flex items-center flex-wrap" style={{ gap: 10, marginTop: 6 }}>
+                  <span className="font-display" style={{ fontSize: 26, fontWeight: 750, lineHeight: 1.15 }}>
+                    {sub.planName}
+                  </span>
                   {sub.status === 'trialing' && (
-                    <span
-                      className="font-body"
-                      style={{ fontSize: 11.5, fontWeight: 700, marginLeft: 10, padding: '3px 8px', borderRadius: 20, background: 'var(--color-accent-subtle, rgba(62,107,78,.14))', color: 'var(--color-accent)', verticalAlign: 'middle' }}
-                    >
+                    <span className="font-body" style={{ ...pillStyle, background: 'var(--color-pine-gold)', color: 'var(--color-pine)' }}>
                       {t('billing.trial', 'Trial')}
                     </span>
                   )}
                   {sub.status === 'past_due' && (
-                    <span
-                      className="font-body"
-                      style={{ fontSize: 11.5, fontWeight: 700, marginLeft: 10, padding: '3px 8px', borderRadius: 20, background: 'rgba(200,80,60,.12)', color: 'var(--color-status-stuck)', verticalAlign: 'middle' }}
-                    >
+                    <span className="font-body" style={{ ...pillStyle, background: 'var(--color-status-stuck-bg)', color: 'var(--color-status-stuck)' }}>
                       {t('billing.pastDue', 'Payment failed')}
                     </span>
                   )}
                 </div>
                 {sub.currentPeriodEnd && (
-                  <div className="font-body" style={{ fontSize: 12.5, color: 'var(--color-text-muted)', marginTop: 4 }}>
+                  <div className="font-body" style={{ fontSize: 13, color: '#C9D4C7', marginTop: 4 }}>
                     {sub.cancelAtPeriodEnd
                       ? t('billing.endsOn', 'Ends on {{date}}', { date: new Date(sub.currentPeriodEnd).toLocaleDateString() })
                       : t('billing.renewsOn', 'Renews on {{date}}', { date: new Date(sub.currentPeriodEnd).toLocaleDateString() })}
@@ -187,139 +189,186 @@ const BillingPage = () => {
                 )}
               </div>
 
-              <div className="flex items-center gap-4 flex-wrap">
-                <div>
-                  <div className="font-body inline-flex items-center gap-1.5" style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>
-                    <Users size={13} /> {t('billing.seats', 'Seats')}
-                  </div>
-                  <div className="font-heading" style={{ fontSize: 20, fontWeight: 800, color: seats?.withinLimit ? 'var(--color-text-primary)' : 'var(--color-status-stuck)', marginTop: 4 }}>
-                    {seats?.used}
-                    <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text-muted)' }}>
-                      {' / '}
-                      {seats?.limit == null ? t('billing.unlimited', 'Unlimited') : seats.limit}
-                    </span>
-                  </div>
+              <div style={{ flex: '0 1 240px', minWidth: 160 }}>
+                <div className="font-body inline-flex items-center gap-1.5" style={{ fontSize: 13, color: 'var(--color-pine-text-2)' }}>
+                  <Users size={13} aria-hidden="true" /> {t('billing.seats', 'Seats')}
                 </div>
-                {sub.hasBillingProfile && (
-                  <Button variant="secondary" onClick={manage} disabled={busy === 'portal'}>
-                    <span className="inline-flex items-center gap-1.5">
-                      {t('billing.manage', 'Manage billing')} <ExternalLink size={14} />
-                    </span>
-                  </Button>
+                <div
+                  className="font-display"
+                  style={{ fontSize: 22, fontWeight: 700, color: seats?.withinLimit === false ? '#F2A598' : 'var(--color-pine-text)' }}
+                >
+                  {seats?.used ?? '—'}
+                  <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-pine-text-2)' }}>
+                    {' / '}
+                    {seats?.limit == null ? t('billing.unlimited', 'Unlimited') : seats.limit}
+                  </span>
+                </div>
+                {seatPct != null && (
+                  <div aria-hidden="true" style={{ height: 6, borderRadius: 6, background: 'rgba(237,232,218,.18)', marginTop: 6 }}>
+                    <div
+                      style={{
+                        width: `${seatPct}%`,
+                        height: 6,
+                        borderRadius: 6,
+                        background: seats?.withinLimit === false ? 'var(--color-status-stuck-solid)' : 'var(--color-pine-gold)',
+                      }}
+                    />
+                  </div>
                 )}
               </div>
+
+              {sub.hasBillingProfile && (
+                <button
+                  type="button"
+                  onClick={manage}
+                  disabled={busy === 'portal'}
+                  className="font-body inline-flex items-center gap-1.5 transition-colors hover:bg-[color:var(--color-pine-raise)] disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{
+                    height: 42,
+                    padding: '0 16px',
+                    borderRadius: 'var(--radius-md)',
+                    border: '1px solid rgba(237,232,218,.3)',
+                    background: 'transparent',
+                    color: 'var(--color-pine-text)',
+                    fontWeight: 700,
+                    fontSize: 14,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t('billing.manage', 'Manage billing')} <ExternalLink size={14} aria-hidden="true" />
+                </button>
+              )}
             </div>
 
             {seats && !seats.withinLimit && (
-              <div className="flex items-start gap-2" style={{ marginTop: 14, padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'rgba(200,80,60,.08)' }}>
-                <AlertTriangle size={15} style={{ color: 'var(--color-status-stuck)', marginTop: 1, flexShrink: 0 }} />
-                <p className="font-body" style={{ fontSize: 12.5, color: 'var(--color-text-secondary)' }}>
+              <div
+                role="alert"
+                className="flex items-start gap-2"
+                style={{ marginTop: 16, padding: '10px 12px', borderRadius: 'var(--radius-md)', background: 'rgba(201,70,60,.22)' }}
+              >
+                <AlertTriangle size={15} aria-hidden="true" style={{ color: '#F2A598', marginTop: 1, flexShrink: 0 }} />
+                <p className="font-body" style={{ fontSize: 13, color: 'var(--color-pine-text)' }}>
                   {t('billing.overSeats', 'You have {{over}} member(s) over your plan limit. Upgrade to keep everyone active.', { over: seats.over })}
                 </p>
               </div>
             )}
-          </div>
+          </section>
         )}
 
-        {/* Plan cards */}
+        {/* Plan cards — across the full width, stack on narrow screens */}
         {loading ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
-            {[0, 1, 2].map((i) => <div key={i} className="skeleton" style={{ height: 300, borderRadius: 12 }} />)}
+          <div aria-busy="true" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 18 }}>
+            {[0, 1, 2].map((i) => <div key={i} className="skeleton" style={{ height: 380, borderRadius: 18 }} />)}
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: 18, alignItems: 'stretch' }}>
             {plans.map((p) => {
               const isCurrent = sub?.planId === p.id;
+              const features = Array.isArray(p.features) ? p.features : [];
               return (
-                <div
+                <article
                   key={p.id}
+                  aria-labelledby={`plan-${p.id}`}
                   style={{
-                    ...card,
+                    background: 'var(--color-bg-surface, #fff)',
+                    borderRadius: 18,
+                    padding: 26,
                     position: 'relative',
                     display: 'flex',
                     flexDirection: 'column',
-                    borderColor: p.recommended ? 'var(--color-accent)' : 'var(--color-border)',
-                    borderWidth: p.recommended ? 2 : 1,
+                    gap: 14,
+                    boxShadow: p.recommended
+                      ? '0 12px 32px -12px rgba(var(--color-accent-rgb), .35), 0 0 0 2px var(--color-accent)'
+                      : 'var(--shadow-card)',
                   }}
                 >
                   {p.recommended && (
                     <span
                       className="font-body inline-flex items-center gap-1"
-                      style={{
-                        position: 'absolute',
-                        top: -11,
-                        left: 18,
-                        fontSize: 10.5,
-                        fontWeight: 800,
-                        letterSpacing: '0.05em',
-                        textTransform: 'uppercase',
-                        padding: '4px 9px',
-                        borderRadius: 20,
-                        background: 'var(--color-accent)',
-                        color: '#fff',
-                      }}
+                      style={{ ...pillStyle, position: 'absolute', top: 18, right: 18, fontSize: 11.5, padding: '4px 10px', background: 'var(--color-accent)', color: '#fff' }}
                     >
-                      <Sparkles size={11} /> {t('billing.popular', 'Most popular')}
+                      <Sparkles size={11} aria-hidden="true" /> {t('billing.popular', 'Most popular')}
                     </span>
                   )}
-                  <div className="font-heading" style={{ fontSize: 17, fontWeight: 800, color: 'var(--color-text-primary)' }}>
+                  <h2
+                    id={`plan-${p.id}`}
+                    className="font-display"
+                    style={{ margin: 0, fontSize: 20, fontWeight: 700, color: 'var(--color-text-primary)', paddingRight: p.recommended ? 120 : 0 }}
+                  >
                     {p.name}
-                  </div>
-                  <div style={{ margin: '10px 0 4px' }}>
-                    <span className="font-heading" style={{ fontSize: 32, fontWeight: 800, color: 'var(--color-text-primary)' }}>
+                  </h2>
+                  <div>
+                    <span className="font-display" style={{ fontSize: 40, fontWeight: 800, color: 'var(--color-text-primary)', lineHeight: 1 }}>
                       ${p.amount}
                     </span>
-                    <span className="font-body" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
-                      {t('billing.perSeat', '/agent/mo')}
+                    <span className="font-body" style={{ fontSize: 14, color: 'var(--color-text-secondary)' }}>
+                      {' '}{t('billing.perSeat', '/agent/mo')}
                     </span>
                   </div>
-                  <div className="font-body" style={{ fontSize: 12.5, color: 'var(--color-text-muted)', marginBottom: 14 }}>
+                  <div className="font-body" style={{ fontSize: 13.5, color: 'var(--color-text-secondary)' }}>
                     {p.seats == null
                       ? t('billing.unlimitedSeats', 'Unlimited agents')
                       : t('billing.upToSeats', 'Up to {{n}} agents', { n: p.seats })}
                   </div>
 
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 18px', display: 'flex', flexDirection: 'column', gap: 7 }}>
-                    {FEATURE_ORDER.filter((f) => p.features.includes(f)).map((f) => (
-                      <li key={f} className="font-body flex items-start gap-2" style={{ fontSize: 12.5, color: 'var(--color-text-secondary)' }}>
-                        <Check size={14} style={{ color: 'var(--color-accent)', marginTop: 2, flexShrink: 0 }} />
-                        {t(`billing.features.${f}`, f)}
-                      </li>
-                    ))}
+                  <ul
+                    style={{ listStyle: 'none', margin: '4px 0 0', padding: '14px 0 0', borderTop: '1px solid var(--color-bg-subtle)', display: 'flex', flexDirection: 'column', gap: 9 }}
+                  >
+                    {FEATURE_ORDER.map((f) => {
+                      const on = features.includes(f);
+                      return (
+                        <li
+                          key={f}
+                          className="font-body flex items-start gap-2"
+                          style={{ fontSize: 13.5, color: on ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}
+                        >
+                          {on ? (
+                            <Check size={15} aria-hidden="true" style={{ color: 'var(--color-accent)', marginTop: 2, flexShrink: 0 }} />
+                          ) : (
+                            <Minus size={15} aria-hidden="true" style={{ color: 'var(--color-status-notstarted-solid)', marginTop: 2, flexShrink: 0 }} />
+                          )}
+                          <span>
+                            {t(`billing.features.${f}`, f)}
+                            {!on && <span className="sr-only"> ({t('billing.notIncluded', 'not included')})</span>}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
 
-                  <div style={{ marginTop: 'auto' }}>
+                  <div style={{ marginTop: 'auto', paddingTop: 4 }}>
                     {isCurrent ? (
-                      <Button variant="secondary" disabled style={{ width: '100%' }}>
+                      <Button variant="secondary" size="lg" disabled className="w-full">
                         {t('billing.currentPlanBtn', 'Current plan')}
                       </Button>
                     ) : !p.purchasable ? (
-                      <Button variant="secondary" disabled style={{ width: '100%' }}>
+                      <Button variant="secondary" size="lg" disabled className="w-full">
                         {t('billing.contactUs', 'Contact us')}
                       </Button>
                     ) : (
                       <Button
                         variant={p.recommended ? 'primary' : 'secondary'}
+                        size="lg"
                         onClick={() => upgrade(p.id)}
                         disabled={!!busy || !data?.configured}
-                        style={{ width: '100%' }}
+                        className="w-full"
                       >
                         {busy === p.id ? t('billing.redirecting', 'Redirecting…') : t('billing.choose', 'Choose {{plan}}', { plan: p.name })}
                       </Button>
                     )}
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
         )}
 
         {data?.trialDays > 0 && (
-          <p className="font-body" style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 16, textAlign: 'center' }}>
+          <p className="font-body" style={{ margin: 0, fontSize: 13, color: 'var(--color-text-secondary)', textAlign: 'center' }}>
             {t('billing.trialNote', '{{days}}-day free trial on your first subscription. Cancel any time.', { days: data.trialDays })}
           </p>
         )}
-      </div>
+      </PageBody>
     </PageWrapper>
   );
 };

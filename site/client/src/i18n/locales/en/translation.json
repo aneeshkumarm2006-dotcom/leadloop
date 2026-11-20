@@ -1639,6 +1639,10 @@
     "keyLabel": "API key",
     "keyOnce": "Copy the key now — for security it is shown only once. You can rotate it later from the board’s Integrations tab.",
     "testHint": "Send a test submission from the platform — it appears on your chosen stage within seconds.",
+    "statConnected": "connected",
+    "statAvailable": "available",
+    "howItWorks": "How it works",
+    "readyTitle": "Ready to connect",
     "steps": {
       "fb": "Connect this URL in Zapier or Meta’s Lead Ads webhook to forward each Instant Form submission here. A native one-click Facebook login is on the way.",
       "google_ads": "In Google Ads, open your Lead Form asset → Data → add a webhook. Paste the Webhook URL below and use the API key as the “Key”.",
@@ -1764,6 +1768,14 @@
     "footnote": "Ad spend comes from your Marketing campaigns, matched to each source. Deals with their own commission value override the rate above.",
     "loadError": "Could not load the report."
   },
+  "membersPage": {
+    "search": "Search members",
+    "noMatch": "No members match “{{query}}”.",
+    "invitePeople": "Invite people",
+    "sendViaEmail": "Send invite via email",
+    "orShareLink": "Or share a link",
+    "inviteCode": "Invite code:"
+  },
   "billing": {
     "nav": "Plans & billing",
     "title": "Plans & billing",
@@ -1793,6 +1805,7 @@
     "loadError": "Could not load billing.",
     "checkoutError": "Could not start checkout.",
     "portalError": "Could not open the billing portal.",
+    "notIncluded": "not included",
     "features": {
       "core": "Unlimited boards, leads & Kanban",
       "booking": "Visit booking links",
@@ -1917,7 +1930,10 @@
     "merge": "Merge into one lead",
     "merging": "Merging…",
     "emptyTitle": "No duplicates to review",
-    "emptyBody": "When the same person arrives from two sources, the pair shows up here before anything is merged."
+    "emptyBody": "When the same person arrives from two sources, the pair shows up here before anything is merged.",
+    "toReview": "{{count}} to review",
+    "pairsLabel": "Pairs to review",
+    "actionError": "That didn’t work. Please try again."
   },
   "compliance": {
     "nav": "Compliance",
@@ -1936,6 +1952,15 @@
     "emptyTitle": "Nobody is blocked yet",
     "emptyBody": "When someone replies STOP or unsubscribes, they appear here automatically and are never contacted again.",
     "disclaimer": "LeadLoop enforces these rules on every send, but this is not legal advice — confirm your consent wording and retention with counsel for your market.",
+    "addLabel": "Add to the do-not-contact list",
+    "entries": "{{count}} entries",
+    "entries_one": "{{count}} entry",
+    "contact": "Contact",
+    "added": "Added",
+    "actions": "Actions",
+    "removeNamed": "Remove {{value}}",
+    "enforcedTitle": "Enforced on every send",
+    "enforcedBody": "Email, SMS, WhatsApp, sequences and automations all check this list first. Nothing gets through.",
     "reasons": {
       "manual": "Added by us",
       "dnc": "Do-not-call list",
@@ -1958,7 +1983,13 @@
     "late": "{{time}} late",
     "dueIn": "Due in {{time}}",
     "emptyTitle": "Every lead has been answered",
-    "emptyBody": "New leads appear here the moment they arrive, with a countdown to your target response time."
+    "emptyBody": "New leads appear here the moment they arrive, with a countdown to your target response time.",
+    "queueTitle": "Waiting for a first reply",
+    "colLead": "Lead",
+    "colBoard": "Board",
+    "colOwner": "Owner",
+    "colArrived": "Arrived",
+    "colClock": "Clock"
   },
   "import": {
     "nav": "Import",
@@ -1984,7 +2015,18 @@
     "doneTitle": "{{n}} leads imported",
     "doneBody": "{{skipped}} already existed and were skipped. {{failed}} could not be read.",
     "viewBoard": "Open the board",
-    "another": "Import another file"
+    "another": "Import another file",
+    "progress": "Import progress",
+    "stepChoose": "Choose a file",
+    "stepImport": "Import",
+    "fileLabel": "File",
+    "fileSummary": "{{n}} rows · into {{board}}",
+    "changeFile": "Choose a different file",
+    "inFile": "In your file",
+    "mapsTo": "Maps to",
+    "leadloopColumn": "LeadLoop column",
+    "example": "Example value",
+    "columnFor": "LeadLoop column for {{header}}"
   },
   "guide": {
     "label": "Guide",
@@ -2800,6 +2842,129 @@
         "failed": "Something went wrong while connecting. Please try again.",
         "not_configured": "This ad platform isn’t available on this server yet."
       }
+    }
+  },
+  "settings": {
+    "groups": {
+      "workspace": "Workspace",
+      "channels": "Channels",
+      "growth": "Growth",
+      "you": "You"
+    },
+    "tabs": {
+      "organisation": "Organisation",
+      "templates": "Board templates",
+      "email": "Email connection",
+      "sms": "SMS",
+      "whatsapp": "WhatsApp",
+      "ads": "Ads & tracking",
+      "ai": "AI keys",
+      "profile": "Profile"
+    },
+    "nav": {
+      "title": "Settings",
+      "workspaceSub": "{{name}} workspace",
+      "searchLabel": "Search settings",
+      "noMatch": "No settings match “{{query}}”.",
+      "sectionsAria": "Settings sections"
+    },
+    "status": {
+      "connected": "Connected",
+      "notConnected": "Not connected"
+    },
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    },
+    "org": {
+      "subtitle": "Your workspace, who can join and your plan.",
+      "detailsTitle": "Workspace details",
+      "nameLabel": "Workspace name",
+      "membersLabel": "Members and your role",
+      "members_one": "{{count}} member",
+      "members_other": "{{count}} members",
+      "yourRole": "You are {{role}}",
+      "inviteTitle": "Invite teammates",
+      "planEyebrow": "Plan",
+      "planFallback": "Your plan",
+      "planBody": "Seats, invoices and payment method live in Plans & billing.",
+      "planLink": "Open Plans & billing"
+    },
+    "templates": {
+      "subtitle": "Pre-built board layouts. Pick one and we'll seed a new board with the right stages and columns.",
+      "useTemplate": "Use template",
+      "useTemplateAria": "Use the {{name}} template",
+      "stages_one": "{{count}} stage",
+      "stages_other": "{{count}} stages",
+      "columns_one": "{{count}} column",
+      "columns_other": "{{count}} columns"
+    },
+    "email": {
+      "subtitle": "Connect your mailbox so emails you send to leads come from your real address, and their replies land on the lead.",
+      "chooseProvider": "Choose your email provider",
+      "gmailName": "Gmail / Google Workspace",
+      "gmailDesc": "Sign in with Google. Takes about 30 seconds.",
+      "microsoftName": "Microsoft 365 / Outlook",
+      "microsoftDesc": "Sign in with your Microsoft work account.",
+      "signInGoogle": "Sign in with Google",
+      "signInMicrosoft": "Sign in with Microsoft",
+      "noMailboxTitle": "No mailbox connected",
+      "noMailboxBody": "Emails to leads are sent from LeadLoop's address until you connect one.",
+      "sendingAs": "Sending as {{mailbox}}",
+      "sendingAsBody": "Emails you send to leads, and the Send email automation, go out from this mailbox.",
+      "needsReconnectTitle": "Your mailbox needs reconnecting",
+      "needsReconnectBody": "Sign in again to keep sending from your own address. Until then, emails go out from LeadLoop's address.",
+      "asideTitle": "What connecting does",
+      "aside1": "Sends from your own address, so replies come to you",
+      "aside2": "Lead replies show on the lead's timeline",
+      "aside3": "Only you can use your mailbox; each teammate connects their own",
+      "asideFoot": "Only emails with your leads are saved to LeadLoop. Disconnect any time."
+    },
+    "twilio": {
+      "whereTitle": "Where to find these",
+      "where1": "Sign in at console.twilio.com",
+      "where2": "Account SID and Auth token are on the account dashboard",
+      "usedByTitle": "Used by"
+    },
+    "sms": {
+      "subtitle": "Connect your Twilio account so automations and the lead SMS tab can text leads.",
+      "formTitle": "Twilio account",
+      "where3": "Your number is under Phone Numbers → Active numbers",
+      "usedBy": "The Send SMS automation and the SMS tab on every lead. Opt-outs are honoured automatically."
+    },
+    "whatsapp": {
+      "subtitle": "Connect your Twilio WhatsApp sender so automations and the lead WhatsApp tab can message leads.",
+      "formTitle": "Twilio WhatsApp sender",
+      "where3": "Your sender is under Messaging → Senders → WhatsApp senders",
+      "usedBy": "The Send WhatsApp automation and the WhatsApp tab on every lead. Outside the 24-hour window, only approved templates can be sent. Opt-outs are shared with SMS."
+    },
+    "ads": {
+      "subtitle": "Connect Meta, Google and TikTok once. LeadLoop sets up your pixels, conversion actions and website tag, then tells each platform which leads became customers.",
+      "advancedButton": "Advanced settings",
+      "notInstalled": "Not installed"
+    },
+    "ai": {
+      "subtitle": "Add your own Claude or ChatGPT key to power the automation drafter. Keys are encrypted and only used for your account.",
+      "keyLabel": "API key",
+      "keyHint": "Stored encrypted and never shown again. Leave blank to keep the saved key.",
+      "keySaved": "Key saved",
+      "noKey": "No key",
+      "claudeHelp": "Get a key at console.anthropic.com",
+      "openaiHelp": "Get a key at platform.openai.com",
+      "opensNewTab": "(opens in a new tab)",
+      "defaultModelTitle": "Default model",
+      "providerLabel": "Provider",
+      "modelLabel": "Model",
+      "claudeOption": "Claude (Anthropic)",
+      "openaiOption": "ChatGPT (OpenAI)"
+    },
+    "profile": {
+      "subtitle": "How you appear to your team and to leads.",
+      "detailsTitle": "Personal details",
+      "emailHint": "Managed by your Google account.",
+      "connectedGoogle": "Connected via Google",
+      "deleteMyAccount": "Delete my account"
     }
   }
 }

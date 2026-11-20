@@ -22,6 +22,8 @@ import {
   Loader2,
 } from 'lucide-react';
 import PageWrapper from '../components/layout/PageWrapper';
+import { PageHeader, PageBody } from '../components/layout/PageHeader';
+import BrandLogo from '../components/settings/ads/BrandLogo';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Dropdown from '../components/ui/Dropdown';
@@ -47,19 +49,13 @@ import { listOrgConnections, createConnection } from '../services/leadConnection
 // `id` MUST match a server sourceType. `ready` mirrors the server's `ready`.
 const CATALOG = [
   // No-code: one script tag on the client's site (public site key + domain lock).
-  { id: 'website_snippet', icon: Code2, tint: '#3E6B4E', ready: true, steps: 'snippet' },
-  {
-    id: 'facebook_lead_ads',
-    icon: Users,
-    tint: '#1877F2',
-    ready: true,
-    steps: 'fb',
-  },
-  { id: 'instagram_lead_ads', icon: Camera, tint: '#C13584', ready: true, steps: 'fb' },
-  { id: 'google_ads', icon: Megaphone, tint: '#4285F4', ready: true, steps: 'google_ads' },
-  { id: 'website', icon: Globe, tint: '#4E9068', ready: true, steps: 'website' },
-  { id: 'zapier', icon: Zap, tint: '#FF4A00', ready: true, steps: 'webhook' },
-  { id: 'generic', icon: Webhook, tint: '#8C8578', ready: true, steps: 'webhook' },
+  { id: 'website_snippet', icon: Code2, brand: 'leadloop', tint: '#3E6B4E', ready: true, steps: 'snippet' },
+  { id: 'facebook_lead_ads', icon: Users, brand: 'facebook', tint: '#1877F2', ready: true, steps: 'fb' },
+  { id: 'instagram_lead_ads', icon: Camera, brand: 'instagram', tint: '#C13584', ready: true, steps: 'fb' },
+  { id: 'google_ads', icon: Megaphone, brand: 'google-ads', tint: '#4285F4', ready: true, steps: 'google_ads' },
+  { id: 'website', icon: Globe, brand: 'leadloop', tint: '#4E9068', ready: true, steps: 'website' },
+  { id: 'zapier', icon: Zap, mono: 'Z', tint: '#FF4A00', ready: true, steps: 'webhook' },
+  { id: 'generic', icon: Webhook, mono: '{ }', tint: '#5C554A', ready: true, steps: 'webhook' },
   { id: 'zillow', icon: Home, tint: '#006AFF', ready: false, steps: 'email' },
   { id: 'realtor_com', icon: Building2, tint: '#D92228', ready: false, steps: 'email' },
   { id: 'realtor_ca', icon: Building2, tint: '#EF4136', ready: false, steps: 'email' },
@@ -127,6 +123,13 @@ const SnippetWaiting = ({ orgId, connectionId }) => {
           : t('leadSources.snippetWaiting', 'Waiting for the first submission… paste the snippet, then submit your form once.')}
     </div>
   );
+};
+
+// White surface with the card shadow (the shadow carries the hairline ring).
+const surface = {
+  background: 'var(--color-bg-surface)',
+  borderRadius: 16,
+  boxShadow: 'var(--shadow-card)',
 };
 
 const CopyRow = ({ label, value }) => {
@@ -324,134 +327,219 @@ const LeadSourcesPage = () => {
   const ready = CATALOG.filter((c) => c.ready);
   const soon = CATALOG.filter((c) => !c.ready);
 
-  const renderCard = (entry) => {
+  const renderLogo = (entry) => {
+    if (entry.brand) return <BrandLogo name={entry.brand} size={34} />;
+    if (entry.mono) {
+      return (
+        <span
+          aria-hidden="true"
+          className="inline-flex items-center justify-center font-body"
+          style={{ width: 34, height: 34, borderRadius: 9, background: entry.tint, color: '#FFFFFF', fontWeight: 800, fontSize: 14 }}
+        >
+          {entry.mono}
+        </span>
+      );
+    }
     const Icon = entry.icon;
-    const count = countBySource[entry.id] || 0;
     return (
-      <button
-        key={entry.id}
-        type="button"
-        onClick={() => openConnect(entry)}
-        disabled={!entry.ready}
-        className="text-left"
-        style={{
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 10,
-          padding: 16,
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--color-border)',
-          background: 'var(--color-bg-surface, #fff)',
-          boxShadow: 'var(--shadow-card)',
-          cursor: entry.ready ? 'pointer' : 'default',
-          opacity: entry.ready ? 1 : 0.62,
-          transition: 'transform .15s ease, box-shadow .15s ease',
-        }}
-        onMouseEnter={(e) => {
-          if (!entry.ready) return;
-          e.currentTarget.style.transform = 'translateY(-2px)';
-          e.currentTarget.style.boxShadow = 'var(--shadow-card-hover, 0 8px 24px rgba(0,0,0,.10))';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = '';
-          e.currentTarget.style.boxShadow = 'var(--shadow-card)';
-        }}
+      <span
+        aria-hidden="true"
+        className="inline-flex items-center justify-center"
+        style={{ width: 34, height: 34, borderRadius: 9, background: `${entry.tint}1A`, color: entry.tint }}
       >
-        <div className="flex items-center justify-between">
-          <span
-            className="inline-flex items-center justify-center"
-            style={{ width: 40, height: 40, borderRadius: 10, background: `${entry.tint}1A`, color: entry.tint }}
-          >
-            <Icon size={21} />
-          </span>
+        <Icon size={19} />
+      </span>
+    );
+  };
+
+  const renderCard = (entry) => {
+    const count = countBySource[entry.id] || 0;
+    const entryName = t(`leadSources.catalog.${entry.id}.name`, entry.id);
+    return (
+      <article
+        key={entry.id}
+        className="flex flex-col"
+        style={{ ...surface, padding: 20, gap: 12 }}
+      >
+        <div className="flex items-center justify-between gap-2">
+          {renderLogo(entry)}
           {count > 0 && (
             <span
-              className="inline-flex items-center gap-1"
-              style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--color-status-done)' }}
+              className="inline-flex items-center gap-1 font-body"
+              style={{
+                fontSize: 11.5,
+                fontWeight: 700,
+                color: 'var(--color-status-done)',
+                background: 'var(--color-status-done-bg)',
+                padding: '3px 9px',
+                borderRadius: 'var(--radius-full)',
+              }}
             >
-              <Check size={13} /> {t('leadSources.connectedN', '{{count}} connected', { count })}
-            </span>
-          )}
-          {!entry.ready && (
-            <span
-              className="inline-flex items-center gap-1"
-              style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}
-            >
-              <Lock size={12} /> {t('leadSources.soon', 'Soon')}
+              <Check size={12} aria-hidden="true" /> {t('leadSources.connectedN', '{{count}} connected', { count })}
             </span>
           )}
         </div>
         <div>
-          <div className="font-heading" style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)' }}>
-            {t(`leadSources.catalog.${entry.id}.name`, entry.id)}
-          </div>
-          <p className="font-body" style={{ fontSize: 12.5, color: 'var(--color-text-muted)', marginTop: 3, lineHeight: 1.45 }}>
+          <h3 className="font-display" style={{ margin: 0, fontSize: 16.5, fontWeight: 700, color: 'var(--color-text-primary)' }}>
+            {entryName}
+          </h3>
+          <p className="font-body" style={{ margin: '4px 0 0', fontSize: 13, color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
             {t(`leadSources.catalog.${entry.id}.blurb`, '')}
           </p>
         </div>
-        {entry.ready && (
-          <span className="inline-flex items-center gap-1" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--color-accent)', marginTop: 'auto' }}>
-            <Plus size={14} /> {t('leadSources.connect', 'Connect')}
-          </span>
-        )}
-      </button>
+        <button
+          type="button"
+          onClick={() => openConnect(entry)}
+          aria-label={t('leadSources.connectTitle', 'Connect {{name}}', { name: entryName })}
+          className="inline-flex items-center justify-center gap-1.5 font-body transition-colors hover:bg-[color:var(--color-bg-subtle)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]"
+          style={{
+            marginTop: 'auto',
+            height: 40,
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--color-border-strong)',
+            background: 'var(--color-bg-input)',
+            color: 'var(--color-text-primary)',
+            fontSize: 14,
+            fontWeight: 700,
+            cursor: 'pointer',
+          }}
+        >
+          <Plus size={15} aria-hidden="true" /> {t('leadSources.connect', 'Connect')}
+        </button>
+      </article>
     );
   };
 
-  return (
-    <PageWrapper>
-      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '4px 2px 40px' }}>
-        <div className="flex items-center gap-3" style={{ marginBottom: 6 }}>
-          <span
-            className="inline-flex items-center justify-center"
-            style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--color-accent-subtle, rgba(78,144,104,.14))', color: 'var(--color-accent)' }}
-          >
-            <Radio size={18} />
-          </span>
-          <h1 className="font-heading" style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-primary)' }}>
-            {t('leadSources.title', 'Lead Sources')}
-          </h1>
-        </div>
-        <p className="font-body" style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 26, maxWidth: 640 }}>
-          {t('leadSources.subtitle', 'Connect the places your leads come from. Pick a board and stage, paste one URL into the platform, and new leads flow straight onto your pipeline.')}
-        </p>
+  const steps = [
+    t('leadSources.emptyStep1', 'Pick a source — Facebook, Google Ads, your website form.'),
+    t('leadSources.emptyStep2', 'Choose the board and the stage new leads should land on.'),
+    t('leadSources.emptyStep3', 'Paste one link into that platform. That’s the whole setup.'),
+  ];
 
+  const headerStats = (
+    <div className="flex font-body" style={{ gap: 24, fontSize: 13, color: 'var(--color-text-secondary)' }}>
+      <div>
+        <div className="font-display" style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1.15 }}>
+          {loading ? '—' : connections.length}
+        </div>
+        {t('leadSources.statConnected', 'connected')}
+      </div>
+      <div>
+        <div className="font-display" style={{ fontSize: 24, fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1.15 }}>
+          {ready.length}
+        </div>
+        {t('leadSources.statAvailable', 'available')}
+      </div>
+    </div>
+  );
+
+  return (
+    <PageWrapper flush>
+      <PageHeader
+        title={t('leadSources.title', 'Lead Sources')}
+        subtitle={t('leadSources.subtitle', 'Connect the places your leads come from. Pick a board and stage, paste one URL into the platform, and new leads flow straight onto your pipeline.')}
+        actions={headerStats}
+      />
+      <PageBody className="flex flex-col" style={{ gap: 28 }}>
         {/* Nothing connected yet → explain the job of this page, in place. */}
         {!loading && connections.length === 0 && (
-          <div style={{ marginBottom: 20 }}>
-            <EmptyState
-              icon={Radio}
-              title={t('leadSources.emptyTitle', 'Connect where your leads come from')}
-              body={t('leadSources.emptyBody', 'Right now leads have to be typed in by hand. Connect a source and they arrive on your board by themselves, on the stage you choose.')}
-              steps={[
-                { label: t('setup.stepN', 'Step {{n}}', { n: 1 }), text: t('leadSources.emptyStep1', 'Pick a source — Facebook, Google Ads, your website form.') },
-                { label: t('setup.stepN', 'Step {{n}}', { n: 2 }), text: t('leadSources.emptyStep2', 'Choose the board and the stage new leads should land on.') },
-                { label: t('setup.stepN', 'Step {{n}}', { n: 3 }), text: t('leadSources.emptyStep3', 'Paste one link into that platform. That’s the whole setup.') },
-              ]}
-            />
-          </div>
+          <EmptyState
+            icon={Radio}
+            title={t('leadSources.emptyTitle', 'Connect where your leads come from')}
+            body={t('leadSources.emptyBody', 'Right now leads have to be typed in by hand. Connect a source and they arrive on your board by themselves, on the stage you choose.')}
+          />
         )}
 
-        {/* Ready sources */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-          {ready.map(renderCard)}
-        </div>
+        {/* How it works — the three steps, always visible on the pine band. */}
+        <section aria-label={t('leadSources.howItWorks', 'How it works')}>
+          <ol
+            className="grid overflow-hidden"
+            style={{
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              background: 'var(--color-pine)',
+              color: 'var(--color-pine-text)',
+              borderRadius: 18,
+              margin: 0,
+              padding: 0,
+              listStyle: 'none',
+            }}
+          >
+            {steps.map((text, i) => (
+              <li
+                key={i}
+                className="flex font-body"
+                style={{ padding: '20px 24px', gap: 14, borderRight: '1px solid var(--color-pine-line)' }}
+              >
+                <span
+                  aria-hidden="true"
+                  className="inline-flex items-center justify-center shrink-0"
+                  style={{ width: 30, height: 30, borderRadius: 'var(--radius-full)', background: 'var(--color-pine-gold)', color: 'var(--color-pine)', fontWeight: 800 }}
+                >
+                  {i + 1}
+                </span>
+                <span style={{ fontSize: 14, lineHeight: 1.5 }}>
+                  <span className="sr-only">{t('setup.stepN', 'Step {{n}}', { n: i + 1 })}: </span>
+                  {text}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
 
-        {/* Coming soon */}
-        <h2 className="font-heading" style={{ fontSize: 13, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--color-text-muted)', margin: '30px 0 12px' }}>
-          {t('leadSources.roadmap', 'Coming soon')}
-        </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 14 }}>
-          {soon.map(renderCard)}
-        </div>
+        {/* Ready sources */}
+        <section aria-labelledby="ls-ready" className="flex flex-col" style={{ gap: 14 }}>
+          <h2 id="ls-ready" className="font-display" style={{ margin: 0, fontSize: 21, fontWeight: 700, color: 'var(--color-text-primary)' }}>
+            {t('leadSources.readyTitle', 'Ready to connect')}
+          </h2>
+          <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
+            {ready.map(renderCard)}
+          </div>
+        </section>
+
+        {/* Coming soon — roadmap only, not interactive. */}
+        <section aria-labelledby="ls-soon" className="flex flex-col" style={{ gap: 12 }}>
+          <h2 id="ls-soon" className="font-display" style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--color-text-secondary)' }}>
+            {t('leadSources.roadmap', 'Coming soon')}
+          </h2>
+          <ul className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12, margin: 0, padding: 0, listStyle: 'none' }}>
+            {soon.map((entry) => (
+              <li
+                key={entry.id}
+                title={t(`leadSources.catalog.${entry.id}.blurb`, '')}
+                className="flex items-center justify-between gap-2 font-body"
+                style={{
+                  padding: '14px 16px',
+                  borderRadius: 14,
+                  border: '1px dashed var(--color-border-strong)',
+                  color: 'var(--color-text-secondary)',
+                  fontWeight: 600,
+                }}
+              >
+                <span className="truncate">{t(`leadSources.catalog.${entry.id}.name`, entry.id)}</span>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    color: 'var(--color-status-notstarted)',
+                    background: 'var(--color-status-notstarted-bg)',
+                    padding: '2px 8px',
+                    borderRadius: 'var(--radius-full)',
+                    flexShrink: 0,
+                  }}
+                >
+                  {t('leadSources.soon', 'Soon')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         {loading && (
-          <p className="font-body" style={{ fontSize: 13, color: 'var(--color-text-muted)', marginTop: 20 }}>
+          <p className="font-body" role="status" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
             {t('common.loading', 'Loading…')}
           </p>
         )}
-      </div>
+      </PageBody>
 
       {/* Connect modal */}
       <Modal

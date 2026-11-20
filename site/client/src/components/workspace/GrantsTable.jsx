@@ -111,22 +111,21 @@ const AddGrantForm = ({ workspaceId, boards, onCreated }) => {
     <form
       onSubmit={handleSubmit}
       style={{
-        border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-lg)',
         background: 'var(--color-bg-surface)',
-        padding: '18px 20px',
-        marginBottom: 24,
+        boxShadow: 'var(--shadow-card)',
+        padding: 22,
       }}
     >
-      <h3
+      <h2
         className="font-display font-bold flex items-center gap-2"
-        style={{ fontSize: 15, color: 'var(--color-text-primary)', marginBottom: 14 }}
+        style={{ fontSize: 18, color: 'var(--color-text-primary)', marginBottom: 14 }}
       >
-        <Share2 size={15} aria-hidden="true" />
+        <Share2 size={16} aria-hidden="true" />
         Share access
-      </h3>
+      </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-1 gap-3">
         <div>
           <label style={labelStyle} htmlFor="grant-scope">Scope</label>
           <Dropdown
@@ -245,18 +244,21 @@ const GrantsTable = ({ workspaceId }) => {
   );
 
   return (
-    <div className="mx-auto" style={{ maxWidth: 900 }}>
-      <AddGrantForm
-        workspaceId={workspaceId}
-        boards={boards}
-        onCreated={() => fetchGrants(workspaceId).catch(() => {})}
-      />
+    <div className="grid gap-5 items-start xl:grid-cols-[minmax(0,1fr)_minmax(320px,400px)]">
+      {/* Form first in reading order; on wide screens it sits on the right. */}
+      <div className="xl:order-2">
+        <AddGrantForm
+          workspaceId={workspaceId}
+          boards={boards}
+          onCreated={() => fetchGrants(workspaceId).catch(() => {})}
+        />
+      </div>
 
       <div
-        className="bg-surface"
+        className="bg-surface min-w-0 xl:order-1"
         style={{
-          border: '1px solid var(--color-border)',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: 'var(--radius-lg)',
+          boxShadow: 'var(--shadow-card)',
           overflow: 'hidden',
         }}
       >

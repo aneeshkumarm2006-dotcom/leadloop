@@ -1,21 +1,27 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
-import Button from '../ui/Button';
-import Input from '../ui/Input';
+import { PageBody } from '../layout/PageHeader';
+import { SkeletonBlock } from '../ui/Skeleton';
+import { TextField, PrimaryButton, Pill } from './ads/AdsShared';
 import * as smsService from '../../services/smsService';
 import useToastStore from '../../store/toastStore';
+import { SettingsHeader, SettingsCard, CardTitle, InlineError, MainAsideGrid } from './SettingsLayout';
+import TwilioAside from './TwilioAside';
 
 /**
- * SmsConfigForm — workspace Twilio SMS credentials (F10.5, admin-only).
+ * SmsConfigForm — Settings → SMS: workspace Twilio SMS credentials (F10.5,
+ * admin-only). Renders the whole tab: header (with connection status), the
+ * form card, an optional `extra` block under it (the opt-out list) and the
+ * "Where to find these" / "Used by" aside.
  *
  * Account SID, a write-only Auth Token field (the stored token is never sent
  * back — leave blank to keep it), the default sender number / Messaging Service
  * SID, and the TCPA/CASL opt-out footer toggle.
  *
- * Props: workspaceId — the current workspace.
+ * Props: workspaceId — the current workspace; extra — node rendered below the form.
  */
-const SmsConfigForm = ({ workspaceId }) => {
+const SmsConfigForm = ({ workspaceId, extra }) => {
   const { t } = useTranslation();
   const toast = useToastStore.getState();
   const [config, setConfig] = useState(null);
@@ -81,89 +87,120 @@ const SmsConfigForm = ({ workspaceId }) => {
     }
   };
 
+  const isConnected = !!(config?.accountSid && config?.hasAuthToken && (config?.defaultFrom || config?.messagingServiceSid));
+
   return (
-    <div>
-      <header className="mb-6">
-        <h2 className="font-display font-bold text-[color:var(--color-text-primary)]" style={{ fontSize: 20 }}>
-          {t('pages.smsTwilio')}
-        </h2>
-        <p className="mt-1 font-body text-sm text-[color:var(--color-text-secondary)]">
-          {t('pages.smsDescription')}
-        </p>
-      </header>
+    <>
+      <SettingsHeader
+        tab="sms"
+        title={t('settings.tabs.sms')}
+        subtitle={t('settings.sms.subtitle')}
+        actions={
+          loading ? null : isConnected ? (
+            <Pill tone="ok" dot>{t('settings.status.connected')}</Pill>
+          ) : (
+            <Pill tone="neutral" dot>{t('settings.status.notConnected')}</Pill>
+          )
+        }
+      />
+      <PageBody>
+        <MainAsideGrid>
+          <div className="flex flex-col gap-5 min-w-0">
+            <SettingsCard aria-labelledby="sms-form-title" style={{ gap: 18 }}>
+              <CardTitle id="sms-form-title">{t('settings.sms.formTitle')}</CardTitle>
+              {loading ? (
+                <div role="status" aria-live="polite" className="flex flex-col gap-3">
+                  <span className="sr-only">{t('pages.loading')}</span>
+                  <SkeletonBlock height={46} borderRadius={12} />
+                  <SkeletonBlock height={46} borderRadius={12} />
+                  <SkeletonBlock height={46} borderRadius={12} />
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="flex flex-col" style={{ gap: 18 }}>
+                  <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))' }}>
+                    <TextField
+                      label={t('pages.accountSid')}
+                      value={accountSid}
+                      onChange={setAccountSid}
+                      placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    <TextField
+                      label={t('pages.authToken')}
+                      type="password"
+                      value={authToken}
+                      onChange={setAuthToken}
+                      placeholder={config?.hasAuthToken ? t('pages.authTokenStoredPlaceholder') : t('pages.twilioAuthToken')}
+                      hint={t('pages.authTokenHelperSms')}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label={t('pages.defaultSenderNumber')}
+                      type="tel"
+                      value={defaultFrom}
+                      onChange={setDefaultFrom}
+                      placeholder="+15551234567"
+                      hint={t('pages.defaultSenderHelper')}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label={t('pages.messagingServiceSid')}
+                      value={messagingServiceSid}
+                      onChange={setMessagingServiceSid}
+                      placeholder="MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                  </div>
 
-      {error && (
-        <p className="font-body text-[12px] mb-4" style={{ color: 'var(--color-status-stuck)' }} role="alert">
-          {error}
-        </p>
-      )}
+                  <label
+                    className="flex items-start gap-3 font-body has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[color:var(--color-accent)]"
+                    style={{ padding: 14, borderRadius: 12, background: 'var(--color-bg-base)', cursor: 'pointer' }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={appendOptOutFooter}
+                      onChange={(e) => setAppendOptOutFooter(e.target.checked)}
+                      style={{ marginTop: 2, width: 18, height: 18, accentColor: 'var(--color-accent)', flexShrink: 0 }}
+                    />
+                    <span>
+                      <span className="block font-bold" style={{ fontSize: 14, color: 'var(--color-text-primary)' }}>
+                        {t('pages.appendOptOutFooter')}
+                      </span>
+                      <span className="block" style={{ fontSize: 12.5, color: 'var(--color-text-secondary)' }}>
+                        {t('pages.optOutFooterHelper')}
+                      </span>
+                    </span>
+                  </label>
 
-      {loading ? (
-        <p className="font-body" style={{ color: 'var(--color-text-muted)' }}>
-          {t('pages.loading')}
-        </p>
-      ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4" style={{ maxWidth: 480 }}>
-          <Input
-            label={t('pages.accountSid')}
-            value={accountSid}
-            onChange={(e) => setAccountSid(e.target.value)}
-            placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-          />
-          <Input
-            label={t('pages.authToken')}
-            type="password"
-            value={authToken}
-            onChange={(e) => setAuthToken(e.target.value)}
-            placeholder={config?.hasAuthToken ? t('pages.authTokenStoredPlaceholder') : t('pages.twilioAuthToken')}
-            helperText={t('pages.authTokenHelperSms')}
-            autoComplete="off"
-          />
-          <Input
-            label={t('pages.defaultSenderNumber')}
-            value={defaultFrom}
-            onChange={(e) => setDefaultFrom(e.target.value)}
-            placeholder="+15551234567"
-            helperText={t('pages.defaultSenderHelper')}
-          />
-          <Input
-            label={t('pages.messagingServiceSid')}
-            value={messagingServiceSid}
-            onChange={(e) => setMessagingServiceSid(e.target.value)}
-            placeholder="MGxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-          />
+                  <InlineError>{error}</InlineError>
 
-          <label className="flex items-start gap-3" style={{ cursor: 'pointer' }}>
-            <input
-              type="checkbox"
-              checked={appendOptOutFooter}
-              onChange={(e) => setAppendOptOutFooter(e.target.checked)}
-              style={{ marginTop: 3, width: 16, height: 16, accentColor: 'var(--color-accent)' }}
-            />
-            <span>
-              <span className="font-body font-semibold" style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>
-                {t('pages.appendOptOutFooter')}
-              </span>
-              <span className="block font-body" style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-                {t('pages.optOutFooterHelper')}
-              </span>
-            </span>
-          </label>
-
-          <div className="flex items-center gap-3 mt-2">
-            <Button type="submit" variant="primary" disabled={saving}>
-              {saving ? t('pages.saving') : t('pages.saveSmsSettings')}
-            </Button>
-            {saved && (
-              <span className="inline-flex items-center gap-1 font-body text-[12px] font-semibold text-[color:var(--color-status-done)]">
-                <Check size={14} aria-hidden="true" />
-                {t('pages.saved')}
-              </span>
-            )}
+                  <div className="flex items-center justify-end gap-3 flex-wrap" style={{ paddingTop: 14, borderTop: '1px solid #EFE8DA' }}>
+                    {saved && (
+                      <span role="status" className="inline-flex items-center gap-1 font-body text-[13px] font-semibold text-[color:var(--color-status-done)]">
+                        <Check size={14} aria-hidden="true" />
+                        {t('pages.saved')}
+                      </span>
+                    )}
+                    <PrimaryButton type="submit" loading={saving}>
+                      {saving ? t('pages.saving') : t('pages.saveSmsSettings')}
+                    </PrimaryButton>
+                  </div>
+                </form>
+              )}
+            </SettingsCard>
+            {extra}
           </div>
-        </form>
-      )}
-    </div>
+
+          <TwilioAside
+            idPrefix="sms"
+            steps={[t('settings.twilio.where1'), t('settings.twilio.where2'), t('settings.sms.where3')]}
+            usedBy={t('settings.sms.usedBy')}
+          />
+        </MainAsideGrid>
+      </PageBody>
+    </>
   );
 };
 

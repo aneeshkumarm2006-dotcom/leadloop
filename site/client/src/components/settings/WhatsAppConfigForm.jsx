@@ -1,22 +1,27 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
-import Button from '../ui/Button';
-import Input from '../ui/Input';
+import { PageBody } from '../layout/PageHeader';
+import { SkeletonBlock } from '../ui/Skeleton';
+import { TextField, PrimaryButton, Pill } from './ads/AdsShared';
 import * as whatsappService from '../../services/whatsappService';
 import useToastStore from '../../store/toastStore';
+import { SettingsHeader, SettingsCard, CardTitle, InlineError, MainAsideGrid } from './SettingsLayout';
+import TwilioAside from './TwilioAside';
 
 /**
- * WhatsAppConfigForm — workspace Twilio WhatsApp credentials (F11.5, admin-only).
+ * WhatsAppConfigForm — Settings → WhatsApp: workspace Twilio WhatsApp
+ * credentials (F11.5, admin-only). Same layout as the SMS tab: header with
+ * status, form card, optional `extra` (the template manager) and the aside.
  *
  * Account SID, a write-only Auth Token field (the stored token is never sent
  * back — leave blank to keep it), and the WhatsApp sender id (the approved
- * `whatsapp:`-capable number). Reuses the F10 Twilio account + the shared opt-out
- * list, so a STOP suppresses both SMS and WhatsApp. Mirrors SmsConfigForm.
+ * `whatsapp:`-capable number). Reuses the F10 Twilio account + the shared
+ * opt-out list, so a STOP suppresses both SMS and WhatsApp.
  *
- * Props: workspaceId — the current workspace.
+ * Props: workspaceId — the current workspace; extra — node rendered below the form.
  */
-const WhatsAppConfigForm = ({ workspaceId }) => {
+const WhatsAppConfigForm = ({ workspaceId, extra }) => {
   const { t } = useTranslation();
   const toast = useToastStore.getState();
   const [config, setConfig] = useState(null);
@@ -76,66 +81,91 @@ const WhatsAppConfigForm = ({ workspaceId }) => {
     }
   };
 
+  const isConnected = !!(config?.accountSid && config?.hasAuthToken && config?.whatsappSenderId);
+
   return (
-    <div>
-      <header className="mb-6">
-        <h2 className="font-display font-bold text-[color:var(--color-text-primary)]" style={{ fontSize: 20 }}>
-          {t('pages.whatsAppTwilio')}
-        </h2>
-        <p className="mt-1 font-body text-sm text-[color:var(--color-text-secondary)]">
-          {t('pages.whatsAppDescription')}
-        </p>
-      </header>
+    <>
+      <SettingsHeader
+        tab="whatsapp"
+        title={t('settings.tabs.whatsapp')}
+        subtitle={t('settings.whatsapp.subtitle')}
+        actions={
+          loading ? null : isConnected ? (
+            <Pill tone="ok" dot>{t('settings.status.connected')}</Pill>
+          ) : (
+            <Pill tone="neutral" dot>{t('settings.status.notConnected')}</Pill>
+          )
+        }
+      />
+      <PageBody>
+        <MainAsideGrid>
+          <div className="flex flex-col gap-5 min-w-0">
+            <SettingsCard aria-labelledby="wa-form-title" style={{ gap: 18 }}>
+              <CardTitle id="wa-form-title">{t('settings.whatsapp.formTitle')}</CardTitle>
+              {loading ? (
+                <div role="status" aria-live="polite" className="flex flex-col gap-3">
+                  <span className="sr-only">{t('pages.loading')}</span>
+                  <SkeletonBlock height={46} borderRadius={12} />
+                  <SkeletonBlock height={46} borderRadius={12} />
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="flex flex-col" style={{ gap: 18 }}>
+                  <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))' }}>
+                    <TextField
+                      label={t('pages.accountSid')}
+                      value={accountSid}
+                      onChange={setAccountSid}
+                      placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                    <TextField
+                      label={t('pages.authToken')}
+                      type="password"
+                      value={authToken}
+                      onChange={setAuthToken}
+                      placeholder={config?.hasAuthToken ? t('pages.authTokenStoredPlaceholder') : t('pages.twilioAuthToken')}
+                      hint={t('pages.authTokenHelperWhatsApp')}
+                      autoComplete="off"
+                    />
+                    <TextField
+                      label={t('pages.whatsAppSenderNumber')}
+                      type="tel"
+                      value={whatsappSenderId}
+                      onChange={setWhatsappSenderId}
+                      placeholder="+14155238886"
+                      hint={t('pages.whatsAppSenderHelper')}
+                      autoComplete="off"
+                    />
+                  </div>
 
-      {error && (
-        <p className="font-body text-[12px] mb-4" style={{ color: 'var(--color-status-stuck)' }} role="alert">
-          {error}
-        </p>
-      )}
+                  <InlineError>{error}</InlineError>
 
-      {loading ? (
-        <p className="font-body" style={{ color: 'var(--color-text-muted)' }}>
-          {t('pages.loading')}
-        </p>
-      ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4" style={{ maxWidth: 480 }}>
-          <Input
-            label={t('pages.accountSid')}
-            value={accountSid}
-            onChange={(e) => setAccountSid(e.target.value)}
-            placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-          />
-          <Input
-            label={t('pages.authToken')}
-            type="password"
-            value={authToken}
-            onChange={(e) => setAuthToken(e.target.value)}
-            placeholder={config?.hasAuthToken ? t('pages.authTokenStoredPlaceholder') : t('pages.twilioAuthToken')}
-            helperText={t('pages.authTokenHelperWhatsApp')}
-            autoComplete="off"
-          />
-          <Input
-            label={t('pages.whatsAppSenderNumber')}
-            value={whatsappSenderId}
-            onChange={(e) => setWhatsappSenderId(e.target.value)}
-            placeholder="+14155238886"
-            helperText={t('pages.whatsAppSenderHelper')}
-          />
-
-          <div className="flex items-center gap-3 mt-2">
-            <Button type="submit" variant="primary" disabled={saving}>
-              {saving ? t('pages.saving') : t('pages.saveWhatsAppSettings')}
-            </Button>
-            {saved && (
-              <span className="inline-flex items-center gap-1 font-body text-[12px] font-semibold text-[color:var(--color-status-done)]">
-                <Check size={14} aria-hidden="true" />
-                {t('pages.saved')}
-              </span>
-            )}
+                  <div className="flex items-center justify-end gap-3 flex-wrap" style={{ paddingTop: 14, borderTop: '1px solid #EFE8DA' }}>
+                    {saved && (
+                      <span role="status" className="inline-flex items-center gap-1 font-body text-[13px] font-semibold text-[color:var(--color-status-done)]">
+                        <Check size={14} aria-hidden="true" />
+                        {t('pages.saved')}
+                      </span>
+                    )}
+                    <PrimaryButton type="submit" loading={saving}>
+                      {saving ? t('pages.saving') : t('pages.saveWhatsAppSettings')}
+                    </PrimaryButton>
+                  </div>
+                </form>
+              )}
+            </SettingsCard>
+            {extra}
           </div>
-        </form>
-      )}
-    </div>
+
+          <TwilioAside
+            idPrefix="wa"
+            steps={[t('settings.twilio.where1'), t('settings.twilio.where2'), t('settings.whatsapp.where3')]}
+            usedBy={t('settings.whatsapp.usedBy')}
+          />
+        </MainAsideGrid>
+      </PageBody>
+    </>
   );
 };
 

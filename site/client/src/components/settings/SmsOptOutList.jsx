@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Ban } from 'lucide-react';
 import * as smsService from '../../services/smsService';
 import { formatDate } from '../../utils/dateUtils';
+import { SettingsCard, CardTitle, CardText } from './SettingsLayout';
 
 /**
  * SmsOptOutList — read-only viewer of numbers that have replied STOP (F10.5).
@@ -16,44 +17,45 @@ const SmsOptOutList = ({ workspaceId }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const load = useCallback(() => {
-    if (!workspaceId) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
+  // The list is loaded once per workspace (the tab remounts on switch).
+  useEffect(() => {
+    if (!workspaceId) return undefined;
+    let alive = true;
     smsService
       .listOptOuts(workspaceId)
-      .then(setOptOuts)
-      .catch((err) => setError(err?.response?.data?.error || 'Failed to load opt-outs'))
-      .finally(() => setLoading(false));
+      .then((list) => alive && setOptOuts(Array.isArray(list) ? list : []))
+      .catch((err) => alive && setError(err?.response?.data?.error || 'Failed to load opt-outs'))
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
   }, [workspaceId]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const isLoading = !!workspaceId && loading;
 
   return (
-    <section className="mt-10 pt-8" style={{ borderTop: '1px solid var(--color-border)' }}>
-      <h3 className="font-display font-semibold text-[color:var(--color-text-primary)]" style={{ fontSize: 15 }}>
-        Opted-out numbers
-      </h3>
-      <p className="mt-1 font-body text-xs text-[color:var(--color-text-muted)]">
-        Numbers that replied STOP. They are blocked from SMS and WhatsApp sends until they reply START.
-      </p>
+    <SettingsCard aria-labelledby="sms-optouts-title" style={{ gap: 12 }}>
+      <div>
+        <CardTitle id="sms-optouts-title" size={17}>
+          Opted-out numbers
+        </CardTitle>
+        <CardText style={{ marginTop: 4 }}>
+          Numbers that replied STOP. They are blocked from SMS and WhatsApp sends until they reply START.
+        </CardText>
+      </div>
 
       {error && (
-        <p className="font-body text-[12px] mt-3" style={{ color: 'var(--color-status-stuck)' }} role="alert">
+        <p className="font-body text-[12px]" style={{ margin: 0, color: 'var(--color-status-stuck)' }} role="alert">
           {error}
         </p>
       )}
 
-      {loading ? (
-        <p className="font-body mt-3" style={{ fontSize: 13, color: 'var(--color-text-muted)' }}>
+      {isLoading ? (
+        <p className="font-body" role="status" style={{ margin: 0, fontSize: 13, color: 'var(--color-text-secondary)' }}>
           Loading…
         </p>
       ) : optOuts.length === 0 ? (
-        <div className="flex items-center gap-2 mt-4" style={{ color: 'var(--color-text-muted)' }}>
+        <div className="flex items-center gap-2" style={{ color: 'var(--color-text-secondary)' }}>
           <Ban size={16} aria-hidden="true" />
           <span className="font-body" style={{ fontSize: 13 }}>
             No opt-outs yet.
@@ -61,37 +63,36 @@ const SmsOptOutList = ({ workspaceId }) => {
         </div>
       ) : (
         <ul
-          className="mt-4 flex flex-col"
+          className="grid gap-2"
           style={{
+            gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
             listStyle: 'none',
             margin: 0,
             padding: 0,
-            maxWidth: 480,
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-            overflow: 'hidden',
           }}
         >
-          {optOuts.map((o, i) => (
+          {optOuts.map((o) => (
             <li
               key={o._id}
-              className="flex items-center justify-between"
+              className="flex items-center justify-between gap-3"
               style={{
                 padding: '10px 14px',
-                borderTop: i === 0 ? 'none' : '1px solid var(--color-border)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 10,
+                background: 'var(--color-bg-input)',
               }}
             >
               <span className="font-mono" style={{ fontSize: 13, color: 'var(--color-text-primary)' }}>
                 {o.phone}
               </span>
-              <span className="font-body" style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+              <span className="font-body" style={{ fontSize: 12, color: 'var(--color-text-secondary)' }}>
                 {formatDate(o.optedOutAt)}
               </span>
             </li>
           ))}
         </ul>
       )}
-    </section>
+    </SettingsCard>
   );
 };
 

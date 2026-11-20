@@ -492,11 +492,17 @@ const OrgSidebar = () => {
  * Props:
  *   showNav (bool, default true) — render the Navbar + sidebar
  *   padded  (bool, default true) — apply page padding to the content area
+ *   flush   (bool, default false) — no padding at all; the page renders its own
+ *           edge-to-edge <PageHeader> + <PageBody> (the full-width layout)
  *   children
+
+ * Pages use the full width of the screen — there is deliberately no max-width
+ * cap here. Pages lay content out in grids instead of a centred column.
  */
 const PageWrapper = ({
   showNav = true,
   padded = true,
+  flush = false,
   children,
   className = '',
 }) => {
@@ -514,9 +520,8 @@ const PageWrapper = ({
             key={pathname}
             className={[
               'mx-auto w-full macan-page-enter',
-              padded ? 'px-4 py-6 md:px-10 md:py-8' : '',
+              padded && !flush ? 'px-4 py-6 md:px-10 md:py-8' : '',
             ].join(' ')}
-            style={{ maxWidth: 1440 }}
           >
             {children}
           </div>

@@ -14,6 +14,8 @@ import {
   peekResume, rememberResume, takeResume,
 } from './adsHelpers';
 import AdConversionsSettings from '../AdConversionsSettings';
+import { SettingsHeader } from '../SettingsLayout';
+import { PageBody } from '../../layout/PageHeader';
 import Modal from '../../ui/Modal';
 import Button from '../../ui/Button';
 import { SkeletonBlock } from '../../ui/Skeleton';
@@ -66,7 +68,7 @@ const initialDialogFromUrl = (params) => {
 
 const SectionHead = ({ title, sub, action }) => (
   <div className="flex items-baseline justify-between gap-3 flex-wrap">
-    <h2 className="font-display font-bold" style={{ margin: 0, fontSize: 22 }}>{title}</h2>
+    <h2 className="font-display font-bold" style={{ margin: 0, fontSize: 21 }}>{title}</h2>
     <div className="flex items-center gap-3 flex-wrap">
       {sub && <span style={{ fontSize: 13, color: MUTED }}>{sub}</span>}
       {action}
@@ -74,9 +76,10 @@ const SectionHead = ({ title, sub, action }) => (
   </div>
 );
 
-/* ------------------------------ Progress card ------------------------------ */
+/* ------------------------------ Progress strip ------------------------------ */
 
-const ProgressCard = ({ steps }) => {
+/** Full-width dark strip: ring + "Tracking setup" on the left, step chips across. */
+const ProgressStrip = ({ steps }) => {
   const { t } = useTranslation();
   const done = steps.filter((s) => s.done).length;
   const total = steps.length;
@@ -84,50 +87,52 @@ const ProgressCard = ({ steps }) => {
   const circ = 2 * Math.PI * 27;
   const dash = total ? (done / total) * circ : 0;
   return (
-    <div className="flex flex-col gap-4" style={{ flex: '1 1 300px', background: 'var(--color-pine)', color: 'var(--color-pine-text)', borderRadius: 20, padding: 24 }}>
-      <div className="flex items-center gap-4">
-        <svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label={t('adsHub.progress.aria', { done, total })}>
+    <section
+      aria-label={t('adsHub.progress.title')}
+      className="flex items-center flex-wrap"
+      style={{ gap: 28, background: 'var(--color-pine)', color: 'var(--color-pine-text)', borderRadius: 18, padding: '20px 24px' }}
+    >
+      <div className="flex items-center gap-3.5" style={{ minWidth: 240 }}>
+        <svg width="56" height="56" viewBox="0 0 64 64" role="img" aria-label={t('adsHub.progress.aria', { done, total })}>
           <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(237,232,218,.16)" strokeWidth="7" />
           <circle cx="32" cy="32" r="27" fill="none" stroke="var(--color-pine-gold)" strokeWidth="7" strokeLinecap="round" strokeDasharray={`${dash} ${circ}`} transform="rotate(-90 32 32)" />
           <text x="32" y="37" textAnchor="middle" fontSize="15" fontWeight="700" fill="var(--color-pine-text)" fontFamily="Bricolage Grotesque, sans-serif">{done}/{total}</text>
         </svg>
         <div>
-          <div className="font-display font-bold" style={{ fontSize: 18 }}>{t('adsHub.progress.title')}</div>
+          <h2 className="font-display font-bold" style={{ margin: 0, fontSize: 18 }}>{t('adsHub.progress.title')}</h2>
           <div style={{ fontSize: 13, color: 'var(--color-pine-text-2)' }}>
             {left === 0 ? t('adsHub.progress.allDone') : t('adsHub.progress.minutesLeft', { count: Math.max(1, left) })}
           </div>
         </div>
       </div>
-      <ol className="m-0 p-0 list-none flex flex-col gap-2.5" style={{ fontSize: 13.5 }}>
+      <ol className="flex-1 m-0 p-0 list-none grid gap-2.5" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 190px), 1fr))', fontSize: 13.5, minWidth: 'min(100%, 260px)' }}>
         {steps.map((s) => (
-          <li key={s.id} className="flex items-center gap-2.5">
+          <li key={s.id} className="flex">
             {s.done ? (
-              <>
+              <span className="flex items-center gap-2.5 w-full" style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(237,232,218,.06)' }}>
                 <span className="inline-flex items-center justify-center shrink-0" style={{ width: 20, height: 20, borderRadius: 999, background: 'var(--color-pine-gold)', color: 'var(--color-pine)' }}>
                   <Tick color="currentColor" size={12} />
                 </span>
-                <span style={{ color: 'var(--color-pine-text-2)', textDecoration: 'line-through', textDecorationColor: 'rgba(169,188,167,.5)' }}>
+                <span style={{ color: 'var(--color-pine-text-2)' }}>
                   {s.label}
                   <span className="sr-only"> ({t('adsHub.common.done')})</span>
                 </span>
-              </>
+              </span>
             ) : (
-              <>
-                <span aria-hidden="true" className="shrink-0" style={{ width: 20, height: 20, borderRadius: 999, border: '2px solid rgba(237,232,218,.35)', boxSizing: 'border-box' }} />
-                <button
-                  type="button"
-                  onClick={s.action}
-                  className="text-left font-semibold hover:underline underline-offset-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-pine-gold)]"
-                  style={{ color: 'var(--color-pine-text)', background: 'none', border: 'none', padding: 0, cursor: 'pointer', borderRadius: 4 }}
-                >
-                  {s.label}
-                </button>
-              </>
+              <button
+                type="button"
+                onClick={s.action}
+                className="flex items-center gap-2.5 w-full text-left font-semibold transition-colors hover:bg-[rgba(237,232,218,.12)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-pine-gold)]"
+                style={{ padding: '10px 12px', borderRadius: 12, background: 'rgba(237,232,218,.06)', color: 'var(--color-pine-text)', border: 'none', cursor: 'pointer' }}
+              >
+                <span aria-hidden="true" className="shrink-0" style={{ width: 20, height: 20, borderRadius: 999, border: '2px solid rgba(237,232,218,.4)', boxSizing: 'border-box' }} />
+                {s.label}
+              </button>
             )}
           </li>
         ))}
       </ol>
-    </div>
+    </section>
   );
 };
 
@@ -401,14 +406,14 @@ const WebsiteCard = ({ website, onPick, onCheck, onGuide, onChanged }) => {
   const found = websiteTagFound(website);
   const label = websiteLabel(website);
   return (
-    <article className="flex flex-col gap-[18px]" style={{ ...card, padding: 22 }}>
+    <article className="flex flex-col gap-4" style={{ borderTop: `1px solid ${LINE}`, paddingTop: 16 }}>
       <div className="flex items-center gap-3.5 flex-wrap">
-        <div className="flex items-center justify-center shrink-0" style={{ width: 44, height: 44, borderRadius: 12, background: found ? 'var(--color-status-done-bg)' : 'var(--color-status-working-bg)', color: found ? 'var(--color-status-done)' : 'var(--color-status-working)' }}>
-          <Globe size={22} aria-hidden="true" />
+        <div className="flex items-center justify-center shrink-0" style={{ width: 40, height: 40, borderRadius: 12, background: found ? 'var(--color-status-done-bg)' : 'var(--color-status-working-bg)', color: found ? 'var(--color-status-done)' : 'var(--color-status-working)' }}>
+          <Globe size={20} aria-hidden="true" />
         </div>
         <div className="flex-1 min-w-[200px]">
           <div className="flex items-center gap-2.5 flex-wrap">
-            <h3 className="font-display font-bold break-all" style={{ margin: 0, fontSize: 17 }}>{label || t('adsHub.website.untitled')}</h3>
+            <h3 className="font-display font-bold break-all" style={{ margin: 0, fontSize: 16 }}>{label || t('adsHub.website.untitled')}</h3>
             {!website.enabled ? (
               <Pill tone="neutral">{t('adsHub.website.paused')}</Pill>
             ) : found ? (
@@ -475,17 +480,9 @@ const SourceRow = ({ logo, name, detail, on, status, cta, onCta, soon, first = f
 const HubSkeleton = () => {
   const { t } = useTranslation();
   return (
-    <div className="flex flex-col gap-9" role="status" aria-live="polite" aria-label={t('adsHub.loading')}>
-      <div className="flex gap-7 flex-wrap">
-        <div className="flex flex-col gap-3" style={{ flex: '999 1 420px' }}>
-          <SkeletonBlock width={150} height={22} borderRadius={999} />
-          <SkeletonBlock width="85%" height={36} />
-          <SkeletonBlock width="70%" height={14} />
-          <SkeletonBlock width="60%" height={14} />
-        </div>
-        <SkeletonBlock width={undefined} height={230} borderRadius={20} style={{ flex: '1 1 300px' }} />
-      </div>
-      <div className="grid gap-[18px]" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+    <div className="flex flex-col gap-7" role="status" aria-live="polite" aria-label={t('adsHub.loading')}>
+      <SkeletonBlock height={96} borderRadius={18} />
+      <div className="grid gap-[18px]" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))' }}>
         {[0, 1, 2].map((i) => (
           <div key={i} style={{ ...card, padding: 22 }} className="flex flex-col gap-3">
             <div className="flex gap-3.5 items-center">
@@ -499,7 +496,10 @@ const HubSkeleton = () => {
           </div>
         ))}
       </div>
-      <SkeletonBlock height={180} borderRadius={18} />
+      <div className="grid gap-[18px]" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))' }}>
+        <SkeletonBlock height={260} borderRadius={18} />
+        <SkeletonBlock height={260} borderRadius={18} />
+      </div>
     </div>
   );
 };
@@ -663,13 +663,25 @@ const AdsTrackingHub = ({ workspaceId }) => {
   };
 
   /* -------------------------- render -------------------------- */
-  if (!workspaceId || (!overview && !loadError)) return <HubSkeleton />;
+  const frame = (content, ready = false) => (
+    <>
+      <SettingsHeader
+        tab="ads"
+        title={t('settings.tabs.ads')}
+        subtitle={t('settings.ads.subtitle')}
+        actions={ready ? <SecondaryButton onClick={openAdvanced}>{t('settings.ads.advancedButton')}</SecondaryButton> : null}
+      />
+      <PageBody>{content}</PageBody>
+    </>
+  );
+
+  if (!workspaceId || (!overview && !loadError)) return frame(<HubSkeleton />);
   if (!overview) {
-    return (
+    return frame(
       <div className="flex flex-col gap-3 items-start" style={{ ...card, padding: 22 }}>
         <Notice tone="error">{loadError}</Notice>
         <SecondaryButton onClick={() => { setLoadError(''); refresh(); }}>{t('adsHub.common.retry')}</SecondaryButton>
-      </div>
+      </div>,
     );
   }
 
@@ -708,21 +720,16 @@ const AdsTrackingHub = ({ workspaceId }) => {
   const dash = <span style={{ fontWeight: 400, color: MUTED }}>—</span>;
   const idTail = (id) => (id ? <span style={{ fontWeight: 400, color: MUTED }}> {tail(id)}</span> : null);
 
-  return (
-    <div className="flex flex-col gap-9 font-body" style={{ color: 'var(--color-text-primary)', fontSize: 14 }}>
-      {/* hero + progress */}
-      <section className="flex gap-7 items-stretch flex-wrap">
-        <div className="flex flex-col justify-center gap-3 min-w-0" style={{ flex: '999 1 420px' }}>
-          <span className="self-start font-bold uppercase" style={{ fontSize: 12, letterSpacing: '.06em', color: 'var(--color-accent)', background: 'var(--color-accent-light)', padding: '5px 10px', borderRadius: 999 }}>
-            {t('adsHub.hero.eyebrow')}
-          </span>
-          <h1 className="font-display text-[28px] sm:text-[36px]" style={{ margin: 0, lineHeight: 1.08, fontWeight: 750, letterSpacing: '-0.02em' }}>
-            {t('adsHub.hero.title')}
-          </h1>
-          <p style={{ margin: 0, fontSize: 16, lineHeight: 1.55, color: 'var(--color-text-secondary)', maxWidth: 620 }}>{t('adsHub.hero.body')}</p>
-        </div>
-        <ProgressCard steps={steps} />
-      </section>
+  const anySiteFound = websites.some(websiteTagFound);
+  let websitePill;
+  if (websites.length === 0) websitePill = <Pill tone="warn">{t('settings.ads.notInstalled')}</Pill>;
+  else if (anySiteFound) websitePill = <Pill tone="ok" dot>{t('adsHub.website.tagFound')}</Pill>;
+  else websitePill = <Pill tone="warn">{t('adsHub.website.tagNotFound')}</Pill>;
+
+  return frame(
+    <div className="flex flex-col gap-7 font-body" style={{ color: 'var(--color-text-primary)', fontSize: 14 }}>
+      {/* progress, full width */}
+      <ProgressStrip steps={steps} />
 
       {!av.encryption && <Notice tone="warn">{t('adsHub.encryptionMissing')}</Notice>}
       {loadError && <Notice tone="error" action={<SecondaryButton size="sm" onClick={refresh}>{t('adsHub.common.retry')}</SecondaryButton>}>{loadError}</Notice>}
@@ -730,7 +737,7 @@ const AdsTrackingHub = ({ workspaceId }) => {
       {/* ad accounts */}
       <section className="flex flex-col gap-3.5" aria-labelledby="ads-accounts">
         <SectionHead title={<span id="ads-accounts">{t('adsHub.sections.accounts')}</span>} sub={t('adsHub.sections.accountsSub')} />
-        <div className="grid gap-[18px]" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))' }}>
+        <div className="grid gap-[18px]" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))' }}>
           <PlatformCard
             platform="meta"
             logo="meta"
@@ -833,102 +840,98 @@ const AdsTrackingHub = ({ workspaceId }) => {
         </div>
       </section>
 
-      {/* website tracking */}
-      <section className="flex flex-col gap-3.5" aria-labelledby="ads-website">
-        <SectionHead
-          title={<span id="ads-website">{t('adsHub.sections.website')}</span>}
-          sub={t('adsHub.sections.websiteSub')}
-          action={websites.length > 0 ? (
-            <SecondaryButton size="sm" onClick={() => setDialog({ type: 'website', connectionId: '__new__' })}>{t('adsHub.website.addAnother')}</SecondaryButton>
-          ) : null}
-        />
-        {websites.length === 0 ? (
-          <article className="flex flex-col gap-[18px]" style={{ ...card, padding: 22 }}>
-            <div className="flex items-center gap-3.5 flex-wrap">
-              <div className="flex items-center justify-center shrink-0" style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--color-status-working-bg)', color: 'var(--color-status-working)' }}>
-                <Globe size={22} aria-hidden="true" />
-              </div>
-              <div className="flex-1 min-w-[200px]">
-                <h3 className="font-display font-bold" style={{ margin: 0, fontSize: 17 }}>{t('adsHub.website.emptyTitle')}</h3>
-                <p style={{ margin: '3px 0 0', fontSize: 13, color: MUTED }}>{t('adsHub.website.pickBuilder')}</p>
-              </div>
-            </div>
-            <BuilderTiles onPick={(b) => setDialog({ type: 'website', builder: b, connectionId: '' })} />
-          </article>
-        ) : (
-          websites.map((w) => (
-            <WebsiteCard
-              key={w.connectionId}
-              website={w}
-              onPick={(b) => setDialog({ type: 'website', builder: b, connectionId: w.connectionId })}
-              onCheck={() => setDialog({ type: 'check', connectionId: w.connectionId })}
-              onGuide={() => setDialog({ type: 'website', connectionId: w.connectionId })}
-              onChanged={refresh}
-            />
-          ))
-        )}
-      </section>
+      {/* website tracking + lead sources, side by side */}
+      <div className="grid gap-[18px] items-start" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 380px), 1fr))' }}>
+        <section className="flex flex-col gap-4 min-w-0" style={{ ...card, padding: 22 }} aria-labelledby="ads-website">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h2 id="ads-website" className="flex-1 font-display font-bold" style={{ margin: 0, fontSize: 19 }}>{t('adsHub.sections.website')}</h2>
+            {websitePill}
+            {websites.length > 0 && (
+              <SecondaryButton size="sm" onClick={() => setDialog({ type: 'website', connectionId: '__new__' })}>{t('adsHub.website.addAnother')}</SecondaryButton>
+            )}
+          </div>
+          <p style={{ margin: 0, fontSize: 13.5, color: 'var(--color-text-secondary)' }}>{t('adsHub.sections.websiteSub')}</p>
+          {websites.length === 0 ? (
+            <>
+              <p className="font-bold" style={{ margin: 0, fontSize: 13.5 }}>{t('adsHub.website.pickBuilder')}</p>
+              <BuilderTiles onPick={(b) => setDialog({ type: 'website', builder: b, connectionId: '' })} />
+            </>
+          ) : (
+            websites.map((w) => (
+              <WebsiteCard
+                key={w.connectionId}
+                website={w}
+                onPick={(b) => setDialog({ type: 'website', builder: b, connectionId: w.connectionId })}
+                onCheck={() => setDialog({ type: 'check', connectionId: w.connectionId })}
+                onGuide={() => setDialog({ type: 'website', connectionId: w.connectionId })}
+                onChanged={refresh}
+              />
+            ))
+          )}
+        </section>
 
-      {/* lead sources */}
-      <section className="flex flex-col gap-3.5" aria-labelledby="ads-sources">
-        <SectionHead title={<span id="ads-sources">{t('adsHub.sections.sources')}</span>} sub={t('adsHub.sections.sourcesSub')} />
-        <ul className="m-0 p-0 list-none overflow-hidden" style={card}>
-          <SourceRow
-            first
-            logo="facebook"
-            name={t('adsHub.sources.facebook')}
-            soon={!avail.meta}
-            on={subscribedPages.length > 0}
-            detail={subscribedPages.length ? subscribedPages.map((p) => p.name).join(' · ') : meta.status === 'ready' ? t('adsHub.sources.pickPages') : t('adsHub.sources.connectMetaFirst')}
-            status={t('adsHub.sources.syncingPages', { count: subscribedPages.length })}
-            cta={meta.status === 'ready' ? t('adsHub.sources.turnOn') : t('adsHub.sources.connect')}
-            onCta={() => (meta.status === 'ready' ? setDialog({ type: 'meta', step: 'leadads' }) : connectPlatform('meta'))}
-          />
-          <SourceRow
-            logo="instagram"
-            name={t('adsHub.sources.instagram')}
-            soon={!avail.meta}
-            on={igPages.length > 0}
-            detail={t('adsHub.sources.instagramDetail')}
-            status={t('adsHub.cards.syncing')}
-            cta={meta.status === 'ready' ? t('adsHub.sources.turnOn') : t('adsHub.sources.connect')}
-            onCta={() => (meta.status === 'ready' ? setDialog({ type: 'meta', step: 'leadads' }) : connectPlatform('meta'))}
-          />
-          <SourceRow
-            logo="google-ads"
-            name={t('adsHub.sources.google')}
-            soon={!avail.google}
-            on={!!google.leadFormConnectionId}
-            detail={google.leadFormConnectionId ? t('adsHub.sources.googleOn') : google.status === 'ready' ? t('adsHub.sources.googleTurnOn') : t('adsHub.sources.connectGoogleFirst')}
-            status={t('adsHub.cards.syncing')}
-            cta={google.status === 'ready' ? t('adsHub.sources.turnOn') : t('adsHub.sources.connect')}
-            onCta={() => (google.status === 'ready' ? setDialog({ type: 'google', leadForms: true }) : connectPlatform('google', { leadForms: true }))}
-          />
-          <SourceRow
-            logo="tiktok"
-            name={t('adsHub.sources.tiktok')}
-            soon={!avail.tiktok}
-            on={tiktok.instantForms.enabled}
-            detail={tiktok.instantForms.enabled ? t('adsHub.sources.tiktokOn', { name: tiktok.advertiserName }) : tiktok.status === 'ready' ? t('adsHub.sources.tiktokTurnOn') : t('adsHub.sources.connectTikTokFirst')}
-            status={t('adsHub.cards.syncing')}
-            cta={tiktok.status === 'ready' ? t('adsHub.sources.turnOn') : t('adsHub.sources.connect')}
-            onCta={() => connectPlatform('tiktok', { instantForms: true })}
-          />
-          <SourceRow
-            logo="leadloop"
-            name={t('adsHub.sources.website')}
-            on={websites.length > 0}
-            detail={websites.length ? t('adsHub.sources.websiteOn', { sites: websites.map(websiteLabel).filter(Boolean).join(', ') }) : t('adsHub.sources.websiteDetail')}
-            status={t('adsHub.sources.capturing', { count: websites.reduce((n, w) => n + w.submissionCount, 0) })}
-            cta={t('adsHub.sources.setUp')}
-            onCta={() => setDialog({ type: 'website', connectionId: '' })}
-          />
-        </ul>
-      </section>
+        <section className="overflow-hidden min-w-0" style={card} aria-labelledby="ads-sources">
+          <div style={{ padding: '22px 22px 10px' }}>
+            <h2 id="ads-sources" className="font-display font-bold" style={{ margin: 0, fontSize: 19 }}>{t('adsHub.sections.sources')}</h2>
+            <p style={{ margin: '6px 0 0', fontSize: 13.5, color: 'var(--color-text-secondary)' }}>{t('adsHub.sections.sourcesSub')}</p>
+          </div>
+          <ul className="m-0 p-0 list-none">
+            <SourceRow
+              logo="facebook"
+              name={t('adsHub.sources.facebook')}
+              soon={!avail.meta}
+              on={subscribedPages.length > 0}
+              detail={subscribedPages.length ? subscribedPages.map((p) => p.name).join(' · ') : meta.status === 'ready' ? t('adsHub.sources.pickPages') : t('adsHub.sources.connectMetaFirst')}
+              status={t('adsHub.sources.syncingPages', { count: subscribedPages.length })}
+              cta={meta.status === 'ready' ? t('adsHub.sources.turnOn') : t('adsHub.sources.connect')}
+              onCta={() => (meta.status === 'ready' ? setDialog({ type: 'meta', step: 'leadads' }) : connectPlatform('meta'))}
+            />
+            <SourceRow
+              logo="instagram"
+              name={t('adsHub.sources.instagram')}
+              soon={!avail.meta}
+              on={igPages.length > 0}
+              detail={t('adsHub.sources.instagramDetail')}
+              status={t('adsHub.cards.syncing')}
+              cta={meta.status === 'ready' ? t('adsHub.sources.turnOn') : t('adsHub.sources.connect')}
+              onCta={() => (meta.status === 'ready' ? setDialog({ type: 'meta', step: 'leadads' }) : connectPlatform('meta'))}
+            />
+            <SourceRow
+              logo="google-ads"
+              name={t('adsHub.sources.google')}
+              soon={!avail.google}
+              on={!!google.leadFormConnectionId}
+              detail={google.leadFormConnectionId ? t('adsHub.sources.googleOn') : google.status === 'ready' ? t('adsHub.sources.googleTurnOn') : t('adsHub.sources.connectGoogleFirst')}
+              status={t('adsHub.cards.syncing')}
+              cta={google.status === 'ready' ? t('adsHub.sources.turnOn') : t('adsHub.sources.connect')}
+              onCta={() => (google.status === 'ready' ? setDialog({ type: 'google', leadForms: true }) : connectPlatform('google', { leadForms: true }))}
+            />
+            <SourceRow
+              logo="tiktok"
+              name={t('adsHub.sources.tiktok')}
+              soon={!avail.tiktok}
+              on={tiktok.instantForms.enabled}
+              detail={tiktok.instantForms.enabled ? t('adsHub.sources.tiktokOn', { name: tiktok.advertiserName }) : tiktok.status === 'ready' ? t('adsHub.sources.tiktokTurnOn') : t('adsHub.sources.connectTikTokFirst')}
+              status={t('adsHub.cards.syncing')}
+              cta={tiktok.status === 'ready' ? t('adsHub.sources.turnOn') : t('adsHub.sources.connect')}
+              onCta={() => connectPlatform('tiktok', { instantForms: true })}
+            />
+            <SourceRow
+              logo="leadloop"
+              name={t('adsHub.sources.website')}
+              on={websites.length > 0}
+              detail={websites.length ? t('adsHub.sources.websiteOn', { sites: websites.map(websiteLabel).filter(Boolean).join(', ') }) : t('adsHub.sources.websiteDetail')}
+              status={t('adsHub.sources.capturing', { count: websites.reduce((n, w) => n + w.submissionCount, 0) })}
+              cta={t('adsHub.sources.setUp')}
+              onCta={() => setDialog({ type: 'website', connectionId: '' })}
+            />
+          </ul>
+        </section>
+      </div>
 
       {/* more platforms */}
       <section className="flex flex-col gap-3.5" aria-labelledby="ads-more">
-        <h2 id="ads-more" className="font-display font-bold" style={{ margin: 0, fontSize: 22 }}>{t('adsHub.sections.more')}</h2>
+        <h2 id="ads-more" className="font-display font-bold" style={{ margin: 0, fontSize: 19 }}>{t('adsHub.sections.more')}</h2>
         <ul className="grid m-0 p-0 list-none gap-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))' }}>
           {[
             { id: 'linkedin', name: 'LinkedIn Ads' },
@@ -953,7 +956,7 @@ const AdsTrackingHub = ({ workspaceId }) => {
       </section>
 
       {/* advanced */}
-      <section ref={advancedRef} style={{ ...card, padding: 0, scrollMarginTop: 16 }}>
+      <section id="advanced" ref={advancedRef} style={{ ...card, padding: 0, scrollMarginTop: 72 }}>
         <h2 style={{ margin: 0 }}>
           <button
             type="button"
@@ -1056,7 +1059,8 @@ const AdsTrackingHub = ({ workspaceId }) => {
           {confirm ? t(`adsHub.disconnect.body.${confirm}`) : ''}
         </p>
       </Modal>
-    </div>
+    </div>,
+    true,
   );
 };
 

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CopyCheck, AlertTriangle, Check } from 'lucide-react';
+import { AlertTriangle, Check } from 'lucide-react';
 import PageWrapper from '../components/layout/PageWrapper';
+import { PageHeader, PageBody } from '../components/layout/PageHeader';
 import Button from '../components/ui/Button';
 import EmptyState from '../components/onboarding/EmptyState';
 import useOrgStore from '../store/orgStore';
@@ -17,9 +18,8 @@ import { listDuplicates, mergeDuplicate, dismissDuplicate } from '../services/du
  */
 
 const card = {
-  background: 'var(--color-bg-surface, #fff)',
-  border: '1px solid var(--color-border)',
-  borderRadius: 'var(--radius-lg)',
+  background: 'var(--color-bg-surface)',
+  borderRadius: 18,
   boxShadow: 'var(--shadow-card)',
 };
 
@@ -37,104 +37,100 @@ const asText = (v) => {
   return String(v);
 };
 
+const matchedOn = (pair, t) =>
+  (pair.reasons || []).map((r) => t(`duplicates.reason.${r}`, r)).join(t('duplicates.and', ' and '));
+
+const headCell = {
+  padding: '12px 16px',
+  borderBottom: '1px solid var(--color-border)',
+  fontSize: 12,
+  fontWeight: 700,
+  color: 'var(--color-text-secondary)',
+  textAlign: 'left',
+  verticalAlign: 'bottom',
+};
+const rowCell = {
+  padding: '14px 16px',
+  borderBottom: '1px solid var(--color-bg-subtle)',
+  fontSize: 13.5,
+  color: 'var(--color-text-primary)',
+  verticalAlign: 'middle',
+};
+const subLabel = { display: 'block', fontWeight: 400, color: 'var(--color-text-muted)', fontSize: 11.5, marginTop: 2 };
+
+/** One selectable side of a field: a real radio inside its label. */
+const ChoiceCell = ({ name, chosen, value, fieldName, onChoose }) => (
+  <td style={{ ...rowCell, padding: 0, background: chosen ? 'var(--color-accent-light)' : 'transparent' }}>
+    <label
+      className="flex items-center gap-2.5"
+      style={{ padding: '14px 16px', cursor: 'pointer', minWidth: 0 }}
+    >
+      <input
+        type="radio"
+        name={name}
+        checked={chosen}
+        onChange={onChoose}
+        aria-label={`${fieldName}: ${asText(value)}`}
+        style={{ accentColor: 'var(--color-accent)', margin: 0, flexShrink: 0 }}
+      />
+      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{asText(value)}</span>
+    </label>
+  </td>
+);
+
+/** The comparison panel for the selected pair. */
 const DuplicatePair = ({ pair, onResolved }) => {
   const { t } = useTranslation();
   // Which side each field takes. Default 'primary' = the existing (older) lead.
   const [choices, setChoices] = useState({});
   const [busy, setBusy] = useState('');
+  const [error, setError] = useState('');
 
   const columns = pair.existing.columns || [];
   const strong = pair.score >= 90;
+  const titleId = `dup-title-${pair._id}`;
 
   const run = async (action) => {
     setBusy(action);
+    setError('');
     try {
       if (action === 'merge') await mergeDuplicate(pair._id, choices, 'existing');
       else await dismissDuplicate(pair._id);
       onResolved(pair._id);
-    } catch {
+    } catch (e) {
       setBusy('');
+      setError(e?.response?.data?.error || t('duplicates.actionError', 'That didn’t work. Please try again.'));
     }
   };
 
-  const Radio = ({ on }) => (
-    <span
-      aria-hidden="true"
-      style={{
-        width: 13,
-        height: 13,
-        borderRadius: '50%',
-        border: `1.5px solid ${on ? 'var(--color-accent)' : 'var(--color-border-strong)'}`,
-        background: on ? 'radial-gradient(circle, var(--color-accent) 0 45%, transparent 47%)' : 'transparent',
-        display: 'inline-block',
-        flex: '0 0 13px',
-      }}
-    />
-  );
-
-  const Cell = ({ side, value, columnId }) => {
-    const chosen = (choices[columnId] || 'primary') === side;
-    return (
-      <button
-        type="button"
-        onClick={() => setChoices((c) => ({ ...c, [columnId]: side }))}
-        className="text-left flex items-center gap-2"
-        style={{
-          padding: '10px 12px',
-          borderBottom: '1px solid var(--color-border)',
-          background: chosen ? 'var(--color-accent-light, #EEF3EA)' : 'transparent',
-          boxShadow: chosen ? 'inset 2px 0 0 var(--color-accent)' : 'none',
-          border: 'none',
-          borderRadius: 0,
-          width: '100%',
-          fontSize: 13,
-          color: 'var(--color-text-primary)',
-          cursor: 'pointer',
-          minWidth: 0,
-        }}
-      >
-        <Radio on={chosen} />
-        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{asText(value)}</span>
-      </button>
-    );
-  };
-
   return (
-    <div style={{ ...card, marginBottom: 16, overflow: 'hidden' }}>
+    <section aria-labelledby={titleId} style={{ ...card, overflow: 'hidden', minWidth: 0 }}>
       {/* Why we think these match */}
       <div
-        className="flex items-start gap-3 flex-wrap"
-        style={{
-          padding: '12px 16px',
-          background: 'var(--color-status-working-bg, #FBF2DE)',
-          borderBottom: '1px solid var(--color-border)',
-        }}
+        className="flex items-center gap-3 flex-wrap"
+        style={{ padding: '18px 24px', background: 'var(--color-status-working-bg)' }}
       >
-        <AlertTriangle size={17} style={{ color: 'var(--color-status-working)', marginTop: 2, flexShrink: 0 }} />
+        <AlertTriangle size={18} aria-hidden="true" style={{ color: 'var(--color-status-working)', flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 200 }}>
-          <div className="font-heading" style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--color-text-primary)' }}>
+          <h2 id={titleId} className="font-display" style={{ margin: 0, fontSize: 18, fontWeight: 700, color: 'var(--color-text-primary)' }}>
             {strong
               ? t('duplicates.strongTitle', 'Almost certainly the same person')
               : t('duplicates.maybeTitle', 'This might already be in your pipeline')}
-          </div>
-          <p className="font-body" style={{ fontSize: 12.5, color: 'var(--color-text-secondary)', marginTop: 2 }}>
-            {t('duplicates.matchedOn', 'Matched on {{fields}}', {
-              fields: (pair.reasons || [])
-                .map((r) => t(`duplicates.reason.${r}`, r))
-                .join(t('duplicates.and', ' and ')),
-            })}{' '}
-            · {pair.boardName}
+          </h2>
+          <p className="font-body" style={{ margin: '2px 0 0', fontSize: 13, color: 'var(--color-status-working)' }}>
+            {t('duplicates.matchedOn', 'Matched on {{fields}}', { fields: matchedOn(pair, t) })}
+            {pair.boardName ? ` · ${pair.boardName}` : ''}
           </p>
         </div>
         <span
           className="font-body"
           style={{
-            fontSize: 11.5,
+            fontSize: 13,
             fontWeight: 700,
-            padding: '3px 9px',
-            borderRadius: 20,
-            background: 'var(--color-bg-surface, #fff)',
-            color: 'var(--color-status-working)',
+            padding: '5px 12px',
+            borderRadius: 'var(--radius-full)',
+            background: 'var(--color-status-working)',
+            color: '#FFFFFF',
             whiteSpace: 'nowrap',
           }}
         >
@@ -144,70 +140,84 @@ const DuplicatePair = ({ pair, onResolved }) => {
 
       {/* Field-by-field picker */}
       <div style={{ overflowX: 'auto' }}>
-        <div style={{ minWidth: 520, display: 'grid', gridTemplateColumns: '120px 1fr 1fr' }}>
-          <div style={{ ...headCell }}>{t('duplicates.field', 'Field')}</div>
-          <div style={{ ...headCell }}>
-            {t('duplicates.existing', 'Already in LeadLoop')}
-            <span style={subLabel}>{fmtDate(pair.existing.createdAt)}</span>
-          </div>
-          <div style={{ ...headCell }}>
-            {t('duplicates.incoming', 'Just arrived')}
-            <span style={subLabel}>{fmtDate(pair.incoming.createdAt)}</span>
-          </div>
-
-          <div style={labelCell}>{t('duplicates.name', 'Name')}</div>
-          <div style={{ borderBottom: '1px solid var(--color-border)', padding: '10px 12px', fontSize: 13 }}>
-            {asText(pair.existing.name)}
-          </div>
-          <div style={{ borderBottom: '1px solid var(--color-border)', padding: '10px 12px', fontSize: 13 }}>
-            {asText(pair.incoming.name)}
-          </div>
-
-          {columns.map((col) => (
-            <div key={col._id} style={{ display: 'contents' }}>
-              <div style={labelCell}>{col.name}</div>
-              <Cell side="primary" columnId={col._id} value={pair.existing.values[col._id]} />
-              <Cell side="duplicate" columnId={col._id} value={pair.incoming.values[col._id]} />
-            </div>
-          ))}
-        </div>
+        <table className="font-body" style={{ width: '100%', minWidth: 560, borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: 180 }} />
+            <col />
+            <col />
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col" style={{ ...headCell, paddingLeft: 24 }}>{t('duplicates.field', 'Field')}</th>
+              <th scope="col" style={headCell}>
+                {t('duplicates.existing', 'Already in LeadLoop')}
+                <span style={subLabel}>{fmtDate(pair.existing.createdAt)}</span>
+              </th>
+              <th scope="col" style={headCell}>
+                {t('duplicates.incoming', 'Just arrived')}
+                <span style={subLabel}>{fmtDate(pair.incoming.createdAt)}</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row" style={{ ...rowCell, paddingLeft: 24, fontWeight: 600, textAlign: 'left' }}>
+                {t('duplicates.name', 'Name')}
+              </th>
+              <td style={rowCell}>{asText(pair.existing.name)}</td>
+              <td style={rowCell}>{asText(pair.incoming.name)}</td>
+            </tr>
+            {columns.map((col) => {
+              const side = choices[col._id] || 'primary';
+              const choose = (v) => () => setChoices((c) => ({ ...c, [col._id]: v }));
+              const group = `dup-${pair._id}-${col._id}`;
+              return (
+                <tr key={col._id}>
+                  <th
+                    scope="row"
+                    style={{ ...rowCell, paddingLeft: 24, fontWeight: 600, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                  >
+                    {col.name}
+                  </th>
+                  <ChoiceCell
+                    name={group}
+                    chosen={side === 'primary'}
+                    value={pair.existing.values?.[col._id]}
+                    fieldName={col.name}
+                    onChoose={choose('primary')}
+                  />
+                  <ChoiceCell
+                    name={group}
+                    chosen={side === 'duplicate'}
+                    value={pair.incoming.values?.[col._id]}
+                    fieldName={col.name}
+                    onChoose={choose('duplicate')}
+                  />
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
-      <div className="flex items-center justify-between gap-3 flex-wrap" style={{ padding: '13px 16px' }}>
-        <p className="font-body" style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+      <div className="flex items-center gap-3 flex-wrap" style={{ padding: '16px 24px' }}>
+        <p className="font-body" style={{ flex: 1, minWidth: 200, margin: 0, fontSize: 12.5, color: 'var(--color-text-secondary)' }}>
           {t('duplicates.mergeNote', 'The older lead is kept, with its history. The newer copy is removed.')}
         </p>
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" onClick={() => run('dismiss')} disabled={!!busy}>
-            {t('duplicates.notDuplicate', 'Not a duplicate')}
-          </Button>
-          <Button variant="primary" onClick={() => run('merge')} disabled={!!busy}>
-            {busy === 'merge' ? t('duplicates.merging', 'Merging…') : t('duplicates.merge', 'Merge into one lead')}
-          </Button>
-        </div>
+        <Button variant="secondary" onClick={() => run('dismiss')} disabled={!!busy}>
+          {t('duplicates.notDuplicate', 'Not a duplicate')}
+        </Button>
+        <Button variant="primary" onClick={() => run('merge')} disabled={!!busy}>
+          {busy === 'merge' ? t('duplicates.merging', 'Merging…') : t('duplicates.merge', 'Merge into one lead')}
+        </Button>
+        {error && (
+          <p role="alert" className="font-body w-full" style={{ margin: 0, fontSize: 12.5, color: 'var(--color-status-stuck)' }}>
+            {error}
+          </p>
+        )}
       </div>
-    </div>
+    </section>
   );
-};
-
-const headCell = {
-  padding: '10px 12px',
-  background: 'var(--color-bg-subtle)',
-  borderBottom: '1px solid var(--color-border)',
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: '0.05em',
-  textTransform: 'uppercase',
-  color: 'var(--color-text-secondary)',
-};
-const subLabel = { display: 'block', fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: 'var(--color-text-muted)', fontSize: 11 };
-const labelCell = {
-  padding: '10px 12px',
-  borderBottom: '1px solid var(--color-border)',
-  fontSize: 11,
-  letterSpacing: '0.04em',
-  textTransform: 'uppercase',
-  color: 'var(--color-text-muted)',
 };
 
 const DuplicatesPage = () => {
@@ -215,11 +225,12 @@ const DuplicatesPage = () => {
   const currentOrg = useOrgStore((s) => s.currentOrg);
   const orgId = currentOrg?._id || null;
   const [pairs, setPairs] = useState(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   const load = useCallback(() => {
     if (!orgId) return;
     listDuplicates(orgId)
-      .then(setPairs)
+      .then((list) => setPairs(Array.isArray(list) ? list : []))
       .catch(() => setPairs([]));
   }, [orgId]);
 
@@ -227,31 +238,49 @@ const DuplicatesPage = () => {
     load();
   }, [load]);
 
-  const onResolved = (id) => setPairs((p) => (p || []).filter((x) => x._id !== id));
+  // The selected pair; falls back to the first one so something is always shown.
+  const selected = (pairs || []).find((p) => p._id === selectedId) || (pairs || [])[0] || null;
+
+  const onResolved = (id) => {
+    const list = pairs || [];
+    const idx = list.findIndex((x) => x._id === id);
+    const next = list.filter((x) => x._id !== id);
+    // Move on to the next pair in the list (or the previous one at the end).
+    const following = next[idx] || next[idx - 1] || null;
+    setSelectedId(following ? following._id : null);
+    setPairs(next);
+  };
+
+  const count = pairs?.length || 0;
 
   return (
-    <PageWrapper>
-      <div style={{ maxWidth: 960, margin: '0 auto', padding: '4px 2px 40px' }}>
-        <div className="flex items-center gap-3" style={{ marginBottom: 6 }}>
-          <span
-            className="inline-flex items-center justify-center"
-            style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--color-accent-light, #EEF3EA)', color: 'var(--color-accent)' }}
-          >
-            <CopyCheck size={18} />
-          </span>
-          <h1 className="font-heading" style={{ fontSize: 24, fontWeight: 800, color: 'var(--color-text-primary)' }}>
-            {t('duplicates.title', 'Possible duplicates')}
-          </h1>
-        </div>
-        <p className="font-body" style={{ fontSize: 14, color: 'var(--color-text-muted)', marginBottom: 22, maxWidth: 620 }}>
-          {t('duplicates.subtitle', 'The same buyer often enquires through more than one source. Review each pair and keep one record — nothing is merged automatically.')}
-        </p>
-
+    <PageWrapper flush>
+      <PageHeader
+        title={t('duplicates.title', 'Possible duplicates')}
+        subtitle={t('duplicates.subtitle', 'The same buyer often enquires through more than one source. Review each pair and keep one record — nothing is merged automatically.')}
+        actions={
+          count > 0 ? (
+            <span
+              className="font-body"
+              style={{
+                fontSize: 13,
+                fontWeight: 700,
+                color: 'var(--color-status-working)',
+                background: 'var(--color-status-working-bg)',
+                padding: '6px 12px',
+                borderRadius: 'var(--radius-full)',
+              }}
+            >
+              {t('duplicates.toReview', '{{count}} to review', { count })}
+            </span>
+          ) : null
+        }
+      />
+      <PageBody>
         {pairs === null ? (
-          <div className="flex flex-col gap-3">
-            {[0, 1].map((i) => (
-              <div key={i} className="skeleton" style={{ height: 200, borderRadius: 12 }} />
-            ))}
+          <div className="grid gap-5 lg:grid-cols-[minmax(280px,380px)_minmax(0,1fr)]" aria-busy="true">
+            <div className="skeleton" style={{ height: 240, borderRadius: 18 }} />
+            <div className="skeleton" style={{ height: 360, borderRadius: 18 }} />
           </div>
         ) : pairs.length === 0 ? (
           <EmptyState
@@ -260,9 +289,47 @@ const DuplicatesPage = () => {
             body={t('duplicates.emptyBody', 'When the same person arrives from two sources, the pair shows up here before anything is merged.')}
           />
         ) : (
-          pairs.map((pair) => <DuplicatePair key={pair._id} pair={pair} onResolved={onResolved} />)
+          <div className="grid gap-5 items-start lg:grid-cols-[minmax(280px,380px)_minmax(0,1fr)]">
+            <nav aria-label={t('duplicates.pairsLabel', 'Pairs to review')} style={{ ...card, overflow: 'hidden' }}>
+              <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+                {pairs.map((pair) => {
+                  const on = selected?._id === pair._id;
+                  const name = pair.existing?.name || pair.incoming?.name || '—';
+                  return (
+                    <li key={pair._id} style={{ borderBottom: '1px solid var(--color-bg-subtle)' }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedId(pair._id)}
+                        aria-current={on ? 'true' : undefined}
+                        className="block w-full text-left font-body transition-colors hover:bg-[color:var(--color-bg-input)] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[color:var(--color-accent)]"
+                        style={{
+                          padding: '16px 18px',
+                          background: on ? 'var(--color-accent-light)' : undefined,
+                          borderLeft: `3px solid ${on ? 'var(--color-accent)' : 'transparent'}`,
+                          color: 'var(--color-text-primary)',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <span className="flex justify-between gap-2">
+                          <strong className="truncate">{asText(name)}</strong>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-status-working)', flexShrink: 0 }}>
+                            {pair.score}%
+                          </span>
+                        </span>
+                        <span className="block truncate" style={{ fontSize: 12.5, color: 'var(--color-text-secondary)', marginTop: 4 }}>
+                          {matchedOn(pair, t)}
+                          {pair.boardName ? ` · ${pair.boardName}` : ''}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+            {selected && <DuplicatePair key={selected._id} pair={selected} onResolved={onResolved} />}
+          </div>
         )}
-      </div>
+      </PageBody>
     </PageWrapper>
   );
 };

@@ -2176,5 +2176,128 @@
         "help": "Ci-dessous : ajoutez l’ID client Google Ads et l’action de conversion."
       }
     }
+  },
+  "settings": {
+    "groups": {
+      "workspace": "Espace de travail",
+      "channels": "Canaux",
+      "growth": "Croissance",
+      "you": "Vous"
+    },
+    "tabs": {
+      "organisation": "Organisation",
+      "templates": "Modèles de tableaux",
+      "email": "Connexion e-mail",
+      "sms": "SMS",
+      "whatsapp": "WhatsApp",
+      "ads": "Publicités et suivi",
+      "ai": "Clés IA",
+      "profile": "Profil"
+    },
+    "nav": {
+      "title": "Paramètres",
+      "workspaceSub": "Espace {{name}}",
+      "searchLabel": "Rechercher dans les paramètres",
+      "noMatch": "Aucun paramètre ne correspond à « {{query}} ».",
+      "sectionsAria": "Sections des paramètres"
+    },
+    "status": {
+      "connected": "Connecté",
+      "notConnected": "Non connecté"
+    },
+    "roles": {
+      "owner": "Propriétaire",
+      "admin": "Admin",
+      "member": "Membre"
+    },
+    "org": {
+      "subtitle": "Votre espace de travail, qui peut le rejoindre et votre forfait.",
+      "detailsTitle": "Détails de l'espace de travail",
+      "nameLabel": "Nom de l'espace de travail",
+      "membersLabel": "Membres et votre rôle",
+      "members_one": "{{count}} membre",
+      "members_other": "{{count}} membres",
+      "yourRole": "Vous êtes {{role}}",
+      "inviteTitle": "Inviter des coéquipiers",
+      "planEyebrow": "Forfait",
+      "planFallback": "Votre forfait",
+      "planBody": "Les postes, factures et moyens de paiement se trouvent dans Forfaits et facturation.",
+      "planLink": "Ouvrir Forfaits et facturation"
+    },
+    "templates": {
+      "subtitle": "Des tableaux prêts à l'emploi. Choisissez-en un et nous créerons un nouveau tableau avec les bonnes étapes et colonnes.",
+      "useTemplate": "Utiliser le modèle",
+      "useTemplateAria": "Utiliser le modèle {{name}}",
+      "stages_one": "{{count}} étape",
+      "stages_other": "{{count}} étapes",
+      "columns_one": "{{count}} colonne",
+      "columns_other": "{{count}} colonnes"
+    },
+    "email": {
+      "subtitle": "Connectez votre boîte mail pour que les e-mails envoyés aux prospects partent de votre vraie adresse et que leurs réponses arrivent sur la fiche du prospect.",
+      "chooseProvider": "Choisissez votre fournisseur de messagerie",
+      "gmailName": "Gmail / Google Workspace",
+      "gmailDesc": "Connectez-vous avec Google. Environ 30 secondes.",
+      "microsoftName": "Microsoft 365 / Outlook",
+      "microsoftDesc": "Connectez-vous avec votre compte professionnel Microsoft.",
+      "signInGoogle": "Se connecter avec Google",
+      "signInMicrosoft": "Se connecter avec Microsoft",
+      "noMailboxTitle": "Aucune boîte mail connectée",
+      "noMailboxBody": "Les e-mails aux prospects partent de l'adresse de LeadLoop tant que vous n'en connectez pas une.",
+      "sendingAs": "Envoi en tant que {{mailbox}}",
+      "sendingAsBody": "Les e-mails que vous envoyez aux prospects, ainsi que l'automatisation Envoyer un e-mail, partent de cette boîte mail.",
+      "needsReconnectTitle": "Votre boîte mail doit être reconnectée",
+      "needsReconnectBody": "Reconnectez-vous pour continuer à envoyer depuis votre adresse. En attendant, les e-mails partent de l'adresse de LeadLoop.",
+      "asideTitle": "Ce que fait la connexion",
+      "aside1": "Les envois partent de votre adresse, donc les réponses vous parviennent",
+      "aside2": "Les réponses des prospects apparaissent sur leur historique",
+      "aside3": "Vous seul utilisez votre boîte mail ; chaque coéquipier connecte la sienne",
+      "asideFoot": "Seuls les e-mails échangés avec vos prospects sont enregistrés dans LeadLoop. Déconnexion possible à tout moment."
+    },
+    "twilio": {
+      "whereTitle": "Où les trouver",
+      "where1": "Connectez-vous sur console.twilio.com",
+      "where2": "L'Account SID et l'Auth token sont sur le tableau de bord du compte",
+      "usedByTitle": "Utilisé par"
+    },
+    "sms": {
+      "subtitle": "Connectez votre compte Twilio pour que les automatisations et l'onglet SMS des prospects puissent envoyer des SMS.",
+      "formTitle": "Compte Twilio",
+      "where3": "Votre numéro se trouve sous Phone Numbers → Active numbers",
+      "usedBy": "L'automatisation Envoyer un SMS et l'onglet SMS de chaque prospect. Les désinscriptions sont respectées automatiquement."
+    },
+    "whatsapp": {
+      "subtitle": "Connectez votre expéditeur WhatsApp Twilio pour que les automatisations et l'onglet WhatsApp des prospects puissent leur écrire.",
+      "formTitle": "Expéditeur WhatsApp Twilio",
+      "where3": "Votre expéditeur se trouve sous Messaging → Senders → WhatsApp senders",
+      "usedBy": "L'automatisation Envoyer un WhatsApp et l'onglet WhatsApp de chaque prospect. Hors de la fenêtre de 24 heures, seuls les modèles approuvés peuvent être envoyés. Les désinscriptions sont partagées avec les SMS."
+    },
+    "ads": {
+      "subtitle": "Connectez Meta, Google et TikTok une seule fois. LeadLoop configure vos pixels, vos actions de conversion et la balise de votre site, puis indique à chaque plateforme quels prospects sont devenus clients.",
+      "advancedButton": "Paramètres avancés",
+      "notInstalled": "Non installé"
+    },
+    "ai": {
+      "subtitle": "Ajoutez votre propre clé Claude ou ChatGPT pour alimenter l'assistant d'automatisation. Les clés sont chiffrées et utilisées uniquement pour votre compte.",
+      "keyLabel": "Clé API",
+      "keyHint": "Stockée chiffrée et jamais réaffichée. Laissez vide pour conserver la clé enregistrée.",
+      "keySaved": "Clé enregistrée",
+      "noKey": "Aucune clé",
+      "claudeHelp": "Obtenir une clé sur console.anthropic.com",
+      "openaiHelp": "Obtenir une clé sur platform.openai.com",
+      "opensNewTab": "(s'ouvre dans un nouvel onglet)",
+      "defaultModelTitle": "Modèle par défaut",
+      "providerLabel": "Fournisseur",
+      "modelLabel": "Modèle",
+      "claudeOption": "Claude (Anthropic)",
+      "openaiOption": "ChatGPT (OpenAI)"
+    },
+    "profile": {
+      "subtitle": "Comment vous apparaissez à votre équipe et à vos prospects.",
+      "detailsTitle": "Informations personnelles",
+      "emailHint": "Géré par votre compte Google.",
+      "connectedGoogle": "Connecté via Google",
+      "deleteMyAccount": "Supprimer mon compte"
+    }
   }
 }

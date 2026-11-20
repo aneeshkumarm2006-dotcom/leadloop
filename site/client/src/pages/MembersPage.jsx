@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Trash2, ChevronDown, Copy, Check, Mail, Send, Link, Hash } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Trash2, ChevronDown, Copy, Check, Send, Search } from 'lucide-react';
 import PageWrapper from '../components/layout/PageWrapper';
+import { PageHeader, PageBody } from '../components/layout/PageHeader';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import useAuthStore from '../store/authStore';
@@ -51,26 +53,23 @@ const Avatar = ({ user, size = 40 }) => {
   );
 };
 
+const CHIP_STYLES = {
+  blue: { background: 'var(--color-accent-light)', color: '#2C5138' },
+  gold: { background: 'var(--color-status-working-bg)', color: 'var(--color-status-working)' },
+  grey: { background: 'var(--color-bg-subtle)', color: 'var(--color-text-secondary)' },
+};
+
 const Chip = ({ children, variant = 'grey' }) => {
-  const styles =
-    variant === 'blue'
-      ? {
-          background: 'var(--color-accent-light)',
-          color: 'var(--color-accent-text)',
-        }
-      : {
-          background: 'var(--color-bg-subtle)',
-          color: 'var(--color-text-secondary)',
-        };
+  const styles = CHIP_STYLES[variant] || CHIP_STYLES.grey;
   return (
     <span
       className="inline-flex items-center font-body font-semibold"
       style={{
         height: 22,
         padding: '0 10px',
-        fontSize: 11,
+        fontSize: 12,
+        fontWeight: 700,
         borderRadius: 'var(--radius-full)',
-        letterSpacing: 0.3,
         ...styles,
       }}
     >
@@ -87,8 +86,15 @@ const RoleDropdown = ({ currentRole, onChange, disabled }) => {
     const handleClickOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
     };
+    const handleKey = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKey);
+    };
   }, []);
 
   const options = ['admin', 'member'];
@@ -99,11 +105,13 @@ const RoleDropdown = ({ currentRole, onChange, disabled }) => {
         type="button"
         onClick={() => !disabled && setOpen((o) => !o)}
         disabled={disabled}
+        aria-expanded={open}
+        aria-label={`Role: ${currentRole === 'admin' ? 'Admin' : 'Member'}`}
         className="inline-flex items-center gap-1 font-body font-semibold text-[12px] rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
         style={{
-          height: 26,
-          padding: '0 8px',
-          border: '1px solid var(--color-border)',
+          height: 28,
+          padding: '0 10px',
+          border: '1px solid var(--color-border-strong)',
           borderRadius: 'var(--radius-sm)',
           background: 'var(--color-bg-surface)',
           color: 'var(--color-text-primary)',
@@ -149,6 +157,7 @@ const RoleDropdown = ({ currentRole, onChange, disabled }) => {
 };
 
 const InviteSection = ({ currentOrg }) => {
+  const { t } = useTranslation();
   const inviteCode = currentOrg?.inviteCode || '';
   const inviteLink = inviteCode
     ? `${window.location.origin}/onboarding?invite=${inviteCode}`
@@ -189,158 +198,73 @@ const InviteSection = ({ currentOrg }) => {
     }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') handleSend();
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    handleSend();
+  };
+
+  const fieldBox = {
+    border: '1px solid var(--color-border-strong)',
+    borderRadius: 'var(--radius-md)',
+    background: 'var(--color-bg-input)',
+  };
+  const copyBtn = {
+    height: 38,
+    padding: '0 12px',
+    borderRadius: 9,
+    border: '1px solid var(--color-border-strong)',
+    background: 'var(--color-bg-surface)',
+    fontWeight: 600,
+    fontSize: 13,
+    flexShrink: 0,
   };
 
   return (
-    <div
-      className="mb-6"
+    <aside
+      aria-labelledby="invite-people-heading"
+      className="flex flex-col"
       style={{
-        border: '1px solid var(--color-border)',
         borderRadius: 'var(--radius-lg)',
         background: 'var(--color-bg-surface)',
         boxShadow: 'var(--shadow-card)',
-        padding: '20px 24px',
+        padding: 22,
+        gap: 16,
       }}
     >
       <h2
-        className="font-display font-bold text-[15px] mb-4"
-        style={{ color: 'var(--color-text-primary)' }}
+        id="invite-people-heading"
+        className="font-display font-bold"
+        style={{ margin: 0, fontSize: 18, color: 'var(--color-text-primary)' }}
       >
-        Invite People
+        {t('membersPage.invitePeople', 'Invite people')}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        {/* Invite Link */}
-        <div>
-          <p
-            className="font-body text-[11px] font-semibold uppercase tracking-widest mb-1.5 flex items-center gap-1.5"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            <Link size={12} />
-            Invite Link
-          </p>
-          <div
-            className="flex items-center gap-2"
-            style={{
-              border: '1.5px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: '6px 10px',
-              background: 'var(--color-bg-input)',
-              height: 36,
-            }}
-          >
-            <span
-              className="flex-1 font-body text-[12px] truncate select-all"
-              style={{ color: 'var(--color-text-secondary)' }}
-            >
-              {inviteLink || 'Loading…'}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleCopy(inviteLink, 'link')}
-              disabled={!inviteLink}
-              aria-label="Copy invite link"
-              className="flex items-center gap-1 font-body text-[12px] font-medium shrink-0 transition-colors"
-              style={{
-                color: copiedLink ? 'var(--color-success, #16a34a)' : 'var(--color-accent)',
-                background: 'none',
-                border: 'none',
-                cursor: inviteLink ? 'pointer' : 'not-allowed',
-                padding: '2px 4px',
-              }}
-            >
-              {copiedLink ? <Check size={13} /> : <Copy size={13} />}
-              {copiedLink ? 'Copied' : 'Copy'}
-            </button>
-          </div>
-        </div>
-
-        {/* Invite Code */}
-        <div>
-          <p
-            className="font-body text-[11px] font-semibold uppercase tracking-widest mb-1.5 flex items-center gap-1.5"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            <Hash size={12} />
-            Invite Code
-          </p>
-          <div
-            className="flex items-center gap-2"
-            style={{
-              border: '1.5px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: '6px 10px',
-              background: 'var(--color-bg-input)',
-              height: 36,
-            }}
-          >
-            <span
-              className="flex-1 font-body text-[14px] font-semibold tracking-widest select-all"
-              style={{ color: 'var(--color-text-primary)', letterSpacing: '0.15em' }}
-            >
-              {inviteCode || 'Loading…'}
-            </span>
-            <button
-              type="button"
-              onClick={() => handleCopy(inviteCode, 'code')}
-              disabled={!inviteCode}
-              aria-label="Copy invite code"
-              className="flex items-center gap-1 font-body text-[12px] font-medium shrink-0 transition-colors"
-              style={{
-                color: copiedCode ? 'var(--color-success, #16a34a)' : 'var(--color-accent)',
-                background: 'none',
-                border: 'none',
-                cursor: inviteCode ? 'pointer' : 'not-allowed',
-                padding: '2px 4px',
-              }}
-            >
-              {copiedCode ? <Check size={13} /> : <Copy size={13} />}
-              {copiedCode ? 'Copied' : 'Copy'}
-            </button>
-          </div>
-        </div>
-      </div>
-
       {/* Send invite via email */}
-      <div>
-        <p
-          className="font-body text-[11px] font-semibold uppercase tracking-widest mb-1.5 flex items-center gap-1.5"
-          style={{ color: 'var(--color-text-muted)' }}
+      <form onSubmit={handleSubmit} className="flex flex-col" style={{ gap: 8 }} noValidate>
+        <label
+          htmlFor="invite-email"
+          className="font-body font-bold"
+          style={{ fontSize: 13, color: 'var(--color-text-primary)' }}
         >
-          <Mail size={12} />
-          Send Invite via Email
-        </p>
-        <div className="flex gap-2">
-          <div
-            className="flex items-center flex-1"
-            style={{
-              border: '1.5px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              padding: '0 10px',
-              background: 'var(--color-bg-input)',
-              height: 36,
-            }}
-          >
-            <Mail size={14} style={{ color: 'var(--color-text-muted)', marginRight: 6, flexShrink: 0 }} />
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => { setEmail(e.target.value); setSent(false); setError(''); }}
-              onKeyDown={handleKeyDown}
-              placeholder="colleague@example.com"
-              className="flex-1 font-body bg-transparent focus:outline-none"
-              style={{ fontSize: 13, color: 'var(--color-text-primary)', border: 'none' }}
-            />
-          </div>
+          {t('membersPage.sendViaEmail', 'Send invite via email')}
+        </label>
+        <div className="flex" style={{ gap: 8 }}>
+          <input
+            id="invite-email"
+            type="email"
+            autoComplete="off"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setSent(false); setError(''); }}
+            placeholder="colleague@example.com"
+            className="font-body focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-accent)]"
+            style={{ ...fieldBox, flex: '1 1 auto', minWidth: 0, height: 42, padding: '0 12px', fontSize: 14, color: 'var(--color-text-primary)' }}
+          />
           <button
-            type="button"
-            onClick={handleSend}
+            type="submit"
             disabled={!email.trim() || sending}
-            className="flex items-center gap-1.5 font-body font-semibold text-[13px] shrink-0 transition-colors"
+            className="inline-flex items-center gap-1.5 font-body font-bold text-[14px] shrink-0 transition-colors hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]"
             style={{
-              height: 36,
+              height: 42,
               padding: '0 16px',
               background: 'var(--color-accent)',
               color: '#FFFFFF',
@@ -350,22 +274,84 @@ const InviteSection = ({ currentOrg }) => {
               opacity: !email.trim() || sending ? 0.6 : 1,
             }}
           >
-            <Send size={13} />
+            <Send size={13} aria-hidden="true" />
             {sending ? 'Sending…' : 'Send'}
           </button>
         </div>
-        {sent && (
-          <p className="font-body text-[13px] mt-2" style={{ color: 'var(--color-success, #16a34a)' }}>
-            Invite sent successfully!
-          </p>
-        )}
-        {error && (
-          <p className="font-body text-[13px] mt-2" style={{ color: 'var(--color-error, #dc2626)' }}>
-            {error}
-          </p>
-        )}
+        <div aria-live="polite">
+          {sent && (
+            <p className="font-body text-[13px]" style={{ color: 'var(--color-success)' }}>
+              Invite sent successfully!
+            </p>
+          )}
+          {error && (
+            <p className="font-body text-[13px]" style={{ color: 'var(--color-error)' }}>
+              {error}
+            </p>
+          )}
+        </div>
+      </form>
+
+      {/* Share a link / code */}
+      <div
+        className="flex flex-col font-body"
+        style={{ paddingTop: 14, borderTop: '1px solid var(--color-bg-subtle)', gap: 10, fontSize: 13 }}
+      >
+        <div className="font-bold" style={{ color: 'var(--color-text-primary)' }}>
+          {t('membersPage.orShareLink', 'Or share a link')}
+        </div>
+        <div className="flex items-center" style={{ gap: 8 }}>
+          <code
+            className="font-mono select-all"
+            title={inviteLink || undefined}
+            style={{
+              flex: '1 1 auto',
+              minWidth: 0,
+              padding: '10px 12px',
+              borderRadius: 9,
+              background: 'var(--color-bg-base)',
+              fontSize: 11.5,
+              color: 'var(--color-text-primary)',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {inviteLink || 'Loading…'}
+          </code>
+          <button
+            type="button"
+            onClick={() => handleCopy(inviteLink, 'link')}
+            disabled={!inviteLink}
+            aria-label="Copy invite link"
+            className="inline-flex items-center gap-1 font-body transition-colors hover:bg-[color:var(--color-bg-subtle)] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ ...copyBtn, color: copiedLink ? 'var(--color-success)' : 'var(--color-text-primary)' }}
+          >
+            {copiedLink ? <Check size={13} aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
+            {copiedLink ? 'Copied' : 'Copy'}
+          </button>
+        </div>
+        <div className="flex items-center flex-wrap" style={{ gap: 8, color: 'var(--color-text-secondary)' }}>
+          <span>
+            {t('membersPage.inviteCode', 'Invite code:')}{' '}
+            <strong className="font-mono" style={{ color: 'var(--color-text-primary)', letterSpacing: '0.08em' }}>
+              {inviteCode || 'Loading…'}
+            </strong>
+          </span>
+          <button
+            type="button"
+            onClick={() => handleCopy(inviteCode, 'code')}
+            disabled={!inviteCode}
+            aria-label="Copy invite code"
+            className="inline-flex items-center gap-1 font-body font-semibold text-[12.5px] rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ color: copiedCode ? 'var(--color-success)' : 'var(--color-accent)', background: 'none', border: 'none', padding: '2px 4px' }}
+          >
+            {copiedCode ? <Check size={13} aria-hidden="true" /> : <Copy size={13} aria-hidden="true" />}
+            {copiedCode ? 'Copied' : 'Copy'}
+          </button>
+        </div>
       </div>
-    </div>
+    </aside>
   );
 };
 
@@ -380,6 +366,8 @@ const MembersPage = ({ embedded = false }) => {
   const [confirmMember, setConfirmMember] = useState(null);
   const [removing, setRemoving] = useState(false);
   const [changingRole, setChangingRole] = useState(null);
+  const [query, setQuery] = useState('');
+  const { t } = useTranslation();
 
   // Resolve admin-ness
   const orgAdminId =
@@ -428,187 +416,228 @@ const MembersPage = ({ embedded = false }) => {
 
   const resolvedAdminId = adminId || orgAdminId;
 
-  const content = (
-      <div className="mx-auto" style={{ maxWidth: 900 }}>
-        <header className="mb-6">
-          {!embedded && (
-            <h1
-              className="font-display font-bold text-[color:var(--color-text-primary)]"
-              style={{ fontSize: 28, letterSpacing: '-0.01em' }}
-            >
-              Members
-            </h1>
-          )}
-          <p
-            className="font-body text-sm text-[color:var(--color-text-secondary)]"
-            style={{ marginTop: embedded ? 0 : 4 }}
-          >
-            {members.length} {members.length === 1 ? 'person' : 'people'} in this workspace
-          </p>
-        </header>
+  const q = query.trim().toLowerCase();
+  const visibleMembers = q
+    ? members.filter((m) => `${m.name || ''} ${m.email || ''}`.toLowerCase().includes(q))
+    : members;
 
-        <div
-          className="bg-surface"
-          style={{
-            borderRadius: 'var(--radius-lg)',
-            boxShadow: 'var(--shadow-card)',
-          }}
-        >
-          <div
-            style={{
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-              overflow: 'visible',
-            }}
-          >
-            {/* Table header */}
-            <div
-              className="hidden md:grid grid-cols-[1fr_1fr_110px_110px_110px] items-center px-4"
-              style={{
-                height: 40,
-                background: 'var(--color-bg-subtle)',
-                borderBottom: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
-              }}
-            >
-              {['Member', 'Email', 'Role', 'Joined', ''].map((h) => (
-                <span
-                  key={h}
-                  className="font-body font-semibold uppercase tracking-wide text-[color:var(--color-text-secondary)]"
-                  style={{ fontSize: 11 }}
-                >
-                  {h}
-                </span>
-              ))}
-            </div>
+  const countLabel = `${members.length} ${members.length === 1 ? 'person' : 'people'} in this workspace`;
 
-            {members.map((m) => {
-              const isTheMainAdmin = String(m._id) === String(resolvedAdminId);
-              const isAnAdmin = isTheMainAdmin || (adminIds || []).includes(String(m._id));
-              const isSelf = String(m._id) === String(user?._id);
-              const memberRole = isAnAdmin ? 'admin' : 'member';
+  const search = (
+    <label
+      className="flex items-center gap-2 font-body focus-within:ring-2 focus-within:ring-[color:var(--color-accent)]"
+      style={{
+        height: 40,
+        padding: '0 12px',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid var(--color-border-strong)',
+        background: 'var(--color-bg-input)',
+        color: 'var(--color-text-secondary)',
+        width: 260,
+        maxWidth: '100%',
+      }}
+    >
+      <Search size={14} aria-hidden="true" />
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder={t('membersPage.search', 'Search members')}
+        aria-label={t('membersPage.search', 'Search members')}
+        className="bg-transparent focus:outline-none"
+        style={{ border: 'none', fontSize: 13.5, width: '100%', color: 'var(--color-text-primary)' }}
+      />
+    </label>
+  );
 
-              const canChangeRole =
-                isAdmin &&
-                !isTheMainAdmin &&
-                !isSelf &&
-                (isMainAdmin || !isAnAdmin);
+  const thStyle = { padding: '12px 10px', fontSize: 12, fontWeight: 600, color: 'var(--color-text-secondary)', textAlign: 'left', whiteSpace: 'nowrap' };
+  const tdStyle = { padding: '13px 10px', borderTop: '1px solid var(--color-bg-subtle)', verticalAlign: 'middle' };
 
-              const canRemove = isAdmin && !isTheMainAdmin && !isSelf;
+  const roleChip = (isTheMainAdmin, isAnAdmin) =>
+    isTheMainAdmin ? (
+      <Chip variant="blue">Owner</Chip>
+    ) : isAnAdmin ? (
+      <Chip variant="gold">Admin</Chip>
+    ) : (
+      <Chip variant="grey">Member</Chip>
+    );
 
-              return (
-                <div
-                  key={m._id}
-                  className="grid grid-cols-[1fr_110px] md:grid-cols-[1fr_1fr_110px_110px_110px] items-center gap-2 px-4 py-3"
-                  style={{ borderBottom: '1px solid var(--color-border)' }}
-                >
-                  {/* Avatar + name */}
-                  <div className="flex items-center gap-3 min-w-0">
+  const table = (
+    <section
+      aria-label="Members"
+      className="bg-surface min-w-0"
+      style={{ borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-card)' }}
+    >
+      <table className="w-full font-body" style={{ borderCollapse: 'collapse', fontSize: 13.5, tableLayout: 'auto' }}>
+        <thead>
+          <tr style={{ background: 'var(--color-bg-input)' }}>
+            <th scope="col" style={{ ...thStyle, paddingLeft: 20, borderTopLeftRadius: 'var(--radius-lg)' }}>Member</th>
+            <th scope="col" className="hidden md:table-cell" style={thStyle}>Email</th>
+            <th scope="col" className="hidden md:table-cell" style={thStyle}>Role</th>
+            <th scope="col" className="hidden lg:table-cell" style={thStyle}>Joined</th>
+            <th scope="col" style={{ ...thStyle, paddingRight: 20, borderTopRightRadius: 'var(--radius-lg)' }}>
+              <span className="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {visibleMembers.map((m) => {
+            const isTheMainAdmin = String(m._id) === String(resolvedAdminId);
+            const isAnAdmin = isTheMainAdmin || (adminIds || []).includes(String(m._id));
+            const isSelf = String(m._id) === String(user?._id);
+            const memberRole = isAnAdmin ? 'admin' : 'member';
+
+            const canChangeRole =
+              isAdmin &&
+              !isTheMainAdmin &&
+              !isSelf &&
+              (isMainAdmin || !isAnAdmin);
+
+            const canRemove = isAdmin && !isTheMainAdmin && !isSelf;
+
+            return (
+              <tr key={m._id}>
+                {/* Avatar + name (email + role underneath on small screens) */}
+                <td style={{ ...tdStyle, paddingLeft: 20 }}>
+                  <div className="flex items-center gap-2.5 min-w-0">
                     <Avatar user={m} size={32} />
                     <div className="min-w-0">
-                      <p className="font-body font-semibold text-[13px] text-[color:var(--color-text-primary)] truncate">
+                      <p className="font-bold text-[color:var(--color-text-primary)] truncate">
                         {m.name || 'Unnamed'}
                         {isSelf && (
-                          <span className="ml-2 font-body font-normal text-[11px] text-[color:var(--color-text-muted)]">
+                          <span className="ml-1.5 font-normal text-[color:var(--color-text-secondary)]">
                             (you)
                           </span>
                         )}
                       </p>
-                      <p className="md:hidden font-body text-[11px] text-[color:var(--color-text-muted)] truncate">
+                      <p className="md:hidden text-[12px] text-[color:var(--color-text-secondary)] truncate">
                         {m.email}
                       </p>
+                      <div className="md:hidden mt-1">{roleChip(isTheMainAdmin, isAnAdmin)}</div>
                     </div>
                   </div>
+                </td>
 
-                  {/* Email (desktop) */}
-                  <div className="hidden md:block min-w-0">
-                    <p className="font-body text-[13px] text-[color:var(--color-text-secondary)] truncate">
-                      {m.email}
-                    </p>
-                  </div>
+                <td className="hidden md:table-cell" style={{ ...tdStyle, color: 'var(--color-text-secondary)', wordBreak: 'break-all' }}>
+                  {m.email}
+                </td>
 
-                  {/* Role chip / dropdown */}
-                  <div className="hidden md:block">
-                    {isTheMainAdmin ? (
-                      <Chip variant="blue">Owner</Chip>
-                    ) : canChangeRole ? (
-                      <RoleDropdown
-                        currentRole={memberRole}
-                        onChange={(newRole) => handleRoleChange(m._id, newRole)}
-                        disabled={changingRole === m._id}
-                      />
-                    ) : isAnAdmin ? (
-                      <Chip variant="blue">Admin</Chip>
-                    ) : (
-                      <Chip variant="grey">Member</Chip>
-                    )}
-                  </div>
+                <td className="hidden md:table-cell" style={tdStyle}>
+                  {canChangeRole ? (
+                    <RoleDropdown
+                      currentRole={memberRole}
+                      onChange={(newRole) => handleRoleChange(m._id, newRole)}
+                      disabled={changingRole === m._id}
+                    />
+                  ) : (
+                    roleChip(isTheMainAdmin, isAnAdmin)
+                  )}
+                </td>
 
-                  {/* Joined date */}
-                  <div className="hidden md:block">
-                    <span className="font-body text-[12px] text-[color:var(--color-text-muted)]">
-                      {m.createdAt ? formatShortDate(m.createdAt) : '—'}
-                    </span>
-                  </div>
+                <td className="hidden lg:table-cell" style={{ ...tdStyle, color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>
+                  {m.createdAt ? formatShortDate(m.createdAt) : '—'}
+                </td>
 
-                  {/* Actions */}
-                  <div className="flex justify-end md:justify-start">
-                    {canRemove ? (
-                      <button
-                        type="button"
-                        onClick={() => setConfirmMember(m)}
-                        className="inline-flex items-center gap-1 font-body font-semibold text-[12px] text-[color:var(--color-status-stuck)] hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-status-stuck)] rounded"
-                        aria-label={`Remove ${m.name || m.email}`}
-                      >
-                        <Trash2 size={14} aria-hidden="true" />
-                        Remove
-                      </button>
-                    ) : (
-                      <span className="md:block hidden">
-                        {isTheMainAdmin ? (
-                          <Chip variant="blue">Owner</Chip>
-                        ) : null}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {isAdmin && <div className="mt-6"><InviteSection currentOrg={currentOrg} /></div>}
-
-        {/* Confirm remove modal */}
-        <Modal
-          isOpen={!!confirmMember}
-          onClose={() => (removing ? null : setConfirmMember(null))}
-          title="Remove member"
-          footer={
-            <>
-              <Button
-                variant="secondary"
-                onClick={() => setConfirmMember(null)}
-                disabled={removing}
-              >
-                Cancel
-              </Button>
-              <Button variant="danger" onClick={handleRemove} disabled={removing}>
-                {removing ? 'Removing…' : 'Remove'}
-              </Button>
-            </>
-          }
-        >
-          <p className="font-body text-[14px] text-[color:var(--color-text-primary)]">
-            Remove{' '}
-            <strong>{confirmMember?.name || confirmMember?.email}</strong> from
-            this organisation? They will lose access to all boards and tasks.
-          </p>
-        </Modal>
-      </div>
+                <td style={{ ...tdStyle, paddingRight: 20, textAlign: 'right' }}>
+                  {canRemove && (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmMember(m)}
+                      className="inline-flex items-center gap-1 font-body font-semibold text-[13px] transition-colors hover:bg-[color:var(--color-status-stuck-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-status-stuck)]"
+                      style={{
+                        height: 32,
+                        padding: '0 12px',
+                        borderRadius: 8,
+                        border: '1px solid #E8C9C2',
+                        background: 'var(--color-bg-surface)',
+                        color: 'var(--color-status-stuck)',
+                      }}
+                      aria-label={`Remove ${m.name || m.email}`}
+                    >
+                      <Trash2 size={13} aria-hidden="true" />
+                      Remove
+                    </button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+          {q && visibleMembers.length === 0 && (
+            <tr>
+              <td colSpan={5} style={{ ...tdStyle, padding: '24px 20px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
+                {t('membersPage.noMatch', 'No members match “{{query}}”.', { query: query.trim() })}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </section>
   );
 
-  return embedded ? content : <PageWrapper>{content}</PageWrapper>;
+  const grid = (
+    <div
+      className={[
+        'grid gap-5 items-start',
+        isAdmin ? 'lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)]' : '',
+      ].join(' ')}
+    >
+      {table}
+      {isAdmin && <InviteSection currentOrg={currentOrg} />}
+    </div>
+  );
+
+  const removeModal = (
+    <Modal
+      isOpen={!!confirmMember}
+      onClose={() => (removing ? null : setConfirmMember(null))}
+      title="Remove member"
+      footer={
+        <>
+          <Button
+            variant="secondary"
+            onClick={() => setConfirmMember(null)}
+            disabled={removing}
+          >
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleRemove} disabled={removing}>
+            {removing ? 'Removing…' : 'Remove'}
+          </Button>
+        </>
+      }
+    >
+      <p className="font-body text-[14px] text-[color:var(--color-text-primary)]">
+        Remove{' '}
+        <strong>{confirmMember?.name || confirmMember?.email}</strong> from
+        this organisation? They will lose access to all boards and tasks.
+      </p>
+    </Modal>
+  );
+
+  // Embedded (inside Workspace settings): no page chrome — count + search row,
+  // then the same table / invite grid.
+  if (embedded) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="font-body text-sm text-[color:var(--color-text-secondary)]">{countLabel}</p>
+          {search}
+        </div>
+        {grid}
+        {removeModal}
+      </div>
+    );
+  }
+
+  return (
+    <PageWrapper flush>
+      <PageHeader title="Members" subtitle={countLabel} actions={search} />
+      <PageBody>
+        {grid}
+        {removeModal}
+      </PageBody>
+    </PageWrapper>
+  );
 };
 
 export default MembersPage;

@@ -579,7 +579,7 @@ const PreviewStyles = () => (
 .bk-live-frame{ border:1px solid var(--border); border-radius:16px; overflow:hidden; background:#F4F2ED; }
 .bk-live-frame .pubook{ min-height:0; padding:48px 22px 26px; }
 .bk-live-frame .pubook .stage{ max-width:100%; }
-.wf-list{ display:flex; flex-direction:column; gap:10px; }
+.wf-list{ display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 460px), 1fr)); gap:10px; }
 .wf-item{ display:flex; align-items:center; gap:12px; padding:14px 16px; background:var(--surface); border:1px solid var(--border); border-radius:14px; cursor:pointer; transition:.15s var(--ease); }
 .wf-item:hover{ border-color:var(--book); box-shadow:0 4px 16px -8px var(--book); }
 .wf-item .wf-name{ font-weight:700; font-size:14.5px; }

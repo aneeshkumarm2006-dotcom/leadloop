@@ -1,25 +1,91 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mail, CheckCircle2, AlertTriangle, Plug } from 'lucide-react';
-import Button from '../ui/Button';
+import { CheckCircle2, AlertTriangle } from 'lucide-react';
+import { PageBody } from '../layout/PageHeader';
+import Spinner from '../ui/Spinner';
+import { SkeletonBlock } from '../ui/Skeleton';
+import BrandLogo from './ads/BrandLogo';
+import { Notice, SecondaryButton } from './ads/AdsShared';
 import * as emailService from '../../services/emailService';
 import useToastStore from '../../store/toastStore';
+import { SettingsHeader, SettingsCard, CardTitle, CardText, CheckList, MainAsideGrid } from './SettingsLayout';
 
 /**
- * EmailAccountConnect — connect / disconnect a sending mailbox (F8.6).
+ * EmailAccountConnect — Settings → Email connection (F8.6).
  *
- * Per-user, per-workspace: "Connect Gmail" / "Connect Microsoft 365" buttons
- * that redirect to the provider consent screen, and a connected state showing
- * "Connected as X" with a Disconnect action. Sends and the SEND_EMAIL
- * automation route through the connected mailbox; with none connected, mail
- * falls back to the system sender.
+ * Per-user, per-workspace: Google / Microsoft provider cards that redirect to
+ * the provider consent screen, and a connected state showing "Connected as X"
+ * with Disconnect (and Reconnect when the token broke). Sends and the
+ * SEND_EMAIL automation route through the connected mailbox; with none
+ * connected, mail falls back to the system sender.
+ *
+ * The OAuth return (?email=connected|error) is toasted by SettingsPage.
  *
  * Props: workspaceId — the current workspace the mailbox is scoped to.
  */
 const PROVIDERS = [
-  { key: 'gmail', label: 'Gmail', blurbKey: 'pages.gmailBlurb' },
-  { key: 'microsoft', label: 'Microsoft 365', blurbKey: 'pages.microsoftBlurb' },
+  { key: 'gmail', label: 'Gmail', logo: 'google-g', nameKey: 'settings.email.gmailName', descKey: 'settings.email.gmailDesc', ctaKey: 'settings.email.signInGoogle', border: '#747775' },
+  { key: 'microsoft', label: 'Microsoft 365', logo: 'microsoft', nameKey: 'settings.email.microsoftName', descKey: 'settings.email.microsoftDesc', ctaKey: 'settings.email.signInMicrosoft', border: '#8C8C8C' },
 ];
+
+const focusRing =
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--color-accent)]';
+
+const ProviderCard = ({ p, account, connecting, onConnect, onDisconnect }) => {
+  const { t } = useTranslation();
+  const isError = account && account.status === 'error';
+  const titleId = `email-provider-${p.key}`;
+  return (
+    <SettingsCard as="article" aria-labelledby={titleId} style={{ padding: 22, gap: 12 }}>
+      <BrandLogo name={p.logo} size={34} />
+      <div>
+        <h3 id={titleId} className="font-display font-bold" style={{ margin: 0, fontSize: 17 }}>{t(p.nameKey)}</h3>
+        {account ? (
+          <p
+            className="font-body flex items-center gap-1.5 break-all"
+            style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600, color: isError ? 'var(--color-status-stuck)' : 'var(--color-status-done)' }}
+          >
+            {isError ? <AlertTriangle size={14} aria-hidden="true" /> : <CheckCircle2 size={14} aria-hidden="true" />}
+            {isError ? t('pages.reconnectNeeded') : t('pages.connectedAs', { mailbox: account.defaultFrom || t('pages.yourMailbox') })}
+          </p>
+        ) : (
+          <CardText style={{ marginTop: 4, fontSize: 13 }}>{t(p.descKey)}</CardText>
+        )}
+      </div>
+      <div className="mt-auto flex flex-wrap gap-2">
+        {account ? (
+          <>
+            {isError && (
+              <SecondaryButton onClick={() => onConnect(p.key)} loading={connecting === p.key}>
+                {t('pages.reconnect')}
+              </SecondaryButton>
+            )}
+            <button
+              type="button"
+              onClick={() => onDisconnect(account)}
+              className={`inline-flex items-center justify-center font-body font-bold hover:bg-[color:var(--color-status-stuck-bg)] ${focusRing}`}
+              style={{ height: 42, padding: '0 16px', borderRadius: 10, border: '1px solid var(--color-status-stuck)', background: '#fff', color: 'var(--color-status-stuck)', fontSize: 14, cursor: 'pointer' }}
+            >
+              {t('pages.disconnect')}
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onConnect(p.key)}
+            disabled={!!connecting}
+            aria-busy={connecting === p.key || undefined}
+            className={`w-full inline-flex items-center justify-center gap-2.5 font-body font-bold hover:bg-[#F8F9FA] disabled:opacity-60 disabled:cursor-not-allowed ${focusRing}`}
+            style={{ height: 42, borderRadius: 10, border: `1px solid ${p.border}`, background: '#fff', color: '#1F1F1F', fontSize: 14, cursor: 'pointer' }}
+          >
+            {connecting === p.key ? <Spinner size="sm" /> : <BrandLogo name={p.logo} size={18} />}
+            {connecting === p.key ? t('pages.connecting') : t(p.ctaKey)}
+          </button>
+        )}
+      </div>
+    </SettingsCard>
+  );
+};
 
 const EmailAccountConnect = ({ workspaceId }) => {
   const { t } = useTranslation();
@@ -37,7 +103,7 @@ const EmailAccountConnect = ({ workspaceId }) => {
     setLoading(true);
     emailService
       .listAccounts(workspaceId)
-      .then(setAccounts)
+      .then((list) => setAccounts(Array.isArray(list) ? list : []))
       .catch((err) => setError(err?.response?.data?.error || t('pages.failedToLoadAccounts')))
       .finally(() => setLoading(false));
   }, [workspaceId, t]);
@@ -80,90 +146,72 @@ const EmailAccountConnect = ({ workspaceId }) => {
     }
   };
 
+  const connected = PROVIDERS.map((p) => accountFor(p.key)).filter(Boolean);
+  const healthy = connected.find((a) => a.status !== 'error');
+  const broken = !healthy && connected.length > 0;
+
+  let status;
+  if (healthy) {
+    status = { dot: 'var(--color-status-done-solid)', title: t('settings.email.sendingAs', { mailbox: healthy.defaultFrom || t('pages.yourMailbox') }), body: t('settings.email.sendingAsBody') };
+  } else if (broken) {
+    status = { dot: 'var(--color-status-stuck-solid)', title: t('settings.email.needsReconnectTitle'), body: t('settings.email.needsReconnectBody') };
+  } else {
+    status = { dot: 'var(--color-status-notstarted-solid)', title: t('settings.email.noMailboxTitle'), body: t('settings.email.noMailboxBody') };
+  }
+
   return (
-    <div>
-      <header className="mb-6">
-        <h2 className="font-display font-bold text-[color:var(--color-text-primary)]" style={{ fontSize: 20 }}>
-          {t('pages.emailConnection')}
-        </h2>
-        <p className="mt-1 font-body text-sm text-[color:var(--color-text-secondary)]">
-          {t('pages.emailConnectionDescription')}
-        </p>
-      </header>
-
-      {error && (
-        <p className="font-body text-[12px] mb-4" style={{ color: 'var(--color-status-stuck)' }} role="alert">
-          {error}
-        </p>
-      )}
-
-      {loading ? (
-        <p className="font-body" style={{ color: 'var(--color-text-muted)' }}>{t('pages.loading')}</p>
-      ) : (
-        <div className="flex flex-col gap-3" style={{ maxWidth: 560 }}>
-          {PROVIDERS.map((p) => {
-            const acc = accountFor(p.key);
-            const isError = acc && acc.status === 'error';
-            return (
-              <div
-                key={p.key}
-                className="flex items-center gap-4"
-                style={{
-                  padding: 16,
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-lg)',
-                  background: 'var(--color-bg-surface, #FFFFFF)',
-                }}
-              >
-                <div
-                  className="flex items-center justify-center shrink-0"
-                  style={{ width: 40, height: 40, borderRadius: 10, background: 'var(--color-bg-subtle)' }}
-                >
-                  <Mail size={20} style={{ color: 'var(--color-text-secondary)' }} aria-hidden="true" />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p className="font-body font-semibold" style={{ fontSize: 14, color: 'var(--color-text-primary)' }}>
-                    {p.label}
-                  </p>
-                  {acc ? (
-                    <p className="font-body flex items-center gap-1" style={{ fontSize: 12, color: isError ? 'var(--color-status-stuck)' : 'var(--color-status-done)' }}>
-                      {isError ? <AlertTriangle size={12} /> : <CheckCircle2 size={12} />}
-                      {isError ? t('pages.reconnectNeeded') : t('pages.connectedAs', { mailbox: acc.defaultFrom || t('pages.yourMailbox') })}
-                    </p>
-                  ) : (
-                    <p className="font-body" style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
-                      {t(p.blurbKey)}
-                    </p>
-                  )}
-                </div>
-                {acc ? (
-                  <div className="flex items-center gap-2 shrink-0">
-                    {isError && (
-                      <Button variant="secondary" size="sm" onClick={() => handleConnect(p.key)} disabled={connecting === p.key}>
-                        {t('pages.reconnect')}
-                      </Button>
-                    )}
-                    <Button variant="danger" size="sm" onClick={() => handleDisconnect(acc)}>
-                      {t('pages.disconnect')}
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    icon={Plug}
-                    onClick={() => handleConnect(p.key)}
-                    disabled={connecting === p.key}
-                  >
-                    {connecting === p.key ? t('pages.connecting') : t('pages.connectProvider', { provider: p.label })}
-                  </Button>
-                )}
+    <>
+      <SettingsHeader tab="email" title={t('pages.emailConnection')} subtitle={t('settings.email.subtitle')} />
+      <PageBody>
+        <MainAsideGrid>
+          <section className="flex flex-col gap-3.5 min-w-0" aria-labelledby="email-providers-title">
+            <CardTitle id="email-providers-title">{t('settings.email.chooseProvider')}</CardTitle>
+            {error && (
+              <Notice tone="error" action={!loading ? <SecondaryButton size="sm" onClick={() => { setError(''); reload(); }}>{t('adsHub.common.retry')}</SecondaryButton> : null}>
+                {error}
+              </Notice>
+            )}
+            {loading ? (
+              <div role="status" aria-live="polite" className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))' }}>
+                <span className="sr-only">{t('pages.loading')}</span>
+                <SkeletonBlock height={210} borderRadius={18} />
+                <SkeletonBlock height={210} borderRadius={18} />
               </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+            ) : (
+              <>
+                <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))' }}>
+                  {PROVIDERS.map((p) => (
+                    <ProviderCard
+                      key={p.key}
+                      p={p}
+                      account={accountFor(p.key)}
+                      connecting={connecting}
+                      onConnect={handleConnect}
+                      onDisconnect={handleDisconnect}
+                    />
+                  ))}
+                </div>
+                <SettingsCard role="status" className="items-center" style={{ padding: '18px 22px', gap: 14, flexDirection: 'row' }}>
+                  <span aria-hidden="true" className="shrink-0" style={{ width: 10, height: 10, borderRadius: 999, background: status.dot }} />
+                  <div className="flex-1 min-w-0 font-body">
+                    <div className="font-bold break-all">{status.title}</div>
+                    <div style={{ fontSize: 12.5, color: 'var(--color-text-secondary)' }}>{status.body}</div>
+                  </div>
+                </SettingsCard>
+              </>
+            )}
+          </section>
+
+          <SettingsCard as="aside" aria-labelledby="email-aside-title" style={{ padding: 22, gap: 12 }}>
+            <CardTitle id="email-aside-title" size={17}>{t('settings.email.asideTitle')}</CardTitle>
+            <CheckList items={[t('settings.email.aside1'), t('settings.email.aside2'), t('settings.email.aside3')]} />
+            <p className="font-body" style={{ margin: '6px 0 0', paddingTop: 12, borderTop: '1px solid #EFE8DA', fontSize: 12.5, color: 'var(--color-text-secondary)' }}>
+              {t('settings.email.asideFoot')}
+            </p>
+          </SettingsCard>
+        </MainAsideGrid>
+      </PageBody>
+    </>
   );
 };
 

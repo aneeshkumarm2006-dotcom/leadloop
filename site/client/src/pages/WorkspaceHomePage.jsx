@@ -227,7 +227,7 @@ const CollaboratorsTab = ({ members, adminId }) => {
     return <p className="font-body" style={{ fontSize: 13, color: 'var(--color-text-muted)', padding: '24px 4px' }}>{t('workspace.noMembers')}</p>;
   }
   return (
-    <div className="flex flex-col gap-2">
+    <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))' }}>
       {members.map((m) => (
         <div key={m._id} className="bg-surface flex items-center gap-3" style={{ borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)', padding: '10px 14px' }}>
           <div className="flex items-center justify-center font-display font-bold text-white shrink-0" style={{ width: 32, height: 32, borderRadius: 9999, background: colorFor(m.email || m.name || ''), fontSize: 13 }}>
@@ -256,10 +256,15 @@ const OverviewTab = ({ stats, boards }) => {
   ];
   return (
     <div className="flex flex-col gap-6">
-      {/* First-run guidance — hides itself once setup is complete or dismissed. */}
-      <SetupChecklist />
-      {/* Lead alerts for this device — the other half of the response clock. */}
-      <NotificationSettings />
+      {/* Checklist + device alerts sit side by side on wide screens (each card
+          needs ~560px) and stack otherwise. Either may render nothing; the
+          remaining card then takes the full row. */}
+      <div className="flex flex-wrap items-start gap-6 empty:hidden [&>*]:min-w-0 [&>*]:flex-[1_1_560px]">
+        {/* First-run guidance — hides itself once setup is complete or dismissed. */}
+        <SetupChecklist />
+        {/* Lead alerts for this device — the other half of the response clock. */}
+        <NotificationSettings />
+      </div>
       <MyDayRow />
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (

@@ -221,8 +221,10 @@ export default function AutomationsHubPremium() {
                     <span className="bg-name">{b?.name || '—'}</span>
                     <span className="bg-ct">{list.length} {L({ en: list.length === 1 ? 'automation' : 'automations', fr: list.length === 1 ? 'automatisation' : 'automatisations' }, lang)}</span>
                   </div>
+                  {/* Rows flow into columns on wide screens instead of stretching edge to edge. */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 520px), 1fr))', gap: 9 }}>
                   {list.map((a) => (
-                    <div className={'wf-row' + (a.enabled ? '' : ' off')} key={a._id} style={{ cursor: 'default' }}>
+                    <div className={'wf-row' + (a.enabled ? '' : ' off')} key={a._id} style={{ cursor: 'default', marginBottom: 0 }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div className="wf-sentence"><Sentence a={a} lang={lang} /></div>
                         <div className="wf-meta">
@@ -237,6 +239,7 @@ export default function AutomationsHubPremium() {
                       <div onClick={(e) => e.stopPropagation()}><Toggle on={a.enabled} onChange={(v) => toggle(a, v)} label="Toggle" /></div>
                     </div>
                   ))}
+                  </div>
                 </div>
               );
             })}
@@ -244,9 +247,9 @@ export default function AutomationsHubPremium() {
         )}
 
         {!loading && !error && !isEmpty && section === 'health' && (
-          <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 560px), 1fr))', gap: 12, alignItems: 'start' }}>
             {broken.length === 0 ? (
-              <div className="health-card setup" style={{ alignItems: 'center' }}>
+              <div className="health-card setup" style={{ alignItems: 'center', marginBottom: 0 }}>
                 <span className="hc-ic" style={{ background: 'var(--done)' }}><Icon name="checkCircle" size={20} /></span>
                 <div className="hc-body"><div className="hc-title">{L({ en: 'Everything’s healthy', fr: 'Tout est en bonne santé' }, lang)}</div>
                   <div className="hc-sentence">{L({ en: 'All your automations are running as expected.', fr: 'Toutes vos automatisations fonctionnent comme prévu.' }, lang)}</div></div>
@@ -254,7 +257,7 @@ export default function AutomationsHubPremium() {
             ) : broken.map((a) => {
               const kind = a.needsSetup ? 'setup' : a.lastError ? 'error' : 'warn';
               return (
-                <div className={'health-card ' + kind} key={a._id}>
+                <div className={'health-card ' + kind} key={a._id} style={{ marginBottom: 0 }}>
                   <span className="hc-ic"><Icon name={kind === 'error' ? 'alert' : kind === 'warn' ? 'info' : 'sliders'} size={19} /></span>
                   <div className="hc-body">
                     <div className="hc-title">{a.board?.name || '—'} · {a.name}</div>
