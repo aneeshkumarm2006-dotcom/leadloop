@@ -159,3 +159,32 @@ test('googleClickConversion: gbraid carries no identifiers; stale clicks are dro
   assert.equal(stale.gclid, undefined); // outside Google's 90-day window
   assert.ok(stale.userIdentifiers.length === 2); // still matchable by identifiers
 });
+
+test('tiktokEvent: Events API 2.0 item, hashed email + E.164 phone, raw ttclid', () => {
+  const e = P.tiktokEvent({
+    eventName: 'QualifiedLead',
+    eventTime: NOW,
+    eventId: 'task1:qualified',
+    taskId: 'task1',
+    identity: { email: ' Jane@Acme.com ', phone: '(555) 123-4567' },
+    attribution: { ttclid: 'E.C.P.abc', clientIp: '1.2.3.4', clientUserAgent: 'UA', pageUrl: 'https://acme.com/contact' },
+  });
+  assert.equal(e.event, 'QualifiedLead');
+  assert.equal(e.event_time, Math.floor(NOW.getTime() / 1000));
+  assert.equal(e.event_id, 'task1:qualified');
+  assert.equal(e.user.email, P.sha256('jane@acme.com'));
+  assert.equal(e.user.phone, P.sha256('+15551234567'));
+  assert.equal(e.user.external_id, P.sha256('task1'));
+  assert.equal(e.user.ttclid, 'E.C.P.abc');
+  assert.equal(e.user.ip, '1.2.3.4');
+  assert.equal(e.user.user_agent, 'UA');
+  assert.deepEqual(e.page, { url: 'https://acme.com/contact' });
+});
+
+test('eligibility: tiktok needs consent and email | phone | ttclid', () => {
+  const consent = { adConsent: { granted: true } };
+  assert.deepEqual(P.eligibility({ platform: 'tiktok', attribution: { ttclid: 'x' }, identity: { email: 'a@b.co' } }), { ok: false, reason: 'no_ad_consent' });
+  assert.deepEqual(P.eligibility({ platform: 'tiktok', attribution: consent, identity: {} }), { ok: false, reason: 'no_match_keys' });
+  assert.equal(P.eligibility({ platform: 'tiktok', attribution: { ...consent, ttclid: 'x' }, identity: {} }).ok, true);
+  assert.equal(P.eligibility({ platform: 'tiktok', attribution: consent, identity: { phone: '+44 20 7946 0958' } }).ok, true);
+});

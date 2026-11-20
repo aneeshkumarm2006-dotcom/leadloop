@@ -4,6 +4,7 @@
  *   GET  /capture.js                      the snippet script itself
  *   GET  /api/capture/:siteKey/config     form selector + consent wording
  *   POST /api/capture/:siteKey            one form submission → a lead
+ *   POST /api/capture/:siteKey/seen       once-per-page install beacon
  *
  * Trust model: the site key is PUBLIC (it sits in the client's page source).
  * What makes it safe is the domain lock — every request must come from one of
@@ -20,7 +21,10 @@
 const fs = require('fs');
 const path = require('path');
 const net = require('net');
+const mongoose = require('mongoose');
 const LeadConnection = require('../models/LeadConnection');
+const Board = require('../models/Board');
+const AdConversionConfig = require('../models/AdConversionConfig');
 const { ingestForConnection, LeadIngestError } = require('../services/leadIngestService');
 const { checkRequestSite } = require('../utils/siteDomains');
 
@@ -28,6 +32,64 @@ const SCRIPT_PATH = path.join(__dirname, '../public/leadloop-capture.js');
 const MAX_FIELDS = 60;
 const MIN_ELAPSED_MS = 1500; // a human can't find, fill and submit a form faster
 const SITE_KEY_RE = /^site_[a-z0-9]{8,32}$/;
+const MAX_PAGES_SEEN = 50;
+const SEEN_REFRESH_MS = 60 * 1000; // don't rewrite lastSeenAt more than once a minute
+
+// Pixel ids are injected into the CLIENT'S page by the snippet, so only
+// strictly-shaped values are ever handed out (anything else → null).
+const PIXEL_RE = {
+  meta: /^\d{6,20}$/,
+  google: /^AW-\d{6,15}$/,
+  tiktok: /^[A-Z0-9]{10,32}$/,
+};
+
+/**
+ * Pure: which ad pixels the snippet should load for a workspace config.
+ * Only enabled platforms with a well-formed id. Worker A owns the
+ * google.connection / tiktok fields, so they are read defensively.
+ */
+const pixelsFromConfig = (config) => {
+  const out = { meta: null, google: null, tiktok: null };
+  if (!config) return out;
+  const metaId = String(config.meta?.datasetId || '').trim();
+  if (config.meta?.enabled && PIXEL_RE.meta.test(metaId)) out.meta = metaId;
+  const aw = String(config.google?.connection?.conversionTrackingId || '').trim();
+  if (config.google?.enabled && PIXEL_RE.google.test(aw)) out.google = aw;
+  const tt = String(config.tiktok?.pixelCode || '').trim().toUpperCase();
+  if (config.tiktok?.enabled && PIXEL_RE.tiktok.test(tt)) out.tiktok = tt;
+  return out;
+};
+
+/** The site's workspace (board → organisation) config → pixels. Never throws. */
+const resolvePixels = async (connection) => {
+  const none = { meta: null, google: null, tiktok: null };
+  try {
+    if (connection?.snippet?.loadPixels === false) return none;
+    const boardId = connection?.boardId;
+    if (!boardId || !mongoose.Types.ObjectId.isValid(boardId)) return none;
+    const board = await Board.findById(boardId).select('organisation').lean();
+    if (!board?.organisation) return none;
+    const config = await AdConversionConfig.findOne({ workspaceId: board.organisation }).lean();
+    return pixelsFromConfig(config);
+  } catch (err) {
+    console.error('[capture] resolvePixels error:', err.message);
+    return none;
+  }
+};
+
+/**
+ * Pure: the page path a beacon reports → a clean `/path` (no query/hash,
+ * max 200 chars, printable only), or '' when unusable.
+ */
+const normalizeSeenPath = (raw) => {
+  let p = String(raw == null ? '' : raw).trim();
+  if (!p || p[0] !== '/' || p.startsWith('//')) return '';
+  p = p.split(/[?#]/)[0];
+  if (!/^\/[A-Za-z0-9\-._~!$&'()*+,;=:@%/]*$/.test(p)) return '';
+  if (p.length > 200) p = p.slice(0, 200);
+  if (p.length > 1) p = p.replace(/\/+$/, '') || '/';
+  return p;
+};
 
 let scriptCache = null;
 const readScript = () => {
@@ -107,11 +169,13 @@ const getConfig = async (req, res) => {
     const site = checkRequestSite(req.get('origin'), req.get('referer'), connection.allowedDomains);
     if (!site.allowed) return res.status(403).json({ error: 'This domain is not allowed for this site key' });
     allowOrigin(res, site.origin);
+    const pixels = await resolvePixels(connection);
     res.set('Cache-Control', 'public, max-age=60');
     return res.json({
       formSelector: connection.snippet?.formSelector || '',
       consentWording: connection.snippet?.consentWording || '',
       accent: connection.snippet?.accent || '',
+      pixels,
     });
   } catch (err) {
     console.error('[capture] getConfig error:', err.message);
@@ -151,4 +215,66 @@ const submit = async (req, res) => {
   }
 };
 
-module.exports = { serveScript, getConfig, submit, screenSubmission, clientIp, MIN_ELAPSED_MS, SITE_KEY_RE };
+/**
+ * POST /api/capture/:siteKey/seen — `{ path }` as text/plain, once per page
+ * load. Domain-locked like submit; records install health (lastSeenAt +
+ * up to 50 unique paths). Always 204 on success — nothing to tell the page.
+ */
+const seen = async (req, res) => {
+  try {
+    const connection = await findBySiteKey(req.params.siteKey);
+    if (!connection) return res.status(404).json({ error: 'Unknown site' });
+    const site = checkRequestSite(req.get('origin'), req.get('referer'), connection.allowedDomains);
+    if (!site.allowed) return res.status(403).json({ error: 'This domain is not allowed for this site key' });
+    allowOrigin(res, site.origin);
+
+    let data = req.body;
+    if (typeof data === 'string') {
+      try {
+        data = JSON.parse(data);
+      } catch {
+        data = null;
+      }
+    }
+    const pagePath = normalizeSeenPath(data && typeof data === 'object' ? data.path : '');
+    if (!pagePath) return res.status(400).json({ error: 'invalid_body' });
+
+    const now = new Date();
+    const sn = connection.snippet || {};
+    const last = sn.lastSeenAt ? new Date(sn.lastSeenAt).getTime() : 0;
+    const known = Array.isArray(sn.pagesSeen) && sn.pagesSeen.includes(pagePath);
+    if (now.getTime() - last >= SEEN_REFRESH_MS) {
+      await LeadConnection.updateOne({ _id: connection._id }, { $set: { 'snippet.lastSeenAt': now } });
+    }
+    if (!known) {
+      // Conditional push keeps the list unique and capped even under races.
+      await LeadConnection.updateOne(
+        {
+          _id: connection._id,
+          'snippet.pagesSeen': { $ne: pagePath },
+          [`snippet.pagesSeen.${MAX_PAGES_SEEN - 1}`]: { $exists: false },
+        },
+        { $push: { 'snippet.pagesSeen': pagePath } }
+      );
+    }
+    return res.status(204).end();
+  } catch (err) {
+    console.error('[capture] seen error:', err?.message || err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+};
+
+module.exports = {
+  serveScript,
+  getConfig,
+  submit,
+  seen,
+  screenSubmission,
+  clientIp,
+  pixelsFromConfig,
+  resolvePixels,
+  normalizeSeenPath,
+  MIN_ELAPSED_MS,
+  SITE_KEY_RE,
+  MAX_PAGES_SEEN,
+};

@@ -18,8 +18,9 @@ const TABS = [
   { key: 'sms', label: 'SMS', icon: MessageSquare, adminOnly: true },
   // WhatsApp (Twilio) is a workspace-level credential — admin only.
   { key: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, adminOnly: true },
-  // Ad conversions (Meta / Google Ads send-back) - workspace credentials, admin only.
-  { key: 'ads', label: 'Ad conversions', icon: Target, adminOnly: true },
+  // Ads & tracking (Meta / Google Ads / TikTok connections, website tag,
+  // conversion send-back) - workspace credentials, admin only.
+  { key: 'ads', label: 'Ads & tracking', icon: Target, adminOnly: true },
   // AI keys are personal (any member can add their own Claude / ChatGPT key).
   { key: 'ai', label: 'AI Keys', icon: Sparkles, adminOnly: false },
   { key: 'profile', label: 'Profile', icon: UserCircle2, adminOnly: false },

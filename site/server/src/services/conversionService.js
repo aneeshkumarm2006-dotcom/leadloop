@@ -20,6 +20,7 @@ const cron = require('node-cron');
 const eventBus = require('./eventBus');
 const metaCapi = require('./metaCapi');
 const googleAds = require('./googleAdsConversions');
+const tiktokEvents = require('./tiktokEvents');
 const P = require('../utils/conversionPayloads');
 
 // Lazy model access so this module stays cycle-free at load time.
@@ -41,7 +42,23 @@ const enabledPlatforms = (config) => {
   const out = [];
   if (config.meta && config.meta.enabled && config.meta.datasetId && config.meta.accessToken) out.push('meta');
   if (config.google && config.google.enabled && config.google.customerId) out.push('google');
+  if (config.tiktok && config.tiktok.enabled && config.tiktok.pixelCode && config.tiktok.accessToken) out.push('tiktok');
   return out;
+};
+
+/**
+ * Per-workspace Google credentials when the workspace connected with "Sign in
+ * with Google"; `{}` (→ agency env credentials) otherwise; `null` when the
+ * workspace is on OAuth but its token is missing/undecryptable.
+ */
+const googleCreds = (config) => {
+  const conn = config.google && config.google.connection;
+  if (!conn || conn.method !== 'oauth') return {};
+  const refreshToken = typeof config.getGoogleRefreshToken === 'function' ? config.getGoogleRefreshToken() : null;
+  // Fail closed: an OAuth workspace whose token can't be decrypted must not
+  // silently fall back to the agency's credentials.
+  if (!refreshToken) return null;
+  return { refreshToken, loginCustomerId: conn.loginCustomerId || '' };
 };
 
 /**
@@ -93,6 +110,24 @@ const attempt = async (row, { fetchImpl, now = new Date() } = {}) => {
         testEventCode: config.meta.testEventCode || undefined,
         fetchImpl,
       });
+    } else if (row.platform === 'tiktok') {
+      const event = P.tiktokEvent({
+        eventName: (config.tiktok.eventNames && config.tiktok.eventNames[row.stage]) || row.stage,
+        eventTime: row.eventTime,
+        eventId: row.eventId,
+        taskId: row.taskId,
+        identity,
+        attribution,
+        defaultCountryCode: cc,
+      });
+      row.test = !!config.tiktok.testEventCode;
+      result = await tiktokEvents.sendEvents({
+        pixelCode: config.tiktok.pixelCode,
+        accessToken: config.getTikTokToken(),
+        events: [event],
+        testEventCode: config.tiktok.testEventCode || undefined,
+        fetchImpl,
+      });
     } else {
       const action = config.google.conversionActions && config.google.conversionActions[row.stage];
       if (!action) {
@@ -111,7 +146,10 @@ const attempt = async (row, { fetchImpl, now = new Date() } = {}) => {
         defaultCountryCode: cc,
         now,
       });
-      result = await googleAds.uploadClickConversions({ customerId: config.google.customerId, conversions: [conversion], fetchImpl });
+      const creds = googleCreds(config);
+      result = creds
+        ? await googleAds.uploadClickConversions({ customerId: config.google.customerId, conversions: [conversion], ...creds, fetchImpl })
+        : { ok: false, retryable: false, error: 'google_token_unavailable: reconnect Google Ads' };
     }
 
     row.attempts += 1;
@@ -226,6 +264,27 @@ const sendMetaTestEvent = async (config, testEventCode, { fetchImpl } = {}) => {
   });
 };
 
+/** "Send test event" for TikTok — one event for a fictitious lead with a test code. */
+const sendTikTokTestEvent = async (config, testEventCode, { fetchImpl } = {}) => {
+  const code = String(testEventCode || config.tiktok.testEventCode || '').trim();
+  if (!code) return { ok: false, error: 'A test event code is required (TikTok Events Manager → Test events).' };
+  const event = P.tiktokEvent({
+    eventName: (config.tiktok.eventNames && config.tiktok.eventNames.qualified) || 'QualifiedLead',
+    eventTime: new Date(),
+    eventId: `leadloop-test-${Date.now()}`,
+    taskId: 'leadloop-test',
+    identity: { email: 'test@example.com', phone: '' },
+    attribution: {},
+  });
+  return tiktokEvents.sendEvents({
+    pixelCode: config.tiktok.pixelCode,
+    accessToken: config.getTikTokToken(),
+    events: [event],
+    testEventCode: code,
+    fetchImpl,
+  });
+};
+
 let mounted = false;
 const mountConversionDispatcher = () => {
   if (mounted) return;
@@ -250,7 +309,9 @@ module.exports = {
   attempt,
   retryDue,
   sendMetaTestEvent,
+  sendTikTokTestEvent,
   enabledPlatforms,
+  googleCreds,
   mountConversionDispatcher,
   startConversionRunner,
   BACKOFF_MS,

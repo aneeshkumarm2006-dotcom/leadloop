@@ -7,6 +7,9 @@ import { X } from 'lucide-react';
  * See Macan_Design.md Section 6.13.
  *
  * Props: isOpen, onClose, title, children, footer, maxWidth (default 480)
+ *        unstyled — render `children` directly inside the panel (no header,
+ *        body padding or footer) for dialogs that compose their own chrome;
+ *        ESC, overlay click, focus trap and scroll lock still apply.
  *
  * Behaviour:
  *   - ESC closes
@@ -34,6 +37,7 @@ const Modal = ({
   maxWidth = 480,
   closeOnOverlayClick = true,
   ariaLabel,
+  unstyled = false,
 }) => {
   const panelRef = useRef(null);
   const previouslyFocusedRef = useRef(null);
@@ -121,7 +125,7 @@ const Modal = ({
       <div
         ref={panelRef}
         tabIndex={-1}
-        className="relative w-full bg-white outline-none flex flex-col"
+        className={`relative w-full bg-white outline-none flex flex-col${unstyled ? ' overflow-hidden' : ''}`}
         style={{
           maxWidth,
           maxHeight: 'calc(100vh - 2rem)',
@@ -130,8 +134,10 @@ const Modal = ({
           animation: 'macan-modal-scale 200ms ease-out',
         }}
       >
+        {unstyled ? children : null}
+
         {/* Header */}
-        {(title || onClose) && (
+        {!unstyled && (title || onClose) && (
           <div
             className="flex items-center justify-between px-6 shrink-0"
             style={{
@@ -162,10 +168,10 @@ const Modal = ({
         )}
 
         {/* Body */}
-        <div className="px-6 py-5 flex-1 min-h-0 overflow-y-auto">{children}</div>
+        {!unstyled && <div className="px-6 py-5 flex-1 min-h-0 overflow-y-auto">{children}</div>}
 
         {/* Footer */}
-        {footer && (
+        {!unstyled && footer && (
           <div
             className="flex items-center justify-end gap-3 px-6 shrink-0"
             style={{

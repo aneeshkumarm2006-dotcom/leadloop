@@ -45,6 +45,8 @@ const applySnippetSettings = (connection, body) => {
     const accent = String(sn.accent || '').trim();
     connection.snippet.accent = HEX_RE.test(accent) ? accent : '';
   }
+  // Whether the tag also loads the workspace's Meta / Google / TikTok pixels.
+  if (sn.loadPixels !== undefined) connection.snippet.loadPixels = sn.loadPixels !== false;
 };
 
 /** The exact tag the client pastes into their site. */
@@ -140,6 +142,7 @@ const serializeConnection = (c, req) => ({
     consentWording: c.snippet?.consentWording || '',
     formSelector: c.snippet?.formSelector || '',
     accent: c.snippet?.accent || '',
+    loadPixels: c.snippet?.loadPixels !== false,
   },
   snippetTag: snippetTag(c, req),
   createdAt: c.createdAt,

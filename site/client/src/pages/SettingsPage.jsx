@@ -8,7 +8,7 @@ import EmailAccountConnect from '../components/settings/EmailAccountConnect';
 import SmsConfigForm from '../components/settings/SmsConfigForm';
 import SmsOptOutList from '../components/settings/SmsOptOutList';
 import WhatsAppConfigForm from '../components/settings/WhatsAppConfigForm';
-import AdConversionsSettings from '../components/settings/AdConversionsSettings';
+import AdsTrackingHub from '../components/settings/ads/AdsTrackingHub';
 import WhatsAppTemplateManager from '../components/settings/WhatsAppTemplateManager';
 import AiKeysConfigForm from '../components/settings/AiKeysConfigForm';
 import Button from '../components/ui/Button';
@@ -944,9 +944,13 @@ const SettingsPage = () => {
     setOrgState(currentOrg || null);
   }, [currentOrg]);
 
-  // If a non-admin has an admin-only tab selected, bounce them to Profile
+  // If a non-admin has an admin-only tab selected, bounce them to Profile.
+  // Wait until the user + workspace are loaded so a deep link (e.g. the ad
+  // platform OAuth return to ?tab=ads&connect=meta) isn't bounced on first paint.
   useEffect(() => {
     if (
+      user &&
+      currentOrg &&
       !isAdmin &&
       (activeTab === 'organisation' ||
         activeTab === 'templates' ||
@@ -956,7 +960,7 @@ const SettingsPage = () => {
     ) {
       setActiveTab('profile');
     }
-  }, [isAdmin, activeTab]);
+  }, [isAdmin, activeTab, user, currentOrg]);
 
   // Fetch org details (with inviteCode) for Organisation tab
   useEffect(() => {
@@ -1031,7 +1035,8 @@ const SettingsPage = () => {
       );
     }
     if (activeTab === 'ads' && isAdmin) {
-      return <AdConversionsSettings workspaceId={currentOrg?._id} />;
+      // The hub keeps AdConversionsSettings as its collapsible Advanced section.
+      return <AdsTrackingHub workspaceId={currentOrg?._id} />;
     }
     if (activeTab === 'ai') {
       return <AiKeysConfigForm />;
@@ -1048,7 +1053,7 @@ const SettingsPage = () => {
 
   return (
     <PageWrapper>
-      <div className="mx-auto" style={{ maxWidth: 900 }}>
+      <div className="mx-auto" style={{ maxWidth: activeTab === 'ads' && isAdmin ? 1240 : 900 }}>
         {/* Page header */}
         <header className="mb-6">
           <h1
@@ -1080,7 +1085,10 @@ const SettingsPage = () => {
             onTabChange={setActiveTab}
             showAdminTabs={isAdmin}
           />
-          <div className="flex-1" style={{ padding: 32 }}>
+          <div
+            className={activeTab === 'ads' && isAdmin ? 'flex-1 min-w-0 p-4 sm:p-8' : 'flex-1'}
+            style={activeTab === 'ads' && isAdmin ? { background: 'var(--color-bg-base)' } : { padding: 32 }}
+          >
             {renderTab()}
           </div>
         </div>

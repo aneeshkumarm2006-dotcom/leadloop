@@ -52,6 +52,14 @@
  *     site's own submit carries on untouched. Password, card, bank-account and
  *     other sensitive-looking fields are never collected.
  *
+ *   - loads the workspace's connected ad pixels (Meta Pixel, Google tag,
+ *     TikTok Pixel) unless the page already has that pixel/tag — never twice —
+ *     and on a lead-form submit fires Meta `Lead` + TikTok `SubmitForm` with
+ *     one shared event id. Turn off per site in LeadLoop, or on the page with
+ *     `data-pixels="off"` on the script tag;
+ *   - sends one small "seen" beacon per page load ({ path } only) so LeadLoop
+ *     can show that the tag is installed.
+ *
  * Without `data-site` nothing is sent anywhere by this script.
  */
 (function () {
@@ -71,6 +79,7 @@
   var formEndpoint = (script && script.getAttribute('data-endpoint')) || '';
   var siteKey = (script && script.getAttribute('data-site')) || '';
   var explicitSelector = !!(script && script.getAttribute('data-forms'));
+  var pixelsOff = !!(script && /^(off|false|0|no)$/i.test(script.getAttribute('data-pixels') || ''));
   var apiBase = '';
   if (siteKey && script && script.src) {
     try {
@@ -351,14 +360,28 @@
       if (!val) continue;
       out[name] = out[name] ? out[name] + ', ' + val : val;
     }
+    // Split first/last name fields → also send one full name, so the lead is
+    // titled "Jane Doe" rather than just "Jane".
+    var keys = Object.keys(out);
+    var first = keys.filter(function (k) { return /^first[ _-]?name$/i.test(k); })[0];
+    var last = keys.filter(function (k) { return /^(last|family|sur)[ _-]?name$/i.test(k); })[0];
+    var hasFull = keys.some(function (k) { return /^(name|full[ _-]?name|your[ _-]?name)$/i.test(k); });
+    if (!hasFull && (first || last)) {
+      out.full_name = [first ? out[first] : '', last ? out[last] : ''].join(' ').trim();
+    }
     return out;
   }
 
   function sendCopy(form) {
     if (!apiBase || !siteKey) return;
+    // Forms marked `novalidate` validate in their own JS, so the submit event
+    // fires even when required fields are empty. Don't send a half-filled copy;
+    // the visitor's corrected re-submit is the one that counts.
+    if (typeof form.checkValidity === 'function' && !form.checkValidity()) return;
     var now = Date.now();
     if (form._llSentAt && now - form._llSentAt < 3000) return; // double submit
     form._llSentAt = now;
+    firePixelLead();
 
     var payload = collect(form);
     var f = fields();
@@ -393,6 +416,193 @@
       }).catch(function () {});
     } catch (e) {
       /* never break the site's own submit */
+    }
+  }
+
+  // --- 7b. Ad pixels (snippet mode) ------------------------------------------
+  // Each platform's standard base code, injected only when the page doesn't
+  // already have that pixel/tag. `pixelOwned[p]` = we set up the platform's
+  // library ourselves, so we also fire its lead event; where the site already
+  // runs that platform it is left to the site (it most likely tracks its own
+  // leads, and its track calls reach our pixel too — firing again would
+  // double-count).
+  var pixels = { meta: null, google: null, tiktok: null };
+  var pixelOwned = { meta: false, google: false, tiktok: false };
+  var PIXEL_ID = { meta: /^\d{6,20}$/, google: /^AW-\d{6,15}$/, tiktok: /^[A-Z0-9]{10,32}$/ };
+
+  function injectScript(src) {
+    var el = document.createElement('script');
+    el.async = true;
+    el.src = src;
+    var first = document.getElementsByTagName('script')[0];
+    if (first && first.parentNode) first.parentNode.insertBefore(el, first);
+    else (document.head || document.documentElement).appendChild(el);
+  }
+
+  function fbqHasPixel(id) {
+    var f = window.fbq;
+    if (!f) return false;
+    try {
+      var st = typeof f.getState === 'function' ? f.getState() : null;
+      if (st && st.pixels) {
+        for (var i = 0; i < st.pixels.length; i++) if (String(st.pixels[i].id) === id) return true;
+      }
+    } catch (e) {
+      /* fall through to the queue */
+    }
+    var q = f.queue || [];
+    for (var j = 0; j < q.length; j++) if (q[j] && q[j][0] === 'init' && String(q[j][1]) === id) return true;
+    return false;
+  }
+
+  function loadMeta(id) {
+    if (fbqHasPixel(id)) return; // the site already runs this pixel
+    // The site's own `fbq('track', …)` calls reach every initialised pixel, so
+    // when the site already has fbq we add ours but leave lead events to it.
+    var hadFbq = !!window.fbq;
+    if (!hadFbq) {
+      // Meta Pixel base code (connect.facebook.net/en_US/fbevents.js).
+      (function (f, b, e, v) {
+        var n = (f.fbq = function () {
+          n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+        });
+        if (!f._fbq) f._fbq = n;
+        n.push = n;
+        n.loaded = true;
+        n.version = '2.0';
+        n.queue = [];
+        injectScript(v);
+      })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    }
+    window.fbq('init', id);
+    window.fbq('trackSingle', id, 'PageView');
+    pixelOwned.meta = !hadFbq;
+  }
+
+  function gtagHasConfig(id) {
+    if (window.google_tag_manager && window.google_tag_manager[id]) return true;
+    var dl = window.dataLayer || [];
+    for (var i = 0; i < dl.length; i++) {
+      var d = dl[i];
+      if (d && d[0] === 'config' && d[1] === id) return true;
+    }
+    return !!document.querySelector('script[src*="googletagmanager.com/gtag/js?id=' + id + '"]');
+  }
+
+  function loadGoogle(id) {
+    if (gtagHasConfig(id)) return;
+    window.dataLayer = window.dataLayer || [];
+    if (typeof window.gtag !== 'function') {
+      window.gtag = function () {
+        window.dataLayer.push(arguments);
+      };
+      injectScript('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id));
+      window.gtag('js', new Date());
+    }
+    window.gtag('config', id);
+    pixelOwned.google = true;
+  }
+
+  function ttqHasPixel(code) {
+    var t = window.ttq;
+    return !!(t && t._i && t._i[code]);
+  }
+
+  function loadTikTok(code) {
+    if (ttqHasPixel(code)) return;
+    var hadTtq = !!window.ttq; // same reasoning as hadFbq above
+    if (!hadTtq) {
+      // TikTok Pixel base code (analytics.tiktok.com/i18n/pixel/events.js).
+      (function (w, t) {
+        w.TiktokAnalyticsObject = t;
+        var ttq = (w[t] = w[t] || []);
+        ttq.methods = ['page', 'track', 'identify', 'instances', 'debug', 'on', 'off', 'once', 'ready', 'alias',
+          'group', 'enableCookie', 'disableCookie', 'holdConsent', 'revokeConsent', 'grantConsent'];
+        ttq.setAndDefer = function (o, m) {
+          o[m] = function () {
+            o.push([m].concat(Array.prototype.slice.call(arguments, 0)));
+          };
+        };
+        for (var i = 0; i < ttq.methods.length; i++) ttq.setAndDefer(ttq, ttq.methods[i]);
+        ttq.instance = function (c) {
+          var e = ttq._i[c] || [];
+          for (var n = 0; n < ttq.methods.length; n++) ttq.setAndDefer(e, ttq.methods[n]);
+          return e;
+        };
+        ttq.load = function (c, opts) {
+          var r = 'https://analytics.tiktok.com/i18n/pixel/events.js';
+          ttq._i = ttq._i || {};
+          ttq._i[c] = [];
+          ttq._i[c]._u = r;
+          ttq._t = ttq._t || {};
+          ttq._t[c] = +new Date();
+          ttq._o = ttq._o || {};
+          ttq._o[c] = opts || {};
+          injectScript(r + '?sdkid=' + encodeURIComponent(c) + '&lib=' + t);
+        };
+      })(window, 'ttq');
+    }
+    try {
+      window.ttq.load(code);
+      var inst = typeof window.ttq.instance === 'function' ? window.ttq.instance(code) : window.ttq;
+      inst.page();
+      pixelOwned.tiktok = !hadTtq;
+    } catch (e) {
+      /* a site's own TikTok setup we can't extend — leave it alone */
+    }
+  }
+
+  function loadPixels(cfgPixels) {
+    if (pixelsOff || !cfgPixels || typeof cfgPixels !== 'object') return;
+    ['meta', 'google', 'tiktok'].forEach(function (p) {
+      var id = cfgPixels[p];
+      if (typeof id === 'string' && PIXEL_ID[p].test(id)) pixels[p] = id;
+    });
+    // One platform's failure never stops the others (or form capture).
+    try { if (pixels.meta) loadMeta(pixels.meta); } catch (e) { /* ignore */ }
+    try { if (pixels.google) loadGoogle(pixels.google); } catch (e) { /* ignore */ }
+    try { if (pixels.tiktok) loadTikTok(pixels.tiktok); } catch (e) { /* ignore */ }
+  }
+
+  function newEventId() {
+    return 'll.' + Date.now().toString(36) + '.' + Math.random().toString(36).slice(2, 10);
+  }
+
+  // Browser lead events, one event id shared across platforms.
+  function firePixelLead() {
+    if (!pixelOwned.meta && !pixelOwned.tiktok) return;
+    var eventId = newEventId();
+    try {
+      if (pixelOwned.meta && window.fbq) window.fbq('trackSingle', pixels.meta, 'Lead', {}, { eventID: eventId });
+    } catch (e) { /* ignore */ }
+    try {
+      if (pixelOwned.tiktok && window.ttq) {
+        var inst = typeof window.ttq.instance === 'function' ? window.ttq.instance(pixels.tiktok) : window.ttq;
+        inst.track('SubmitForm', {}, { event_id: eventId });
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  // Install-health beacon: once per page load, the path only.
+  function sendSeen() {
+    if (!apiBase || !siteKey) return;
+    var url = apiBase + '/api/capture/' + encodeURIComponent(siteKey) + '/seen';
+    var body = JSON.stringify({ path: String(location.pathname || '/').slice(0, 200) });
+    try {
+      if (navigator.sendBeacon && navigator.sendBeacon(url, new Blob([body], { type: 'text/plain;charset=UTF-8' }))) return;
+    } catch (e) {
+      /* fall through to fetch */
+    }
+    try {
+      fetch(url, {
+        method: 'POST',
+        body: body,
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        keepalive: true,
+        credentials: 'omit',
+      }).catch(function () {});
+    } catch (e) {
+      /* ignore */
     }
   }
 
@@ -454,6 +664,8 @@
         }
         if (!consentWording && cfg.consentWording) consentWording = cfg.consentWording;
         if (!consentAccent && cfg.accent) consentAccent = cfg.accent;
+        loadPixels(cfg.pixels);
+        sendSeen();
       })
       .catch(function () {
         siteKey = '';

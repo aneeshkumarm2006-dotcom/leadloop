@@ -82,7 +82,39 @@ test('non-object bodies are returned as-is', () => {
 test('every SOURCE_TYPES entry names a real adapter + delivery', () => {
   for (const [id, spec] of Object.entries(SOURCE_TYPES)) {
     assert.ok(['webhook', 'email', 'poll', 'snippet'].includes(spec.delivery), `${id} delivery`);
-    assert.ok(['passthrough', 'google_ads', 'facebook'].includes(spec.adapter), `${id} adapter`);
+    assert.ok(['passthrough', 'google_ads', 'facebook', 'tiktok'].includes(spec.adapter), `${id} adapter`);
     assert.equal(typeof spec.ready, 'boolean', `${id} ready`);
   }
+});
+
+test('tiktok_lead_ads: field list is flattened, envelope ids kept', () => {
+  const out = normalizeSourcePayload('tiktok_lead_ads', {
+    lead_id: '7301',
+    form_id: 'f1',
+    advertiser_id: 'adv9',
+    field_data: [
+      { field_name: 'email', field_value: 'jane@acme.com' },
+      { name: 'phone_number', values: ['+15551234567'] },
+      { question: 'Budget?', answer: '500k' },
+    ],
+  });
+  assert.deepEqual(out, {
+    email: 'jane@acme.com',
+    phone_number: '+15551234567',
+    'Budget?': '500k',
+    lead_id: '7301',
+    form_id: 'f1',
+  });
+});
+
+test('tiktok_lead_ads: nested lead + object data shapes', () => {
+  assert.deepEqual(
+    normalizeSourcePayload('tiktok_lead_ads', { lead: { lead_id: 'L1', data: { email: 'a@b.co', name: ['Ann'] } } }),
+    { email: 'a@b.co', name: 'Ann', lead_id: 'L1' }
+  );
+});
+
+test('tiktok_lead_ads: unknown shape falls back to the body', () => {
+  const body = { something: 'else' };
+  assert.deepEqual(normalizeSourcePayload('tiktok_lead_ads', body), body);
 });

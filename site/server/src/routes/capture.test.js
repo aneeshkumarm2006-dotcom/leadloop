@@ -30,6 +30,11 @@ const connection = {
   snippet: { consentWording: 'I agree.', formSelector: '', accent: '#C1A6B0' },
 };
 LeadConnection.findOne = async (q) => (q.siteKey === SITE ? connection : null);
+const updates = [];
+LeadConnection.updateOne = async (filter, update) => {
+  updates.push({ filter, update });
+  return { modifiedCount: 1 };
+};
 
 // passport's Google strategy needs these at load time (same as the other route tests).
 process.env.GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || 'test-client-id';
@@ -67,7 +72,13 @@ test('config: allowed domain gets settings + exact CORS origin; others refused',
   const ok = await fetch(`${base}/api/capture/${SITE}/config`, { headers: { Origin: 'https://www.bopayments.com' } });
   assert.equal(ok.status, 200);
   assert.equal(ok.headers.get('access-control-allow-origin'), 'https://www.bopayments.com');
-  assert.deepEqual(await ok.json(), { formSelector: '', consentWording: 'I agree.', accent: '#C1A6B0' });
+  // No board on this stub → no workspace → no pixels (and no DB lookup).
+  assert.deepEqual(await ok.json(), {
+    formSelector: '',
+    consentWording: 'I agree.',
+    accent: '#C1A6B0',
+    pixels: { meta: null, google: null, tiktok: null },
+  });
 
   const bad = await fetch(`${base}/api/capture/${SITE}/config`, { headers: { Origin: 'https://evilbopayments.com' } });
   assert.equal(bad.status, 403);
@@ -123,4 +134,90 @@ test('per-visitor rate limit: 11th submission in a minute → 429', async () => 
   for (let i = 0; i < 11; i += 1) statuses.push((await post(human(), headers)).status);
   assert.deepEqual(statuses.slice(0, 10), Array(10).fill(204));
   assert.equal(statuses[10], 429);
+});
+
+// ─── install beacon ─────────────────────────────────────────────────────────
+const postSeen = (body, headers = {}) =>
+  fetch(`${base}/api/capture/${SITE}/seen`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=UTF-8', ...headers },
+    body: typeof body === 'string' ? body : JSON.stringify(body),
+  });
+
+test('seen: allowed domain records lastSeenAt + path; never creates a lead', async () => {
+  updates.length = 0;
+  ingested.length = 0;
+  connection.snippet.lastSeenAt = null;
+  connection.snippet.pagesSeen = [];
+  const r = await postSeen({ path: '/pricing?utm_source=x#top' }, { Origin: 'https://www.bopayments.com', 'X-Forwarded-For': '203.0.113.50' });
+  assert.equal(r.status, 204);
+  assert.equal(r.headers.get('access-control-allow-origin'), 'https://www.bopayments.com');
+  assert.equal(ingested.length, 0);
+  assert.equal(updates.length, 2);
+  assert.ok(updates[0].update.$set['snippet.lastSeenAt'] instanceof Date);
+  assert.equal(updates[1].update.$push['snippet.pagesSeen'], '/pricing');
+  assert.deepEqual(updates[1].filter['snippet.pagesSeen.49'], { $exists: false });
+});
+
+test('seen: known path seen a moment ago → no writes', async () => {
+  updates.length = 0;
+  connection.snippet.lastSeenAt = new Date();
+  connection.snippet.pagesSeen = ['/pricing'];
+  const r = await postSeen({ path: '/pricing' }, { Origin: 'https://bopayments.com', 'X-Forwarded-For': '203.0.113.51' });
+  assert.equal(r.status, 204);
+  assert.equal(updates.length, 0);
+});
+
+test('seen: other domain refused; bad body 400', async () => {
+  updates.length = 0;
+  const bad = await postSeen({ path: '/' }, { Origin: 'https://evil.example', 'X-Forwarded-For': '203.0.113.52' });
+  assert.equal(bad.status, 403);
+  const garbage = await postSeen('nope', { Origin: 'https://bopayments.com', 'X-Forwarded-For': '203.0.113.53' });
+  assert.equal(garbage.status, 400);
+  const abs = await postSeen({ path: 'https://evil/x' }, { Origin: 'https://bopayments.com', 'X-Forwarded-For': '203.0.113.54' });
+  assert.equal(abs.status, 400);
+  assert.equal(updates.length, 0);
+});
+
+test('seen: per-visitor rate limit (31st in a minute → 429)', async () => {
+  const headers = { Origin: 'https://bopayments.com', 'X-Forwarded-For': '192.0.2.88' };
+  const statuses = [];
+  for (let i = 0; i < 31; i += 1) statuses.push((await postSeen({ path: '/' }, headers)).status);
+  assert.ok(statuses.slice(0, 30).every((s) => s === 204));
+  assert.equal(statuses[30], 429);
+});
+
+// ─── pure helpers ──────────────────────────────────────────────────────────
+const { pixelsFromConfig, normalizeSeenPath } = require('../controllers/captureController');
+
+test('pixelsFromConfig: only enabled platforms with well-formed ids', () => {
+  assert.deepEqual(pixelsFromConfig(null), { meta: null, google: null, tiktok: null });
+  assert.deepEqual(
+    pixelsFromConfig({
+      meta: { enabled: true, datasetId: '1234567890123' },
+      google: { enabled: true, connection: { conversionTrackingId: 'AW-123456789' } },
+      tiktok: { enabled: true, pixelCode: 'cabcdefghij1234567' },
+    }),
+    { meta: '1234567890123', google: 'AW-123456789', tiktok: 'CABCDEFGHIJ1234567' }
+  );
+  // disabled, missing (Worker A fields absent), or injection-shaped ids → null
+  assert.deepEqual(
+    pixelsFromConfig({
+      meta: { enabled: false, datasetId: '1234567890123' },
+      google: { enabled: true },
+      tiktok: { enabled: true, pixelCode: "X');alert(1);//" },
+    }),
+    { meta: null, google: null, tiktok: null }
+  );
+  assert.equal(pixelsFromConfig({ meta: { enabled: true, datasetId: "1'+alert(1)+'" } }).meta, null);
+});
+
+test('normalizeSeenPath', () => {
+  assert.equal(normalizeSeenPath('/'), '/');
+  assert.equal(normalizeSeenPath('/a/b/?x=1'), '/a/b');
+  assert.equal(normalizeSeenPath('/caf%C3%A9'), '/caf%C3%A9');
+  for (const bad of ['', 'a', '//evil.com/x', 'https://x/', '/<script>', '/a b', null, 42]) {
+    assert.equal(normalizeSeenPath(bad), '', String(bad));
+  }
+  assert.equal(normalizeSeenPath(`/${'a'.repeat(300)}`).length, 200);
 });

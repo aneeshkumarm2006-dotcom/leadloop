@@ -2176,5 +2176,630 @@
         "help": "Below: add your Google Ads customer ID and conversion action."
       }
     }
+  },
+  "adsHub": {
+    "loading": "Loading ads and tracking",
+    "loadError": "Could not load your ad connections. Please try again.",
+    "encryptionMissing": "Token encryption isn’t configured on this server yet (EMAIL_TOKEN_ENCRYPTION_KEY), so ad accounts can’t be connected. Ask your LeadLoop admin to set it.",
+    "platform": {
+      "meta": "Meta",
+      "google": "Google Ads",
+      "tiktok": "TikTok Ads"
+    },
+    "hero": {
+      "eyebrow": "No developer needed",
+      "title": "Connect your ads. We’ll handle the tracking.",
+      "body": "Sign in to Meta, Google and TikTok once. LeadLoop sets up your pixel, conversion actions and website tag for you, then tells the ad platforms which leads turned into real customers, so your ads find more of them."
+    },
+    "progress": {
+      "title": "Tracking setup",
+      "aria": "{{done}} of {{total}} steps done",
+      "allDone": "All set. We’ll keep an eye on it.",
+      "minutesLeft_one": "About {{count}} minute left",
+      "minutesLeft_other": "About {{count}} minutes left",
+      "meta": "Connect Meta",
+      "stages": "Choose what counts as a qualified lead",
+      "leadAds": "Turn on Facebook Lead Ads",
+      "google": "Connect Google Ads",
+      "tiktok": "Connect TikTok Ads",
+      "website": "Add tracking to your website"
+    },
+    "sections": {
+      "accounts": "Ad accounts",
+      "accountsSub": "Used to send qualified leads and customers back to your campaigns",
+      "website": "Website tracking",
+      "websiteSub": "One tag covers your Meta Pixel, Google tag, TikTok Pixel and form capture",
+      "sources": "Lead sources",
+      "sourcesSub": "New leads land on your board within seconds, no Zapier",
+      "more": "More ad platforms"
+    },
+    "signIn": {
+      "google": "Sign in with Google",
+      "meta": "Continue with Facebook",
+      "tiktok": "Continue with TikTok"
+    },
+    "cards": {
+      "notConnected": "Not connected",
+      "almostDone": "Almost done",
+      "connected": "Connected",
+      "connectedLive": "Connected · Live",
+      "connectedTest": "Connected · Test mode",
+      "unavailablePill": "Coming soon on this server",
+      "afterSignIn": "After you sign in, we automatically",
+      "aboutMinute": "About 1 minute",
+      "aboutMinuteDisconnect": "About 1 minute · You can disconnect anytime",
+      "resume": "You’re signed in. Pick your accounts to finish.",
+      "resumeAs": "Signed in as {{name}}. Pick your accounts to finish.",
+      "finishSetup": "Finish setup",
+      "lastSent": "Last event sent",
+      "nothingSent": "No events sent yet",
+      "errorsThisWeek_one": "{{count}} error this week",
+      "errorsThisWeek_other": "{{count}} errors this week",
+      "viewActivity": "View activity",
+      "moreOptions": "More options for {{platform}}",
+      "syncing": "Syncing",
+      "meta": {
+        "subtitle": "Facebook & Instagram ads, Pixel and Conversions API",
+        "unavailable": "Meta sign-in isn’t switched on for this server yet. You can still connect a dataset manually under Advanced below.",
+        "benefits": [
+          "Connect your Pixel and Conversions API",
+          "Send qualified leads and customers back to Meta",
+          "Pull leads from your Facebook and Instagram Lead Ads"
+        ],
+        "business": "Business",
+        "adAccount": "Ad account",
+        "pixel": "Pixel",
+        "leadAds": "Lead Ads",
+        "pagesSyncing_one": "{{count}} Page syncing",
+        "pagesSyncing_other": "{{count}} Pages syncing",
+        "tokenExpiring": "Meta access expires {{when}}. Sign in again to keep sending events."
+      },
+      "google": {
+        "subtitle": "Search, Performance Max and YouTube campaigns",
+        "unavailable": "Google sign-in isn’t switched on for this server yet. You can still connect with a customer ID under Advanced below.",
+        "benefits": [
+          "Create “Qualified lead” and “Customer” conversion actions",
+          "Turn on auto-tagging so every ad click is traceable",
+          "Pull leads from your Google lead form ads"
+        ],
+        "account": "Account",
+        "conversions": "Conversions",
+        "conversionsOn": "Qualified lead + Customer",
+        "conversionsOff": "Not set up",
+        "autoTagging": "Auto-tagging",
+        "websiteTag": "Website tag",
+        "viaGtm": "Published to {{container}}",
+        "viaTag": "Loaded by the LeadLoop tag ({{id}})"
+      },
+      "tiktok": {
+        "subtitle": "In-feed ads, Lead Generation and Instant Forms",
+        "unavailable": "TikTok sign-in isn’t switched on for this server yet. Ask your LeadLoop admin to add the TikTok app keys.",
+        "benefits": [
+          "Connect your TikTok Pixel and Events API",
+          "Send qualified leads and customers back to TikTok",
+          "Pull leads from your Instant Forms"
+        ],
+        "advertiser": "Advertiser",
+        "pixel": "Pixel",
+        "instantForms": "Instant Forms"
+      }
+    },
+    "menu": {
+      "changeAccounts": "Change accounts",
+      "changeAccount": "Change account",
+      "leadAdsPages": "Lead Ads Pages",
+      "sendTest": "Send a test event",
+      "installGtm": "Install tag with Tag Manager",
+      "disconnect": "Disconnect"
+    },
+    "disconnect": {
+      "title": "Disconnect {{platform}}?",
+      "working": "Disconnecting…",
+      "body": {
+        "meta": "LeadLoop will stop sending events to Meta and stop pulling Lead Ads from your Pages. Your Pixel, ads and existing leads are not touched.",
+        "google": "LeadLoop will stop uploading conversions to Google Ads and forget its access. Your conversion actions and campaigns stay as they are.",
+        "tiktok": "LeadLoop will stop sending events to TikTok and stop pulling Instant Form leads. Your pixel and ads are not touched."
+      }
+    },
+    "tiles": {
+      "gtm": {
+        "name": "Google Tag Manager",
+        "how": "We publish it for you"
+      },
+      "wordpress": {
+        "name": "WordPress",
+        "how": "Install our plugin"
+      },
+      "wix": {
+        "name": "Wix",
+        "how": "Paste in Settings"
+      },
+      "squarespace": {
+        "name": "Squarespace",
+        "how": "Paste in Code Injection"
+      },
+      "webflow": {
+        "name": "Webflow",
+        "how": "Paste in Custom code"
+      },
+      "shopify": {
+        "name": "Shopify",
+        "how": "Paste in theme.liquid"
+      },
+      "noWebsite": {
+        "name": "No website?",
+        "how": "Use a LeadLoop form page"
+      },
+      "someoneElse": {
+        "name": "Someone else built it",
+        "how": "Email them the steps"
+      }
+    },
+    "builders": {
+      "gtm": {
+        "name": "Google Tag Manager",
+        "railTag": "Auto",
+        "tileTag": "One click",
+        "steps": [
+          {
+            "title": "In Tag Manager, open [[Tags]] → [[New]] → [[Custom HTML]]",
+            "detail": "Name it “LeadLoop”."
+          },
+          {
+            "title": "Paste the tag and choose the [[All Pages]] trigger",
+            "detail": "Leave “Support document.write” off."
+          },
+          {
+            "title": "Click [[Submit]] → [[Publish]], then come back here",
+            "detail": "We’ll check your site and confirm everything is firing."
+          }
+        ]
+      },
+      "wordpress": {
+        "name": "WordPress",
+        "railTag": "Plugin",
+        "steps": [
+          {
+            "title": "In WordPress, open [[Plugins]] → [[Add New Plugin]] → [[Upload Plugin]]",
+            "detail": "You need to be a WordPress administrator."
+          },
+          {
+            "title": "Choose the zip file, click [[Install Now]], then [[Activate]]",
+            "detail": "The plugin already contains your site key. Nothing to configure."
+          },
+          {
+            "title": "Come back here and check your website",
+            "detail": "We’ll confirm the tag is on every page."
+          }
+        ]
+      },
+      "wix": {
+        "name": "Wix",
+        "steps": [
+          {
+            "title": "In Wix, open [[Settings]] → [[Custom code]]",
+            "detail": "It’s under “Advanced” at the bottom of the Settings page."
+          },
+          {
+            "title": "Click [[+ Add Custom Code]] and paste",
+            "detail": "Name it “LeadLoop”. Choose **All pages** and place it in the **Head**."
+          },
+          {
+            "title": "Click [[Apply]], then come back here",
+            "detail": "We’ll check your site and confirm everything is firing."
+          }
+        ]
+      },
+      "squarespace": {
+        "name": "Squarespace",
+        "steps": [
+          {
+            "title": "In Squarespace, open [[Settings]] → [[Developer tools]] → [[Code Injection]]",
+            "detail": "On older sites it’s under Settings → Advanced → Code Injection."
+          },
+          {
+            "title": "Paste it into the [[Header]] box",
+            "detail": "Code Injection applies to every page."
+          },
+          {
+            "title": "Click [[Save]], then come back here",
+            "detail": "We’ll check your site and confirm everything is firing."
+          }
+        ]
+      },
+      "webflow": {
+        "name": "Webflow",
+        "steps": [
+          {
+            "title": "In Webflow, open [[Site settings]] → [[Custom code]]",
+            "detail": "Custom code needs a paid site plan."
+          },
+          {
+            "title": "Paste it into [[Head code]]",
+            "detail": "This adds it to every page of the site."
+          },
+          {
+            "title": "Click [[Save changes]], then [[Publish]] your site",
+            "detail": "Come back here and we’ll check it’s firing."
+          }
+        ]
+      },
+      "shopify": {
+        "name": "Shopify",
+        "steps": [
+          {
+            "title": "In Shopify, open [[Online Store]] → [[Themes]] → [[…]] → [[Edit code]]",
+            "detail": "Do this on your live theme."
+          },
+          {
+            "title": "Open [[theme.liquid]] and paste just before the closing head tag",
+            "detail": "Search the file for “/head” to find the spot quickly."
+          },
+          {
+            "title": "Click [[Save]], then come back here",
+            "detail": "We’ll check your store and confirm everything is firing."
+          }
+        ]
+      },
+      "other": {
+        "name": "Something else",
+        "steps": [
+          {
+            "title": "Paste it into the head of every page",
+            "detail": "Most site builders have a “Custom code”, “Header code” or “Tracking code” setting."
+          },
+          {
+            "title": "Publish your site, then come back here",
+            "detail": "We’ll check your site and confirm everything is firing."
+          }
+        ]
+      }
+    },
+    "website": {
+      "dialogTitle": "Add tracking to your website",
+      "dialogSubtitle": "One tag. It loads your Meta Pixel, Google tag and TikTok Pixel and captures every form, so you never touch code again.",
+      "builtWith": "My site is built with",
+      "addTo": "Add LeadLoop to {{builder}}",
+      "addToOther": "Add LeadLoop to your website",
+      "stepsMeta_one": "{{count}} step · about 2 minutes · no coding",
+      "stepsMeta_other": "{{count}} steps · about 2 minutes · no coding",
+      "gtmMeta": "One click · we publish it for you",
+      "copyTag": "Copy your LeadLoop tag",
+      "yourTag": "Your LeadLoop tag",
+      "noTag": "This website has no tag yet. Refresh the page and try again.",
+      "addedCheck": "I’ve added it, check my website",
+      "checkNow": "Check my website",
+      "whichSite": "Website",
+      "firstTitle": "Which website should we track?",
+      "firstDetail": "We’ll create your LeadLoop tag for this site. Only this domain can send leads with it.",
+      "siteLabel": "Website address",
+      "siteHint": "For example harborhomes.com. Subdomains of it work too.",
+      "invalidSite": "Enter a website address like example.com.",
+      "createError": "Could not set up this website. Please try again.",
+      "created": "Your tag for {{site}} is ready.",
+      "emptyTitle": "Add your website",
+      "pickBuilder": "Pick how your website is built. We’ll walk you through it in under 2 minutes.",
+      "untitled": "Your website",
+      "tagFound": "Tracking",
+      "tagNotFound": "Tag not found yet",
+      "lastSeen": "Last seen {{when}}",
+      "pagesSeen_one": "{{count}} page",
+      "pagesSeen_other": "{{count}} pages",
+      "formLeads_one": "{{count}} form lead",
+      "formLeads_other": "{{count}} form leads",
+      "checkMySite": "Check my website",
+      "installGuide": "Install guide",
+      "addAnother": "Add another website",
+      "paused": "Paused",
+      "loadPixels": "Also load my Meta, Google & TikTok pixels",
+      "loadPixelsDetail": "Turn off if your site already loads them another way. Form capture keeps working either way.",
+      "loadPixelsError": "Could not update this setting."
+    },
+    "gtm": {
+      "signInIntro": "Sign in with the Google account that manages your Tag Manager container and we’ll publish the LeadLoop tag for you.",
+      "needsScope": "LeadLoop needs permission to publish to Tag Manager. Sign in again and allow Tag Manager access.",
+      "loading": "Finding your Tag Manager containers…",
+      "loadError": "Could not load your Tag Manager containers.",
+      "noContainers": "No web containers found for this Google account. Create one at tagmanager.google.com, or add the tag yourself below.",
+      "container": "Container",
+      "matchesSite": "Matches your site",
+      "publish": "Publish to {{container}}",
+      "published": "Published to {{container}}. The tag is live on every page.",
+      "publishError": "Could not publish to Tag Manager.",
+      "alreadyPublished": "Already published to {{container}} {{when}}.",
+      "manual": "Prefer to add it in Tag Manager yourself?"
+    },
+    "wordpress": {
+      "download": "Download your LeadLoop plugin",
+      "downloadDetail": "It’s set up for this website already.",
+      "downloadButton": "Download plugin (.zip)",
+      "downloadError": "Could not download the plugin. Please try again.",
+      "manual": "Can’t install plugins?",
+      "manualDetail": "Paste this tag into your theme’s header, or with any “header and footer code” plugin.",
+      "unavailable": "The ready-made plugin isn’t available on this server. You can add the tag with any header code plugin instead.",
+      "manualSteps": [
+        {
+          "title": "In WordPress, install a header code plugin such as [[WPCode]]",
+          "detail": "Plugins → Add New Plugin, search “WPCode”, Install, Activate."
+        },
+        {
+          "title": "Open [[Code Snippets]] → [[Header & Footer]] and paste into [[Header]]",
+          "detail": "This adds the tag to every page."
+        },
+        {
+          "title": "Click [[Save Changes]], then come back here",
+          "detail": "We’ll check your site and confirm everything is firing."
+        }
+      ]
+    },
+    "email": {
+      "title": "Someone else manages your website?",
+      "label": "Their email",
+      "placeholder": "their@email.com",
+      "send": "Email them the steps",
+      "detail": "They get the tag and these exact steps. We’ll tell you when it’s live.",
+      "sent": "Sent to {{email}}.",
+      "invalid": "Enter a valid email address.",
+      "error": "Could not send the email. Please try again later.",
+      "rateLimited": "You’ve sent several emails in the last hour. Please try again later.",
+      "unavailable": "Email isn’t set up on this server. Copy the tag and send it yourself."
+    },
+    "check": {
+      "running": "Checking your website…",
+      "trackingTitle": "Your website is tracking",
+      "notFoundTitle": "We couldn’t find the LeadLoop tag yet",
+      "failedTitle": "We couldn’t check your website",
+      "activityTitle": "Activity",
+      "activitySubtitle": "What LeadLoop sent to your ad platforms",
+      "checked": "checked {{when}}",
+      "again": "Check again",
+      "error": "We couldn’t reach your website. Make sure it’s published and try again.",
+      "found": "What we found",
+      "working": "Working",
+      "missing": "Not found",
+      "attention": "Needs attention",
+      "skipped": "Not connected",
+      "install": "Install the tag",
+      "titles": {
+        "tag": "LeadLoop tag",
+        "meta_pixel": "Meta Pixel",
+        "google_tag": "Google tag",
+        "tiktok_pixel": "TikTok Pixel",
+        "forms": "Contact forms",
+        "consent": "Cookie consent"
+      },
+      "sentTitle": "Sent to your ad platforms",
+      "last7": "Last 7 days",
+      "leadsCaptured": "Leads captured",
+      "toPlatform": "Qualified → {{platform}}",
+      "noActivity": "Nothing sent yet. When a lead reaches a reported stage it shows up here.",
+      "hourly": "We check every hour and alert you if anything stops working.",
+      "rateLimited": "You’ve checked a lot in the last hour. Please try again a bit later."
+    },
+    "activity": {
+      "aLead": "A lead",
+      "qualified": "Qualified lead",
+      "customer": "Customer",
+      "sent": "sent to {{platform}} as {{stage}}",
+      "failed": "could not be sent to {{platform}} as {{stage}}",
+      "skipped": "skipped for {{platform}} ({{stage}})",
+      "pending": "queued for {{platform}} as {{stage}}",
+      "newLead": "new lead from {{source}}",
+      "sources": {
+        "facebook_lead_ads": "Facebook Lead Ads",
+        "instagram_lead_ads": "Instagram Lead Ads",
+        "google_ads": "Google Ads lead forms",
+        "tiktok_lead_ads": "TikTok Instant Forms",
+        "website_snippet": "your website",
+        "meta": "Meta Lead Ads",
+        "google": "Google Ads lead forms",
+        "tiktok": "TikTok Instant Forms"
+      }
+    },
+    "sources": {
+      "facebook": "Facebook Lead Ads",
+      "instagram": "Instagram Lead Ads",
+      "instagramDetail": "Comes with your Facebook Pages",
+      "google": "Google Ads lead forms",
+      "tiktok": "TikTok Instant Forms",
+      "website": "Website forms",
+      "websiteDetail": "Captured by the LeadLoop tag on your site",
+      "websiteOn": "Captured by the LeadLoop tag on {{sites}}",
+      "pickPages": "Pick the Pages to sync",
+      "connectMetaFirst": "Connect Meta first",
+      "connectGoogleFirst": "Connect Google Ads first",
+      "connectTikTokFirst": "Connect TikTok Ads first",
+      "googleOn": "Leads arrive from your lead form webhook",
+      "googleTurnOn": "Get a webhook to paste into your lead forms",
+      "tiktokOn": "Subscribed for {{name}}",
+      "tiktokTurnOn": "Bring Instant Form leads onto your board",
+      "syncingPages_one": "Syncing · {{count}} Page",
+      "syncingPages_other": "Syncing · {{count}} Pages",
+      "capturing_one": "Capturing · {{count}} lead",
+      "capturing_other": "Capturing · {{count}} leads",
+      "connect": "Connect",
+      "turnOn": "Turn on",
+      "setUp": "Set up"
+    },
+    "more": {
+      "comingSoon": "Coming soon",
+      "notify": "Notify me",
+      "notifyAria": "Notify me when {{name}} is available",
+      "notified": "We’ll let you know",
+      "notifyThanks": "Thanks! We’ll let you know when it’s ready."
+    },
+    "advanced": {
+      "title": "Advanced: stages, event names & manual setup",
+      "sub": "Which stages count as Qualified lead and Customer, event names, manual IDs and recent sends.",
+      "subNeedsStages": "Pick which stages count as a Qualified lead and a Customer. Nothing is reported until you do.",
+      "required": "Needed"
+    },
+    "steps": {
+      "signIn": "Sign in",
+      "chooseAccounts": "Choose accounts",
+      "leadAds": "Lead Ads",
+      "instantForms": "Instant Forms",
+      "test": "Test"
+    },
+    "common": {
+      "close": "Close",
+      "cancel": "Cancel",
+      "back": "Back",
+      "continue": "Continue",
+      "done": "Done",
+      "skip": "Skip for now",
+      "retry": "Try again",
+      "on": "On",
+      "off": "Off",
+      "progress": "Progress",
+      "copy": "Copy",
+      "copied": "Copied",
+      "copiedSr": "Copied to clipboard",
+      "copyFailed": "Could not copy. Select the text and copy it manually.",
+      "switchAccount": "Switch account",
+      "recommended": "Recommended",
+      "lastActivity": "Last saw activity {{when}}",
+      "noActivity": "No activity yet",
+      "createPixel": "Create a new pixel for me",
+      "createPixelDetail": "We’ll name it “{{name}}” and set it up",
+      "pixelName": "New pixel name",
+      "whatWeSetUp": "What LeadLoop will set up for you",
+      "neverPost": "We never post or change your ads.",
+      "noBoards": "Create a board first, so leads have somewhere to land.",
+      "sendLeadsTo": "Send new leads to board",
+      "testEventCode": "Test event code",
+      "sendTestEvent": "Send test event"
+    },
+    "meta": {
+      "dialogTitle": "Connect Meta",
+      "dialogSubtitle": "Pick where LeadLoop should send your lead results.",
+      "signInIntro": "Sign in with the Facebook account that manages your ads. You’ll choose the business, ad account and pixel next.",
+      "signedIn": "Signed in to Facebook",
+      "signedInAs": "Signed in to Facebook as",
+      "loadingAssets": "Loading your businesses and ad accounts…",
+      "assetsError": "Could not load your Meta accounts.",
+      "business": "Business portfolio",
+      "adAccount": "Ad account",
+      "foundAdAccounts_one": "Found {{count}} ad account you can manage.",
+      "foundAdAccounts_other": "Found {{count}} ad accounts you can manage.",
+      "noAdAccounts": "We couldn’t find an ad account you can manage here. Check you have admin access in Business Settings, or switch account.",
+      "pixel": "Pixel",
+      "loadingPixels": "Loading pixels…",
+      "pixelsError": "Could not load pixels for this ad account. You can still create a new one.",
+      "yourBusiness": "Your business",
+      "saveError": "Could not save your Meta accounts.",
+      "setupItems": [
+        "Secure server connection (Conversions API)",
+        "“QualifiedLead” and “ConvertedLead” events",
+        "Pixel added to your website tag",
+        "A test event to prove it works"
+      ],
+      "leadAdsIntro": "Pick the Facebook Pages whose Lead Ads should send leads to LeadLoop. Instagram lead ads come along with their Page.",
+      "pages": "Facebook Pages",
+      "noPages": "We couldn’t find any Pages for this Facebook account. You can skip this and turn Lead Ads on later.",
+      "pageWithInstagram": "Facebook + Instagram lead ads",
+      "pageFacebookOnly": "Facebook lead ads",
+      "leadAdsNote": "Unticked Pages stop syncing.",
+      "leadAdsOn_one": "Lead Ads are syncing from {{count}} Page.",
+      "leadAdsOn_other": "Lead Ads are syncing from {{count}} Pages.",
+      "leadAdsOff": "Lead Ads sync turned off.",
+      "leadAdsError": "Could not turn on Lead Ads.",
+      "testIntro": "Prove it works: in Meta Events Manager open your pixel → Test events, copy the test code and send one event from here.",
+      "testCodeHint": "Only used for this test. Real events keep going live.",
+      "testOk": "Meta received the test event. Check Events Manager → Test events.",
+      "testWarn": "Meta received it but warned:",
+      "testFail": "Meta rejected the test event.",
+      "stagesReminder": "Last step: under Advanced, pick which stages count as a Qualified lead and a Customer.",
+      "pagesFailed": "We couldn’t turn on Lead Ads for: {{pages}}. Make sure you are an admin of these Pages, then try again or skip for now."
+    },
+    "google": {
+      "dialogTitle": "Connect Google Ads",
+      "dialogSubtitle": "Choose the account your lead campaigns run in.",
+      "signedIn": "Signed in to Google",
+      "signedInAs": "Signed in as",
+      "useAnother": "Use another account",
+      "loadingAccounts": "Loading your Google Ads accounts…",
+      "accountsError": "Could not load your Google Ads accounts.",
+      "adAccount": "Ad account",
+      "searchAccounts": "Search accounts",
+      "noAccounts": "This Google account can’t access any Google Ads accounts. Try another account.",
+      "noMatches": "No accounts match your search.",
+      "managerMeta_one": "Manager account · {{count}} client account",
+      "managerMeta_other": "Manager account · {{count}} client accounts",
+      "taggingOn": "auto-tagging on",
+      "taggingOff": "auto-tagging off",
+      "fixTagging": "We’ll fix tagging",
+      "setUpAuto": "Set up automatically",
+      "optActions": "Conversion actions",
+      "optActionsDetail": "Create “LeadLoop · Qualified lead” and “LeadLoop · Customer”",
+      "optTagging": "Auto-tagging",
+      "optTaggingDetail": "Adds a click ID to ad links so we know which ad brought each lead",
+      "optLeadForms": "Lead form ads",
+      "optLeadFormsDetail": "Send leads from Google lead forms straight to your board",
+      "optGtm": "Install via Tag Manager",
+      "optGtmDetail": "Publish the LeadLoop tag to your Tag Manager container for you",
+      "optGtmDetailExisting": "Publish the LeadLoop tag to {{container}} for you",
+      "actionsNeeded": "Without conversion actions Google Ads can’t receive your qualified leads.",
+      "footerNote": "Takes about 20 seconds. Nothing in your campaigns changes.",
+      "connectAccount": "Connect account",
+      "saveError": "Could not connect this Google Ads account.",
+      "connected": "Google Ads is connected.",
+      "connectedLeadForms": "Google Ads is connected. One last step for lead form ads: paste these into your lead form.",
+      "webhookUrl": "Webhook URL",
+      "webhookKey": "Key",
+      "keyOnce": "Copy the key now. For your security we only show it once.",
+      "leadFormSteps": [
+        "In Google Ads, open your lead form asset → [[Lead delivery]] → [[Webhook integration]]",
+        "Paste the webhook URL and the key above",
+        "Click [[Send test data]]. A test lead appears on your board within seconds"
+      ],
+      "nextGtm": "Next: install the website tag",
+      "leadFormsExisting": "Google Ads is connected. Lead form ads were already set up for this account, so your existing webhook URL and key keep working."
+    },
+    "tiktok": {
+      "dialogTitle": "Connect TikTok Ads",
+      "dialogSubtitle": "Pick where LeadLoop should send your lead results.",
+      "signInIntro": "Sign in with the TikTok for Business account that manages your ads. You’ll choose the advertiser and pixel next.",
+      "signedIn": "Signed in to TikTok for Business",
+      "signedInAs": "Signed in to TikTok for Business as",
+      "loadingAssets": "Loading your advertiser accounts…",
+      "assetsError": "Could not load your TikTok accounts.",
+      "businessCenter": "Business Center",
+      "advertiser": "Advertiser account",
+      "noAdvertisers": "We couldn’t find an advertiser account you can manage. Switch account or ask for access in Business Center.",
+      "pixel": "TikTok Pixel",
+      "pixelsError": "Could not load pixels for this advertiser. You can still create a new one.",
+      "instantForms": "Bring in leads from Instant Forms",
+      "instantFormsDetail": "New TikTok form leads appear on your board within seconds",
+      "formsIntro": "Choose the board new Instant Form leads should land on. We’ll subscribe to new leads for this advertiser.",
+      "saveError": "Could not save your TikTok accounts.",
+      "connected": "TikTok Ads is connected.",
+      "setupItems": [
+        "Secure server connection (Events API)",
+        "Qualified lead and customer events",
+        "TikTok Pixel added to your website tag",
+        "A test event to prove it works"
+      ],
+      "testIntro": "Prove it works: in TikTok Events Manager open your pixel → Test events, copy the test code and send one event from here.",
+      "testCodeHint": "Only used for this test. Real events keep going live.",
+      "testOk": "TikTok received the test event. Check Events Manager → Test events.",
+      "testFail": "TikTok rejected the test event."
+    },
+    "toast": {
+      "signedIn": "Signed in to {{platform}}. Now pick your accounts.",
+      "notConfigured": "{{platform}} sign-in isn’t available on this server yet.",
+      "startError": "Could not start sign-in. Please try again.",
+      "disconnected": "{{platform}} disconnected.",
+      "disconnectError": "Could not disconnect. Please try again.",
+      "confirmMismatch": "This sign-in was started by a different LeadLoop user. Please click Connect again.",
+      "pendingExpired": "That sign-in expired. Please connect again.",
+      "errors": {
+        "cancelled": "Sign-in was cancelled. Nothing was changed.",
+        "expired": "That sign-in took too long and expired. Please connect again.",
+        "not_allowed": "We didn’t get the permissions we need. Please connect again and allow everything LeadLoop asks for.",
+        "failed": "Something went wrong while connecting. Please try again.",
+        "not_configured": "This ad platform isn’t available on this server yet."
+      }
+    }
   }
 }

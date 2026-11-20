@@ -8,6 +8,7 @@
  *   leadIdentity(task, board)   → { email, phone, firstName, lastName }
  *   metaEvent(...)              → one Meta Conversions API event (CRM-style)
  *   googleClickConversion(...)  → one Google Ads ClickConversion
+ *   tiktokEvent(...)            → one TikTok Events API 2.0 `data[]` item
  *   eligibility(...)            → { ok } | { ok:false, reason } per platform
  *
  * Hashing follows each platform's normalisation rules (SHA-256, lowercase hex):
@@ -133,6 +134,10 @@ const eligibility = ({ platform, attribution, identity, now = new Date(), requir
     if (!clickIdFor(attribution, now) && !email && !phone) return { ok: false, reason: 'no_match_keys' };
     return { ok: true };
   }
+  if (platform === 'tiktok') {
+    if (!email && !phone && !(attribution && attribution.ttclid)) return { ok: false, reason: 'no_match_keys' };
+    return { ok: true };
+  }
   return { ok: false, reason: 'unknown_platform' };
 };
 
@@ -219,7 +224,38 @@ const googleClickConversion = ({
   return conv;
 };
 
+/**
+ * One TikTok Events API 2.0 event (an item of the request's `data` array; the
+ * envelope — event_source / event_source_id / test_event_code — is added by
+ * services/tiktokEvents.js). TikTok's matching rules: email trimmed +
+ * lowercased then SHA-256; phone in E.164 (`+15551234567`) then SHA-256;
+ * external_id SHA-256; ttclid / IP / user agent as-is.
+ */
+const tiktokEvent = ({ eventName, eventTime, eventId, taskId, identity, attribution, defaultCountryCode = '1' }) => {
+  const a = attribution || {};
+  const user = {};
+  const email = normEmail(identity && identity.email);
+  const phone = phoneDigits(identity && identity.phone, defaultCountryCode);
+  if (email) user.email = sha256(email);
+  if (phone) user.phone = sha256(`+${phone}`);
+  if (taskId) user.external_id = sha256(String(taskId));
+  if (a.ttclid) user.ttclid = a.ttclid;
+  if (a.clientIp) user.ip = a.clientIp;
+  if (a.clientUserAgent) user.user_agent = a.clientUserAgent;
+  const event = {
+    event: eventName,
+    event_time: Math.floor(new Date(eventTime).getTime() / 1000),
+    event_id: eventId,
+    user,
+    properties: { lead_event_source: 'LeadLoop' },
+  };
+  const pageUrl = a.pageUrl || a.landingPage;
+  if (pageUrl) event.page = { url: pageUrl, ...(a.referrer ? { referrer: a.referrer } : {}) };
+  return event;
+};
+
 module.exports = {
+  tiktokEvent,
   sha256,
   leadIdentity,
   normEmail,

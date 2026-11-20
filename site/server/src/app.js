@@ -61,6 +61,14 @@ app.use(
 //     honeypot, min fill time, per-visitor + per-site rate limits)
 //   • GET/POST /u/:token                      (email unsubscribe — signed token
 //     is the authorisation; CASL/CAN-SPAM require this to work without login)
+//   • GET  /api/ad-connect/callback/:platform (Meta / Google Ads / TikTok OAuth
+//     return — signed, single-use, user+workspace-bound state; the user must
+//     still be a workspace admin)
+//   • GET/POST /api/ad-connect/webhooks/meta  (Lead Ads leadgen — hub.challenge
+//     verify token; POST verified by X-Hub-Signature-256 over the RAW body, so
+//     it carries its own express.raw parser ABOVE the global express.json())
+//   • POST /api/ad-connect/webhooks/tiktok    (Instant Form leads — per-workspace
+//     URL secret + signature when present; own raw parser)
 //
 // Mounted BEFORE the global `express.json()` below: routes that need a body
 // carry their OWN parser (the F7 inbound route caps at 256KB; the F8 inbound
@@ -104,6 +112,10 @@ app.use(publicBillingRouter);
 // Public unsubscribe page. No auth by necessity — the recipient is not a user;
 // the signed token is the authorisation. Carries its own body parser.
 app.use(require('./routes/unsubscribe'));
+// One-click ad connections — OAuth callbacks + lead webhooks. No auth (see the
+// allowlist above); webhooks verify signatures over their own raw-body parser.
+const { publicAdConnectRouter, adConnectRouter } = require('./routes/adConnect');
+app.use(publicAdConnectRouter);
 
 // CSV import — authed, but mounted here because it needs a 12MB body limit
 // that the global 100KB parser below would reject first.
@@ -149,6 +161,10 @@ app.use('/api', require('./routes/compliance'));
 app.use('/api', require('./routes/sla'));
 // Ad-platform conversions (Meta CAPI / Google Ads) — settings + logs.
 app.use('/api', require('./routes/adConversions'));
+// One-click ad connections (Meta / Google Ads / TikTok) — admin-only.
+app.use('/api', adConnectRouter);
+// Website tag install / site check / WordPress plugin (admin-only).
+app.use('/api', require('./routes/adConnectWebsite'));
 app.use('/api', require('./routes/push'));
 // F7 — admin, board-scoped webhook management (authed). Mounted at /api so its
 // routes resolve as /api/boards/:id/webhooks… alongside the boards router.
